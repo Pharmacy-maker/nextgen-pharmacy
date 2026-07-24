@@ -18,13 +18,13 @@ export const Route = createFileRoute("/")({
   component: Landing,
   head: () => ({
     meta: [
-      { title: "NextGen — Your Future Pharmacy Starts Here" },
+      { title: "Rays Pharmacy — Your Future Pharmacy Starts Here" },
       {
         name: "description",
         content:
           "AI-powered medicine discovery, trusted healthcare products, and seamless online pharmacy experience.",
       },
-      { property: "og:title", content: "NextGen — Your Future Pharmacy" },
+      { property: "og:title", content: "Rays Pharmacy — Your Future Pharmacy" },
       {
         property: "og:description",
         content: "Premium AI-powered pharmacy platform with instant prescription scanning.",
@@ -52,7 +52,7 @@ function Header() {
               <Pill className="h-5 w-5 text-white" />
               <div className="absolute inset-0 rounded-xl bg-grad-hero blur-xl opacity-60 -z-10" />
             </div>
-            <span className="font-display font-bold text-lg tracking-tight">NextGen</span>
+            <span className="font-display font-bold text-lg tracking-tight">Rays Pharmacy</span>
           </a>
           <nav className="hidden lg:flex items-center gap-1 mx-2">
             {nav.map((n) => (
@@ -101,120 +101,186 @@ function IconBtn({ children }: { children: React.ReactNode }) {
 }
 
 /* -------------------- HERO DASHBOARD -------------------- */
+import heroPharmacy from "../assets/hero-pharmacy.jpg.asset.json";
+
 function HeroDashboard() {
   const ref = useRef<HTMLDivElement>(null);
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    let raf = 0;
     const onMove = (e: MouseEvent) => {
       const r = el.getBoundingClientRect();
-      setMouse({
-        x: ((e.clientX - r.left) / r.width - 0.5) * 2,
-        y: ((e.clientY - r.top) / r.height - 0.5) * 2,
-      });
+      const nx = ((e.clientX - r.left) / r.width - 0.5) * 2;
+      const ny = ((e.clientY - r.top) / r.height - 0.5) * 2;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => setMouse({ x: nx, y: ny }));
     };
     el.addEventListener("mousemove", onMove);
-    return () => el.removeEventListener("mousemove", onMove);
+    return () => {
+      el.removeEventListener("mousemove", onMove);
+      cancelAnimationFrame(raf);
+    };
   }, []);
 
   const parallax = (depth = 20) => ({
     transform: `translate3d(${mouse.x * depth}px, ${mouse.y * depth}px, 0)`,
+    transition: "transform 400ms cubic-bezier(.2,.7,.2,1)",
+    willChange: "transform",
   });
+
+  const badges = [
+    { label: "50,000+ Medicines", delay: 0.5 },
+    { label: "Trusted by 2M+ Customers", delay: 0.7 },
+    { label: "AI Prescription Scanner", delay: 0.9 },
+    { label: "24/7 Pharmacist Support", delay: 1.1 },
+  ];
 
   return (
     <div
       ref={ref}
-      className="relative w-full h-[520px] md:h-[620px] overflow-hidden rounded-3xl border border-white/10 glass-strong"
+      className="relative w-full h-[560px] md:h-[680px] overflow-hidden rounded-3xl border border-white/10"
+      style={{ background: "radial-gradient(120% 80% at 20% 10%, oklch(0.22 0.08 260) 0%, oklch(0.12 0.04 265) 55%, oklch(0.09 0.03 265) 100%)" }}
     >
-      {/* animated gradient background */}
-      <div className="absolute inset-0 bg-grad-hero animate-gradient opacity-70" />
-      <div className="absolute inset-0 grid-bg opacity-30" />
-      {/* glow orbs */}
-      <div className="absolute -top-32 -left-24 h-96 w-96 rounded-full bg-cyan/40 blur-3xl animate-pulse-glow" />
-      <div className="absolute -bottom-32 -right-24 h-96 w-96 rounded-full bg-pink/40 blur-3xl animate-pulse-glow" style={{ animationDelay: "1s" }} />
-      <div className="absolute top-1/3 right-1/4 h-64 w-64 rounded-full bg-emerald/30 blur-3xl animate-pulse-glow" style={{ animationDelay: "2s" }} />
+      {/* Aurora + mesh gradient background */}
+      <div className="absolute inset-0 opacity-80 animate-gradient"
+        style={{
+          background:
+            "radial-gradient(50% 40% at 15% 20%, oklch(0.55 0.2 260 / 0.55), transparent 60%)," +
+            "radial-gradient(45% 40% at 85% 30%, oklch(0.7 0.18 200 / 0.5), transparent 65%)," +
+            "radial-gradient(60% 50% at 60% 90%, oklch(0.55 0.22 300 / 0.45), transparent 65%)",
+          backgroundSize: "200% 200%",
+        }}
+      />
+      {/* Soft moving light beams */}
+      <div className="absolute -top-40 left-1/4 h-[520px] w-[220px] rotate-12 blur-3xl opacity-40"
+        style={{ background: "linear-gradient(180deg, oklch(0.85 0.16 210 / 0.6), transparent)" }} />
+      <div className="absolute -top-40 right-1/3 h-[420px] w-[160px] -rotate-6 blur-3xl opacity-30"
+        style={{ background: "linear-gradient(180deg, oklch(0.85 0.2 265 / 0.55), transparent)" }} />
 
-      {/* Floating 3D medicine assets (CSS-only stylised) */}
+      {/* Bokeh particles */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Pill capsule */}
-        <div className="absolute top-[18%] left-[8%] animate-float" style={parallax(30)}>
-          <Capsule from="var(--pink)" to="var(--purple)" w={140} />
-        </div>
-        {/* Medicine box */}
-        <div className="absolute top-[55%] left-[14%] animate-float-slow" style={parallax(20)}>
-          <MedBox color="var(--cyan)" label="RX-100" />
-        </div>
-        {/* Tablet blister */}
-        <div className="absolute top-[22%] right-[10%] animate-float-slow" style={parallax(35)}>
-          <TabletStrip />
-        </div>
-        {/* Syringe */}
-        <div className="absolute bottom-[18%] right-[16%] animate-float" style={{ ...parallax(25), animationDelay: "1.5s" }}>
-          <Syringe />
-        </div>
-        {/* Prescription sheet */}
-        <div className="absolute top-[10%] left-1/2 -translate-x-1/2 animate-float-slow" style={parallax(15)}>
-          <PrescriptionSheet />
-        </div>
-        {/* Particles */}
-        {Array.from({ length: 22 }).map((_, i) => (
-          <div
-            key={i}
-            className="absolute h-1.5 w-1.5 rounded-full bg-white/60"
-            style={{
-              top: `${(i * 37) % 100}%`,
-              left: `${(i * 53) % 100}%`,
-              animation: `float-y ${4 + (i % 5)}s ease-in-out infinite`,
-              animationDelay: `${i * 0.2}s`,
-              boxShadow: "0 0 8px white",
-            }}
-          />
-        ))}
-        {/* Rotating molecular ring */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 h-40 w-40 opacity-40 animate-spin-slow">
-          <div className="absolute inset-0 rounded-full border-2 border-dashed border-white/50" />
-          <div className="absolute inset-4 rounded-full border border-white/40" />
-        </div>
+        {Array.from({ length: 26 }).map((_, i) => {
+          const size = 3 + ((i * 7) % 9);
+          return (
+            <div
+              key={i}
+              className="absolute rounded-full"
+              style={{
+                top: `${(i * 37) % 100}%`,
+                left: `${(i * 53) % 100}%`,
+                width: size,
+                height: size,
+                background: "white",
+                opacity: 0.15 + ((i % 5) * 0.08),
+                filter: "blur(1.5px)",
+                boxShadow: "0 0 14px rgba(255,255,255,0.55)",
+                animation: `float-y ${6 + (i % 6)}s ease-in-out infinite`,
+                animationDelay: `${i * 0.25}s`,
+              }}
+            />
+          );
+        })}
       </div>
 
-      {/* Hero text */}
-      <div className="relative z-10 h-full flex flex-col justify-center items-center text-center px-6">
-        <div className="glass rounded-full px-4 py-1.5 text-xs md:text-sm mb-6 flex items-center gap-2 animate-rise">
-          <Sparkles className="h-3.5 w-3.5 text-neon" />
-          AI-Powered Pharmacy • Trusted by 2M+ users
+      {/* Grid overlay */}
+      <div className="absolute inset-0 grid-bg opacity-[0.08]" />
+
+      {/* Realistic pharmacy composition — right side */}
+      <div
+        className="absolute inset-y-0 right-0 w-[62%] md:w-[58%] pointer-events-none"
+        style={parallax(18)}
+      >
+        <div className="absolute inset-0"
+          style={{
+            backgroundImage: `url(${heroPharmacy.url})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center right",
+            maskImage: "linear-gradient(to right, transparent 0%, black 22%, black 100%)",
+            WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 22%, black 100%)",
+          }}
+        />
+        {/* Cinematic bloom on top */}
+        <div className="absolute inset-0"
+          style={{
+            background: "radial-gradient(60% 60% at 60% 40%, oklch(0.75 0.18 210 / 0.15), transparent 70%)",
+            mixBlendMode: "screen",
+          }}
+        />
+      </div>
+
+      {/* Floating AI recommendation glass card */}
+      <div
+        className="absolute top-10 right-6 md:right-10 hidden sm:block glass-strong rounded-2xl p-4 w-64 animate-rise z-20"
+        style={{ ...parallax(28), animationDelay: "0.4s" }}
+      >
+        <div className="flex items-center gap-2 mb-1">
+          <div className="h-8 w-8 rounded-lg bg-grad-cool grid place-items-center">
+            <Brain className="h-4 w-4 text-white" />
+          </div>
+          <div className="text-sm font-semibold">AI Recommendation</div>
         </div>
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold max-w-4xl leading-[1.05] animate-rise" style={{ animationDelay: "0.1s" }}>
-          Your Future Pharmacy
+        <div className="text-xs text-white/70 mb-3">Based on your health needs &amp; history</div>
+        <button className="w-full text-xs font-medium rounded-lg glass px-3 py-2 hover:bg-white/10 transition-colors">
+          View Suggestions →
+        </button>
+      </div>
+
+      {/* Hero text — left aligned like reference */}
+      <div className="relative z-10 h-full flex flex-col justify-center px-6 md:px-12 max-w-2xl">
+        <div className="glass rounded-full pl-2 pr-4 py-1.5 text-xs md:text-sm mb-6 inline-flex items-center gap-2 animate-rise w-fit">
+          <span className="h-6 px-2 rounded-full bg-grad-cool text-[10px] font-semibold text-white grid place-items-center">
+            <Sparkles className="h-3 w-3" />
+          </span>
+          AI-Powered Pharmacy
+          <span className="h-3 w-px bg-white/20" />
+          <span className="text-white/70">Trusted by 2M+ users</span>
+        </div>
+
+        <h1
+          className="font-display font-bold leading-[1.02] tracking-[-0.03em] text-5xl md:text-6xl lg:text-7xl animate-rise"
+          style={{ animationDelay: "0.1s" }}
+        >
+          Your Future
+          <br />
+          Pharmacy
           <br />
           <span className="text-grad-cool">Starts Here.</span>
         </h1>
-        <p className="mt-5 text-base md:text-lg text-white/80 max-w-2xl animate-rise" style={{ animationDelay: "0.2s" }}>
+
+        <p
+          className="mt-5 text-base md:text-lg text-white/75 max-w-lg animate-rise"
+          style={{ animationDelay: "0.2s" }}
+        >
           AI-powered medicine discovery, trusted healthcare products, and a seamless online pharmacy experience.
         </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3 animate-rise" style={{ animationDelay: "0.3s" }}>
+
+        <div className="mt-8 flex flex-wrap gap-3 animate-rise" style={{ animationDelay: "0.3s" }}>
           <GradientButton>
-            <Sparkles className="h-4 w-4" /> Explore Medicines
+            Explore Medicines <ArrowRight className="h-4 w-4" />
           </GradientButton>
           <GhostButton>
             <Upload className="h-4 w-4" /> Upload Prescription
           </GhostButton>
         </div>
+      </div>
 
-        {/* Live mini-stats floating card */}
-        <div className="absolute bottom-6 left-6 hidden md:block glass-strong rounded-2xl p-4 w-64 animate-rise" style={{ animationDelay: "0.5s" }}>
-          <div className="text-xs text-white/70 mb-2">Live orders</div>
-          <MiniLive />
-        </div>
-        <div className="absolute bottom-6 right-6 hidden md:flex glass-strong rounded-2xl p-4 gap-3 items-center animate-rise" style={{ animationDelay: "0.6s" }}>
-          <div className="h-10 w-10 rounded-xl bg-grad-neon grid place-items-center">
-            <Truck className="h-5 w-5 text-black" />
+      {/* Trust badges bar */}
+      <div className="absolute bottom-4 left-4 right-4 md:left-6 md:right-6 z-10 hidden md:flex flex-wrap gap-2 justify-between glass-strong rounded-2xl px-4 py-3">
+        {badges.map((b, i) => (
+          <div
+            key={b.label}
+            className="flex items-center gap-2 text-xs md:text-sm text-white/85 animate-rise"
+            style={{ animationDelay: `${b.delay}s` }}
+          >
+            <span className="h-6 w-6 rounded-full bg-grad-cool grid place-items-center shrink-0">
+              <CheckCircle2 className="h-3.5 w-3.5 text-white" />
+            </span>
+            <span className="font-medium whitespace-nowrap">{b.label}</span>
+            {i < badges.length - 1 && <span className="hidden lg:inline h-4 w-px bg-white/10 ml-2" />}
           </div>
-          <div>
-            <div className="text-xs text-white/70">Avg. delivery</div>
-            <div className="text-lg font-semibold">27 min</div>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
@@ -222,15 +288,17 @@ function HeroDashboard() {
 
 function GradientButton({ children }: { children: React.ReactNode }) {
   return (
-    <button className="group relative inline-flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white bg-grad-hero glow hover-lift">
-      <span className="absolute inset-0 rounded-2xl bg-grad-hero blur-xl opacity-60 -z-10 group-hover:opacity-90 transition" />
-      {children}
+    <button className="group relative inline-flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white bg-grad-hero glow overflow-hidden transition-transform duration-300 hover:-translate-y-0.5 active:translate-y-0">
+      <span className="absolute inset-0 rounded-2xl bg-grad-hero blur-xl opacity-60 -z-10 group-hover:opacity-95 transition" />
+      <span className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition duration-500"
+        style={{ background: "linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%)", backgroundSize: "200% 100%", animation: "gradient-shift 2.5s linear infinite" }} />
+      <span className="relative z-10 inline-flex items-center gap-2">{children}</span>
     </button>
   );
 }
 function GhostButton({ children }: { children: React.ReactNode }) {
   return (
-    <button className="inline-flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold glass-strong hover:bg-white/15 transition-all hover-lift">
+    <button className="inline-flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold glass-strong hover:bg-white/15 transition-all duration-300 hover:-translate-y-0.5">
       {children}
     </button>
   );
@@ -953,7 +1021,7 @@ function Footer() {
               <div className="h-9 w-9 rounded-xl bg-grad-hero grid place-items-center">
                 <Pill className="h-5 w-5 text-white" />
               </div>
-              <span className="font-display font-bold text-lg">NextGen</span>
+              <span className="font-display font-bold text-lg">Rays Pharmacy</span>
             </div>
             <p className="text-sm text-muted-foreground">The AI-powered pharmacy for a healthier tomorrow.</p>
             <div className="flex gap-2 mt-4">
@@ -989,7 +1057,7 @@ function Footer() {
           </div>
         </div>
         <div className="mx-auto max-w-7xl mt-8 pt-6 border-t border-white/10 text-xs text-muted-foreground flex flex-wrap justify-between gap-2">
-          <span>© {new Date().getFullYear()} NextGen Pharmacy. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} Rays Pharmacy. All rights reserved.</span>
           <span>Made with ♥ for a healthier tomorrow.</span>
         </div>
       </div>
@@ -1001,7 +1069,7 @@ function Footer() {
 function Chatbot() {
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<{ me: boolean; t: string }[]>([
-    { me: false, t: "Hi! I'm NextGen AI. Ask me about medicines, symptoms, or upload a prescription." },
+    { me: false, t: "Hi! I'm Rays AI. Ask me about medicines, symptoms, or upload a prescription." },
   ]);
   const [typing, setTyping] = useState(false);
   const [txt, setTxt] = useState("");
@@ -1030,7 +1098,7 @@ function Chatbot() {
           <div className="p-4 bg-grad-hero flex items-center gap-3 text-white">
             <div className="h-9 w-9 rounded-xl bg-white/20 grid place-items-center"><Bot className="h-5 w-5" /></div>
             <div>
-              <div className="font-semibold">NextGen AI</div>
+              <div className="font-semibold">Rays AI</div>
               <div className="text-xs opacity-80">Always online</div>
             </div>
             <button onClick={() => setOpen(false)} className="ml-auto h-8 w-8 grid place-items-center rounded-lg hover:bg-white/10">
@@ -1145,7 +1213,7 @@ function Landing() {
         <div className="h-8" />
         <Stats />
         <Categories />
-        <Carousel title="New Launches" eyebrow="Fresh on NextGen" />
+        <Carousel title="New Launches" eyebrow="Fresh on Rays Pharmacy" />
         <Carousel title="Trending Now" eyebrow="What's hot" />
         <BestSellers />
         <FlashSale />

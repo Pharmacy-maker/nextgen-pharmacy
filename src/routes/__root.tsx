@@ -77,14 +77,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "NextGen — AI-Powered Smart Pharmacy" },
+      { title: "Rays Pharmacy — AI-Powered Smart Pharmacy" },
       {
         name: "description",
         content:
-          "NextGen is an AI-powered pharmacy platform for medicine discovery, prescription scanning, and seamless online healthcare.",
+          "Rays Pharmacy is an AI-powered pharmacy platform for medicine discovery, prescription scanning, and seamless online healthcare.",
       },
-      { name: "author", content: "NextGen Pharmacy" },
-      { property: "og:title", content: "NextGen — AI-Powered Smart Pharmacy" },
+      { name: "author", content: "Rays Pharmacy" },
+      { property: "og:title", content: "Rays Pharmacy — AI-Powered Smart Pharmacy" },
       {
         property: "og:description",
         content:
