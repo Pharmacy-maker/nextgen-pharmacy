@@ -18,13 +18,13 @@ export const Route = createFileRoute("/")({
   component: Landing,
   head: () => ({
     meta: [
-      { title: "NextGen — Your Future Pharmacy Starts Here" },
+      { title: "Rays Pharmacy — Your Future Pharmacy Starts Here" },
       {
         name: "description",
         content:
           "AI-powered medicine discovery, trusted healthcare products, and seamless online pharmacy experience.",
       },
-      { property: "og:title", content: "NextGen — Your Future Pharmacy" },
+      { property: "og:title", content: "Rays Pharmacy — Your Future Pharmacy" },
       {
         property: "og:description",
         content: "Premium AI-powered pharmacy platform with instant prescription scanning.",
@@ -52,7 +52,7 @@ function Header() {
               <Pill className="h-5 w-5 text-white" />
               <div className="absolute inset-0 rounded-xl bg-grad-hero blur-xl opacity-60 -z-10" />
             </div>
-            <span className="font-display font-bold text-lg tracking-tight">NextGen</span>
+            <span className="font-display font-bold text-lg tracking-tight">Rays Pharmacy</span>
           </a>
           <nav className="hidden lg:flex items-center gap-1 mx-2">
             {nav.map((n) => (
@@ -953,7 +953,7 @@ function Footer() {
               <div className="h-9 w-9 rounded-xl bg-grad-hero grid place-items-center">
                 <Pill className="h-5 w-5 text-white" />
               </div>
-              <span className="font-display font-bold text-lg">NextGen</span>
+              <span className="font-display font-bold text-lg">Rays Pharmacy</span>
             </div>
             <p className="text-sm text-muted-foreground">The AI-powered pharmacy for a healthier tomorrow.</p>
             <div className="flex gap-2 mt-4">
@@ -989,7 +989,7 @@ function Footer() {
           </div>
         </div>
         <div className="mx-auto max-w-7xl mt-8 pt-6 border-t border-white/10 text-xs text-muted-foreground flex flex-wrap justify-between gap-2">
-          <span>© {new Date().getFullYear()} NextGen Pharmacy. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} Rays Pharmacy. All rights reserved.</span>
           <span>Made with ♥ for a healthier tomorrow.</span>
         </div>
       </div>
@@ -1001,7 +1001,7 @@ function Footer() {
 function Chatbot() {
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<{ me: boolean; t: string }[]>([
-    { me: false, t: "Hi! I'm NextGen AI. Ask me about medicines, symptoms, or upload a prescription." },
+    { me: false, t: "Hi! I'm Rays AI. Ask me about medicines, symptoms, or upload a prescription." },
   ]);
   const [typing, setTyping] = useState(false);
   const [txt, setTxt] = useState("");
@@ -1030,7 +1030,7 @@ function Chatbot() {
           <div className="p-4 bg-grad-hero flex items-center gap-3 text-white">
             <div className="h-9 w-9 rounded-xl bg-white/20 grid place-items-center"><Bot className="h-5 w-5" /></div>
             <div>
-              <div className="font-semibold">NextGen AI</div>
+              <div className="font-semibold">Rays AI</div>
               <div className="text-xs opacity-80">Always online</div>
             </div>
             <button onClick={() => setOpen(false)} className="ml-auto h-8 w-8 grid place-items-center rounded-lg hover:bg-white/10">
@@ -1145,7 +1145,7 @@ function Landing() {
         <div className="h-8" />
         <Stats />
         <Categories />
-        <Carousel title="New Launches" eyebrow="Fresh on NextGen" />
+        <Carousel title="New Launches" eyebrow="Fresh on Rays Pharmacy" />
         <Carousel title="Trending Now" eyebrow="What's hot" />
         <BestSellers />
         <FlashSale />
