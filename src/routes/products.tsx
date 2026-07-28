@@ -64,7 +64,7 @@ function ProductsPage() {
               value={localQ}
               onChange={(e) => {
                 setLocalQ(e.target.value);
-                navigate({ search: (prev) => ({ ...prev, q: e.target.value }), replace: true });
+                navigate({ search: (prev: { q: string; tag: string; category: string }) => ({ ...prev, q: e.target.value }), replace: true });
               }}
               placeholder="Search medicines, brands, categories…"
               className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
@@ -88,7 +88,7 @@ function ProductsPage() {
           <div className="flex flex-wrap gap-2 mb-4 text-xs">
             {tag && (
               <button
-                onClick={() => navigate({ search: (p) => ({ ...p, tag: "" }) })}
+                onClick={() => navigate({ search: (p: { q: string; tag: string; category: string }) => ({ ...p, tag: "" }) })}
                 className="glass px-3 py-1 rounded-full"
               >
                 Tag: {tag} ✕
@@ -96,7 +96,7 @@ function ProductsPage() {
             )}
             {category && (
               <button
-                onClick={() => navigate({ search: (p) => ({ ...p, category: "" }) })}
+                onClick={() => navigate({ search: (p: { q: string; tag: string; category: string }) => ({ ...p, category: "" }) })}
                 className="glass px-3 py-1 rounded-full"
               >
                 Category: {category} ✕
