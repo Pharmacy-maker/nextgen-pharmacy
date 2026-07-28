@@ -1,8 +1,8 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell, Menu, Pill, Search, ShoppingCart, User, X, LogOut } from "lucide-react";
-import { useAuth, useCart } from "../lib/store";
-import { searchProducts, discountedPrice } from "../lib/products";
+import { useAuth, useCart } from "../../lib/store";
+import { searchProducts, discountedPrice } from "../../lib/products";
 
 const NAV = [
   { label: "Home", to: "/" },
