@@ -1,5 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { PageShell, Section } from "../components/site/Section";
 import {
   emailSchema,
@@ -10,6 +12,11 @@ import {
   type FieldErrors,
 } from "../lib/validation";
 import { useAuth } from "../lib/store";
+import {
+  ConfirmPasswordField,
+  PasswordField,
+  TextField,
+} from "../components/site/FormFields";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -58,131 +65,207 @@ function LoginPage() {
     <PageShell>
       <Section eyebrow="Welcome" title={mode === "login" ? "Sign | In |" : "Create | Account |"}>
         <div className="glass rounded-3xl p-6 md:p-8 max-w-md mx-auto">
-          <div className="flex bg-white/5 rounded-xl p-1 mb-6">
+          <div role="tablist" className="flex bg-white/5 rounded-xl p-1 mb-6">
             <button
+              role="tab"
+              aria-selected={mode === "login"}
               onClick={() => setMode("login")}
-              className={`flex-1 py-2 rounded-lg text-sm font-semibold ${mode === "login" ? "bg-grad-hero text-white" : ""}`}
+              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${mode === "login" ? "bg-grad-hero text-white" : ""}`}
             >
               Login
             </button>
             <button
+              role="tab"
+              aria-selected={mode === "signup"}
               onClick={() => setMode("signup")}
-              className={`flex-1 py-2 rounded-lg text-sm font-semibold ${mode === "signup" ? "bg-grad-hero text-white" : ""}`}
+              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition ${mode === "signup" ? "bg-grad-hero text-white" : ""}`}
             >
               Sign up
             </button>
           </div>
-          {mode === "login" ? <LoginForm onDone={(u) => { login(u); navigate({ to: "/" }); }} /> : <SignupForm onDone={(u) => { login(u); navigate({ to: "/" }); }} />}
+          {mode === "login" ? (
+            <LoginFormEl onDone={(u) => { login(u); navigate({ to: "/" }); }} />
+          ) : (
+            <SignupFormEl onDone={(u) => { login(u); navigate({ to: "/" }); }} />
+          )}
         </div>
       </Section>
     </PageShell>
   );
 }
 
-function LoginForm({ onDone }: { onDone: (u: { name: string; email: string }) => void }) {
+function LoginFormEl({ onDone }: { onDone: (u: { name: string; email: string }) => void }) {
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
+  const [touched, setTouched] = useState<Record<keyof LoginForm, boolean>>({ email: false, password: false });
   const [errors, setErrors] = useState<FieldErrors<LoginForm>>({});
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const r = loginSchema.safeParse(form);
-    if (!r.success) return setErrors(toFieldErrors<LoginForm>(r.error));
-    onDone({ name: form.email.split("@")[0], email: form.email });
-  };
-  return (
-    <form onSubmit={submit} className="space-y-3" noValidate>
-      <Field label="Email" error={errors.email}>
-        <input
-          type="email"
-          value={form.email}
-          onChange={(e) => {
-            setForm({ ...form, email: e.target.value });
-            const r = emailSchema.safeParse(e.target.value);
-            setErrors((x) => ({ ...x, email: r.success ? undefined : r.error.issues[0]?.message }));
-          }}
-          className={inputCls(!!errors.email)}
-          placeholder="you@email.com"
-        />
-      </Field>
-      <Field label="Password" error={errors.password}>
-        <input
-          type="password"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-          className={inputCls(!!errors.password)}
-          placeholder="Your password"
-        />
-      </Field>
-      <button type="submit" className="w-full py-3 rounded-2xl bg-grad-hero text-white font-semibold glow">
-        Sign in
-      </button>
-    </form>
-  );
-}
+  const [submitting, setSubmitting] = useState(false);
 
-function SignupForm({ onDone }: { onDone: (u: { name: string; email: string }) => void }) {
-  const [form, setForm] = useState<SignupForm>({ name: "", email: "", phone: "", password: "", confirm: "" });
-  const [errors, setErrors] = useState<FieldErrors<SignupForm>>({});
-  const update = <K extends keyof SignupForm>(k: K, v: SignupForm[K]) => {
+  const validate = (next: LoginForm) => {
+    const r = loginSchema.safeParse(next);
+    if (r.success) {
+      setErrors({});
+      return true;
+    }
+    setErrors(toFieldErrors<LoginForm>(r.error));
+    return false;
+  };
+
+  const setField = <K extends keyof LoginForm>(k: K, v: string) => {
     const next = { ...form, [k]: v };
     setForm(next);
-    const r = signupSchema.safeParse(next);
-    if (r.success) setErrors({});
-    else {
-      const map = toFieldErrors<SignupForm>(r.error);
-      setErrors((prev) => ({ ...prev, [k]: map[k] }));
+    validate(next);
+  };
+
+  const isValid = useMemo(() => loginSchema.safeParse(form).success, [form]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setTouched({ email: true, password: true });
+    if (!validate(form) || submitting) return;
+    setSubmitting(true);
+    try {
+      await new Promise((r) => setTimeout(r, 700));
+      toast.success("Signed in successfully");
+      onDone({ name: form.email.split("@")[0], email: form.email });
+    } finally {
+      setSubmitting(false);
     }
   };
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const r = signupSchema.safeParse(form);
-    if (!r.success) return setErrors(toFieldErrors<SignupForm>(r.error));
-    onDone({ name: form.name, email: form.email });
-  };
+
   return (
     <form onSubmit={submit} className="space-y-3" noValidate>
-      <Field label="Full name" error={errors.name}>
-        <input value={form.name} onChange={(e) => update("name", e.target.value)} className={inputCls(!!errors.name)} />
-      </Field>
-      <Field label="Email" error={errors.email}>
-        <input type="email" value={form.email} onChange={(e) => update("email", e.target.value)} className={inputCls(!!errors.email)} />
-      </Field>
-      <Field label="Phone" error={errors.phone}>
-        <input inputMode="numeric" value={form.phone} onChange={(e) => update("phone", e.target.value.replace(/\D/g, "").slice(0, 10))} className={inputCls(!!errors.phone)} />
-      </Field>
-      <Field label="Password" error={errors.password}>
-        <input
-          type="password"
-          value={form.password}
-          onChange={(e) => {
-            update("password", e.target.value);
-            const r = passwordSchema.safeParse(e.target.value);
-            setErrors((x) => ({ ...x, password: r.success ? undefined : r.error.issues[0]?.message }));
-          }}
-          className={inputCls(!!errors.password)}
-        />
-        <div className="text-[10px] text-muted-foreground mt-1">
-          Min 8 chars, incl. uppercase, lowercase, number & special.
-        </div>
-      </Field>
-      <Field label="Confirm password" error={errors.confirm}>
-        <input type="password" value={form.confirm} onChange={(e) => update("confirm", e.target.value)} className={inputCls(!!errors.confirm)} />
-      </Field>
-      <button type="submit" className="w-full py-3 rounded-2xl bg-grad-hero text-white font-semibold glow">
-        Create account
+      <TextField
+        label="Email"
+        type="email"
+        autoComplete="email"
+        placeholder="you@email.com"
+        value={form.email}
+        onChange={(v) => setField("email", v)}
+        onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+        error={errors.email}
+        touched={touched.email}
+      />
+      <PasswordField
+        label="Password"
+        value={form.password}
+        onChange={(v) => setField("password", v)}
+        error={errors.password}
+        touched={touched.password}
+        showMeter={false}
+        showChecklist={false}
+        autoComplete="current-password"
+        placeholder="Your password"
+      />
+      <button
+        type="submit"
+        disabled={!isValid || submitting}
+        className="w-full py-3 rounded-2xl bg-grad-hero text-white font-semibold glow inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+        {submitting ? "Signing in…" : "Sign in"}
       </button>
     </form>
   );
 }
 
-function inputCls(hasError: boolean) {
-  return `w-full bg-white/5 rounded-xl px-3 py-2.5 border ${hasError ? "border-pink/60" : "border-white/10"} focus:outline-none focus:ring-2 focus:ring-primary/60`;
-}
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+function SignupFormEl({ onDone }: { onDone: (u: { name: string; email: string }) => void }) {
+  const [form, setForm] = useState<SignupForm>({ name: "", email: "", phone: "", password: "", confirm: "" });
+  const [touched, setTouched] = useState<Record<keyof SignupForm, boolean>>({
+    name: false, email: false, phone: false, password: false, confirm: false,
+  });
+  const [errors, setErrors] = useState<FieldErrors<SignupForm>>({});
+  const [submitting, setSubmitting] = useState(false);
+
+  const validate = (next: SignupForm) => {
+    const r = signupSchema.safeParse(next);
+    if (r.success) {
+      setErrors({});
+      return true;
+    }
+    setErrors(toFieldErrors<SignupForm>(r.error));
+    return false;
+  };
+
+  const setField = <K extends keyof SignupForm>(k: K, v: string) => {
+    const next = { ...form, [k]: v };
+    setForm(next);
+    validate(next);
+  };
+
+  const isValid = useMemo(() => signupSchema.safeParse(form).success, [form]);
+  const passwordDetail = useMemo(() => {
+    const r = passwordSchema.safeParse(form.password);
+    return r.success ? undefined : r.error.issues[0]?.message;
+  }, [form.password]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setTouched({ name: true, email: true, phone: true, password: true, confirm: true });
+    if (!validate(form) || submitting) return;
+    setSubmitting(true);
+    try {
+      await new Promise((r) => setTimeout(r, 900));
+      toast.success("Account created — welcome to Rays Pharmacy!");
+      onDone({ name: form.name, email: form.email });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <label className="block">
-      <span className="block text-xs text-muted-foreground mb-1">{label}</span>
-      {children}
-      {error && <span className="block text-xs text-pink mt-1">{error}</span>}
-    </label>
+    <form onSubmit={submit} className="space-y-3" noValidate>
+      <TextField
+        label="Full name"
+        autoComplete="name"
+        value={form.name}
+        onChange={(v) => setField("name", v)}
+        onBlur={() => setTouched((t) => ({ ...t, name: true }))}
+        error={errors.name}
+        touched={touched.name}
+      />
+      <TextField
+        label="Email"
+        type="email"
+        autoComplete="email"
+        value={form.email}
+        onChange={(v) => setField("email", v)}
+        onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+        error={errors.email}
+        touched={touched.email}
+      />
+      <TextField
+        label="Phone"
+        inputMode="numeric"
+        autoComplete="tel"
+        value={form.phone}
+        onChange={(v) => setField("phone", v.replace(/\D/g, "").slice(0, 10))}
+        onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
+        error={errors.phone}
+        touched={touched.phone}
+        hint="10 digits, no spaces"
+      />
+      <PasswordField
+        label="Password"
+        value={form.password}
+        onChange={(v) => setField("password", v)}
+        error={touched.password ? passwordDetail : undefined}
+        touched={touched.password}
+        autoComplete="new-password"
+      />
+      <ConfirmPasswordField
+        value={form.confirm}
+        onChange={(v) => setField("confirm", v)}
+        original={form.password}
+        touched={touched.confirm}
+      />
+      <button
+        type="submit"
+        disabled={!isValid || submitting}
+        className="w-full py-3 rounded-2xl bg-grad-hero text-white font-semibold glow inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+        {submitting ? "Creating account…" : "Create account"}
+      </button>
+    </form>
   );
 }
