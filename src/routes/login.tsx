@@ -11,7 +11,8 @@ import {
   toFieldErrors,
   type FieldErrors,
 } from "../lib/validation";
-import { useAuth } from "../lib/store";
+import { useAuth, type AuthUser } from "../lib/store";
+import { authService, DEMO_ADMIN } from "../lib/api";
 import {
   ConfirmPasswordField,
   PasswordField,
@@ -104,7 +105,7 @@ function LoginPage() {
 }
 
 
-function LoginFormEl({ onDone }: { onDone: (u: { name: string; email: string }) => void }) {
+function LoginFormEl({ onDone }: { onDone: (u: AuthUser) => void }) {
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
   const [touched, setTouched] = useState<Record<keyof LoginForm, boolean>>({ email: false, password: false });
   const [errors, setErrors] = useState<FieldErrors<LoginForm>>({});
@@ -134,9 +135,17 @@ function LoginFormEl({ onDone }: { onDone: (u: { name: string; email: string }) 
     if (!validate(form) || submitting) return;
     setSubmitting(true);
     try {
-      await new Promise((r) => setTimeout(r, 700));
+      const session = await authService.login({ email: form.email, password: form.password });
       toast.success("Signed in successfully");
-      onDone({ name: form.email.split("@")[0], email: form.email });
+      onDone({
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+        phone: session.user.phone,
+        role: session.user.role,
+      });
+    } catch (err) {
+      toast.error((err as Error).message || "Sign in failed. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -178,7 +187,7 @@ function LoginFormEl({ onDone }: { onDone: (u: { name: string; email: string }) 
   );
 }
 
-function SignupFormEl({ onDone }: { onDone: (u: { name: string; email: string }) => void }) {
+function SignupFormEl({ onDone }: { onDone: (u: AuthUser) => void }) {
   const [form, setForm] = useState<SignupForm>({ name: "", email: "", phone: "", password: "", confirm: "" });
   const [touched, setTouched] = useState<Record<keyof SignupForm, boolean>>({
     name: false, email: false, phone: false, password: false, confirm: false,
@@ -214,9 +223,22 @@ function SignupFormEl({ onDone }: { onDone: (u: { name: string; email: string })
     if (!validate(form) || submitting) return;
     setSubmitting(true);
     try {
-      await new Promise((r) => setTimeout(r, 900));
+      const session = await authService.signup({
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        password: form.password,
+      });
       toast.success("Account created — welcome to Rays Pharmacy!");
-      onDone({ name: form.name, email: form.email });
+      onDone({
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+        phone: session.user.phone,
+        role: session.user.role,
+      });
+    } catch (err) {
+      toast.error((err as Error).message || "Sign up failed. Please try again.");
     } finally {
       setSubmitting(false);
     }
