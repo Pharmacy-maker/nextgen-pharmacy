@@ -1,6 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { discountedPrice, findProduct, type Product } from "./products";
+import { setToken } from "./api/client";
+import type { UserRole } from "../types/models";
+
 
 type CartItem = { id: string; qty: number };
 type CartCtx = {
