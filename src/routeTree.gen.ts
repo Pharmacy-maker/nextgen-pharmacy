@@ -14,6 +14,7 @@ import { Route as PrescriptionRouteImport } from './routes/prescription'
 import { Route as PaymentRouteImport } from './routes/payment'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DeliveryRouteImport } from './routes/delivery'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CategoriesRouteImport } from './routes/categories'
@@ -54,6 +55,11 @@ const LoginRoute = LoginRouteImport.update({
 const DeliveryRoute = DeliveryRouteImport.update({
   id: '/delivery',
   path: '/delivery',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/categories': typeof CategoriesRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/dashboard': typeof DashboardRoute
   '/delivery': typeof DeliveryRoute
   '/login': typeof LoginRoute
   '/payment': typeof PaymentRoute
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/categories': typeof CategoriesRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/dashboard': typeof DashboardRoute
   '/delivery': typeof DeliveryRoute
   '/login': typeof LoginRoute
   '/payment': typeof PaymentRoute
@@ -191,6 +199,7 @@ export interface FileRoutesById {
   '/categories': typeof CategoriesRoute
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
+  '/dashboard': typeof DashboardRoute
   '/delivery': typeof DeliveryRoute
   '/login': typeof LoginRoute
   '/payment': typeof PaymentRoute
@@ -216,6 +225,7 @@ export interface FileRouteTypes {
     | '/categories'
     | '/checkout'
     | '/contact'
+    | '/dashboard'
     | '/delivery'
     | '/login'
     | '/payment'
@@ -238,6 +248,7 @@ export interface FileRouteTypes {
     | '/categories'
     | '/checkout'
     | '/contact'
+    | '/dashboard'
     | '/delivery'
     | '/login'
     | '/payment'
@@ -261,6 +272,7 @@ export interface FileRouteTypes {
     | '/categories'
     | '/checkout'
     | '/contact'
+    | '/dashboard'
     | '/delivery'
     | '/login'
     | '/payment'
@@ -285,6 +297,7 @@ export interface RootRouteChildren {
   CategoriesRoute: typeof CategoriesRoute
   CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
+  DashboardRoute: typeof DashboardRoute
   DeliveryRoute: typeof DeliveryRoute
   LoginRoute: typeof LoginRoute
   PaymentRoute: typeof PaymentRoute
@@ -327,6 +340,13 @@ declare module '@tanstack/react-router' {
       path: '/delivery'
       fullPath: '/delivery'
       preLoaderRoute: typeof DeliveryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -478,6 +498,7 @@ const rootRouteChildren: RootRouteChildren = {
   CategoriesRoute: CategoriesRoute,
   CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,
+  DashboardRoute: DashboardRoute,
   DeliveryRoute: DeliveryRoute,
   LoginRoute: LoginRoute,
   PaymentRoute: PaymentRoute,
