@@ -35,8 +35,13 @@ type SignupForm = { name: string; email: string; phone: string; password: string
 
 function LoginPage() {
   const [mode, setMode] = useState<"login" | "signup">("login");
-  const { login, user, logout } = useAuth();
+  const { login, user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
+
+  const afterAuth = (u: AuthUser) => {
+    login(u);
+    navigate({ to: u.role === "admin" ? "/admin" : "/dashboard" });
+  };
 
   if (user) {
     return (
@@ -45,12 +50,17 @@ function LoginPage() {
           <div className="glass rounded-3xl p-8 max-w-md mx-auto text-center">
             <div className="text-sm text-muted-foreground">{user.email}</div>
             <div className="flex flex-wrap justify-center gap-3 mt-6">
-              <Link to="/cart" className="rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow">
-                View cart
+              <Link
+                to={isAdmin ? "/admin" : "/dashboard"}
+                className="rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow"
+              >
+                {isAdmin ? "Admin dashboard" : "My dashboard"}
               </Link>
-              <Link to="/delivery" className="rounded-xl px-5 py-2.5 glass hover:bg-white/15">
-                Track orders
-              </Link>
+              {!isAdmin && (
+                <Link to="/cart" className="rounded-xl px-5 py-2.5 glass hover:bg-white/15">
+                  View cart
+                </Link>
+              )}
               <button onClick={logout} className="rounded-xl px-5 py-2.5 glass hover:bg-white/15">
                 Sign out
               </button>
@@ -83,16 +93,16 @@ function LoginPage() {
               Sign up
             </button>
           </div>
-          {mode === "login" ? (
-            <LoginFormEl onDone={(u) => { login(u); navigate({ to: "/" }); }} />
-          ) : (
-            <SignupFormEl onDone={(u) => { login(u); navigate({ to: "/" }); }} />
-          )}
+          {mode === "login" ? <LoginFormEl onDone={afterAuth} /> : <SignupFormEl onDone={afterAuth} />}
+          <p className="mt-5 text-xs text-muted-foreground text-center">
+            Demo admin access — <span className="text-foreground">{DEMO_ADMIN.email}</span> with any valid password.
+          </p>
         </div>
       </Section>
     </PageShell>
   );
 }
+
 
 function LoginFormEl({ onDone }: { onDone: (u: { name: string; email: string }) => void }) {
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
