@@ -1,6 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { discountedPrice, findProduct, type Product } from "./products";
+import { setToken } from "./api/client";
+import type { UserRole } from "../types/models";
+
 
 type CartItem = { id: string; qty: number };
 type CartCtx = {
@@ -135,23 +138,41 @@ export function useWishlist() {
   return ctx;
 }
 
-/* -------------------- Auth (local mock) -------------------- */
-type AuthUser = { name: string; email: string };
-type AuthCtx = { user: AuthUser | null; login: (u: AuthUser) => void; logout: () => void };
+/* -------------------- Auth -------------------- */
+export type AuthUser = {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: UserRole;
+};
+type AuthCtx = {
+  user: AuthUser | null;
+  /** True once the persisted session has been read on the client. */
+  ready: boolean;
+  isAdmin: boolean;
+  login: (u: AuthUser) => void;
+  logout: () => void;
+};
 const AuthContext = createContext<AuthCtx | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useLocal<AuthUser | null>("rays:user", null);
+  const [ready, setReady] = useState(false);
+  useEffect(() => setReady(true), []);
   return (
     <AuthContext.Provider
       value={{
         user,
+        ready,
+        isAdmin: user?.role === "admin",
         login: (u) => {
           setUser(u);
           toast.success(`Welcome, ${u.name}`);
         },
         logout: () => {
           setUser(null);
+          setToken(null);
           toast("Signed out");
         },
       }}
@@ -165,3 +186,4 @@ export function useAuth() {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
+

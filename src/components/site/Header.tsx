@@ -135,6 +135,13 @@ export function Header() {
                   <div className="text-sm font-semibold truncate">{user.name}</div>
                   <div className="text-xs text-muted-foreground truncate">{user.email}</div>
                   <div className="h-px bg-white/10 my-2" />
+                  <Link
+                    to={user.role === "admin" ? "/admin" : "/dashboard"}
+                    onClick={() => setUserMenu(false)}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/10 text-sm"
+                  >
+                    <User className="h-4 w-4" /> {user.role === "admin" ? "Admin dashboard" : "My dashboard"}
+                  </Link>
                   <button
                     onClick={() => {
                       logout();

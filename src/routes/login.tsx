@@ -11,7 +11,8 @@ import {
   toFieldErrors,
   type FieldErrors,
 } from "../lib/validation";
-import { useAuth } from "../lib/store";
+import { useAuth, type AuthUser } from "../lib/store";
+import { authService, DEMO_ADMIN } from "../lib/api";
 import {
   ConfirmPasswordField,
   PasswordField,
@@ -35,8 +36,13 @@ type SignupForm = { name: string; email: string; phone: string; password: string
 
 function LoginPage() {
   const [mode, setMode] = useState<"login" | "signup">("login");
-  const { login, user, logout } = useAuth();
+  const { login, user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
+
+  const afterAuth = (u: AuthUser) => {
+    login(u);
+    navigate({ to: u.role === "admin" ? "/admin" : "/dashboard" });
+  };
 
   if (user) {
     return (
@@ -45,12 +51,17 @@ function LoginPage() {
           <div className="glass rounded-3xl p-8 max-w-md mx-auto text-center">
             <div className="text-sm text-muted-foreground">{user.email}</div>
             <div className="flex flex-wrap justify-center gap-3 mt-6">
-              <Link to="/cart" className="rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow">
-                View cart
+              <Link
+                to={isAdmin ? "/admin" : "/dashboard"}
+                className="rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow"
+              >
+                {isAdmin ? "Admin dashboard" : "My dashboard"}
               </Link>
-              <Link to="/delivery" className="rounded-xl px-5 py-2.5 glass hover:bg-white/15">
-                Track orders
-              </Link>
+              {!isAdmin && (
+                <Link to="/cart" className="rounded-xl px-5 py-2.5 glass hover:bg-white/15">
+                  View cart
+                </Link>
+              )}
               <button onClick={logout} className="rounded-xl px-5 py-2.5 glass hover:bg-white/15">
                 Sign out
               </button>
@@ -83,18 +94,18 @@ function LoginPage() {
               Sign up
             </button>
           </div>
-          {mode === "login" ? (
-            <LoginFormEl onDone={(u) => { login(u); navigate({ to: "/" }); }} />
-          ) : (
-            <SignupFormEl onDone={(u) => { login(u); navigate({ to: "/" }); }} />
-          )}
+          {mode === "login" ? <LoginFormEl onDone={afterAuth} /> : <SignupFormEl onDone={afterAuth} />}
+          <p className="mt-5 text-xs text-muted-foreground text-center">
+            Demo admin access — <span className="text-foreground">{DEMO_ADMIN.email}</span> with any valid password.
+          </p>
         </div>
       </Section>
     </PageShell>
   );
 }
 
-function LoginFormEl({ onDone }: { onDone: (u: { name: string; email: string }) => void }) {
+
+function LoginFormEl({ onDone }: { onDone: (u: AuthUser) => void }) {
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
   const [touched, setTouched] = useState<Record<keyof LoginForm, boolean>>({ email: false, password: false });
   const [errors, setErrors] = useState<FieldErrors<LoginForm>>({});
@@ -124,9 +135,17 @@ function LoginFormEl({ onDone }: { onDone: (u: { name: string; email: string }) 
     if (!validate(form) || submitting) return;
     setSubmitting(true);
     try {
-      await new Promise((r) => setTimeout(r, 700));
+      const session = await authService.login({ email: form.email, password: form.password });
       toast.success("Signed in successfully");
-      onDone({ name: form.email.split("@")[0], email: form.email });
+      onDone({
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+        phone: session.user.phone,
+        role: session.user.role,
+      });
+    } catch (err) {
+      toast.error((err as Error).message || "Sign in failed. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -168,7 +187,7 @@ function LoginFormEl({ onDone }: { onDone: (u: { name: string; email: string }) 
   );
 }
 
-function SignupFormEl({ onDone }: { onDone: (u: { name: string; email: string }) => void }) {
+function SignupFormEl({ onDone }: { onDone: (u: AuthUser) => void }) {
   const [form, setForm] = useState<SignupForm>({ name: "", email: "", phone: "", password: "", confirm: "" });
   const [touched, setTouched] = useState<Record<keyof SignupForm, boolean>>({
     name: false, email: false, phone: false, password: false, confirm: false,
@@ -204,9 +223,22 @@ function SignupFormEl({ onDone }: { onDone: (u: { name: string; email: string })
     if (!validate(form) || submitting) return;
     setSubmitting(true);
     try {
-      await new Promise((r) => setTimeout(r, 900));
+      const session = await authService.signup({
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        password: form.password,
+      });
       toast.success("Account created — welcome to Rays Pharmacy!");
-      onDone({ name: form.name, email: form.email });
+      onDone({
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+        phone: session.user.phone,
+        role: session.user.role,
+      });
+    } catch (err) {
+      toast.error((err as Error).message || "Sign up failed. Please try again.");
     } finally {
       setSubmitting(false);
     }

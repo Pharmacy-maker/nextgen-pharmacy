@@ -1,20 +1,7 @@
-export type Product = {
-  id: string;
-  name: string;
-  category: string;
-  supplier: string;
-  manufacturer: string;
-  mfg: string;
-  exp: string;
-  stock: number;
-  rating: number;
-  reviews: number;
-  price: number;
-  discount: number;
-  grad: string;
-  image: string;
-  tags?: string[];
-};
+import type { Product } from "../types/models";
+
+export type { Product };
+
 
 // Copyright-safe pharmacy placeholder photos (Unsplash, replaceable later).
 const IMG = [
