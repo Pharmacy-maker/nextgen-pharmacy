@@ -254,49 +254,6 @@ function BestSellers() {
   );
 }
 
-/* -------------------- FLASH SALE -------------------- */
-function useCountdown(seconds: number) {
-  const [t, setT] = useState(seconds);
-  useEffect(() => {
-    const id = setInterval(() => setT((v) => (v > 0 ? v - 1 : seconds)), 1000);
-    return () => clearInterval(id);
-  }, [seconds]);
-  const h = Math.floor(t / 3600).toString().padStart(2, "0");
-  const m = Math.floor((t % 3600) / 60).toString().padStart(2, "0");
-  const s = (t % 60).toString().padStart(2, "0");
-  return { h, m, s };
-}
-function FlashSale() {
-  const { h, m, s } = useCountdown(3600 * 8 + 900);
-  return (
-    <Section eyebrow="Limited time" title="Flash Sale ⚡ Ends Soon">
-      <div className="grid lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-1 rounded-3xl p-6 bg-grad-warm relative overflow-hidden text-white">
-          <Flame className="h-10 w-10 mb-3" />
-          <div className="text-2xl font-bold leading-tight">Up to 60% off on Immunity & Skin Care</div>
-          <p className="mt-2 text-white/85 text-sm">Curated bundles, live now.</p>
-          <div className="mt-6 flex gap-3">
-            {[{ v: h, l: "Hours" }, { v: m, l: "Min" }, { v: s, l: "Sec" }].map((x) => (
-              <div key={x.l} className="glass-strong rounded-xl px-3 py-2 text-center min-w-16">
-                <div className="text-2xl font-bold tabular-nums">{x.v}</div>
-                <div className="text-[10px] uppercase tracking-widest">{x.l}</div>
-              </div>
-            ))}
-          </div>
-          <Link to="/products" search={{ tag: "offer" }} className="mt-6 inline-block text-sm font-semibold underline underline-offset-4">
-            Shop all offers →
-          </Link>
-          <div className="absolute -bottom-10 -right-10 h-56 w-56 rounded-full bg-white/20 blur-2xl" />
-          <Timer className="absolute top-6 right-6 h-6 w-6 opacity-70" />
-        </div>
-        <div className="lg:col-span-2 grid sm:grid-cols-2 gap-5">
-          {products.slice(2, 6).map((p) => <ProductCard key={p.id} p={p} />)}
-        </div>
-      </div>
-    </Section>
-  );
-}
-
 /* -------------------- PRESCRIPTION TEASER -------------------- */
 function PrescriptionUploadTeaser() {
   const navigate = useNavigate();
@@ -654,7 +611,6 @@ function Landing() {
         <Carousel title="New Launches" eyebrow="Fresh on Rays Pharmacy" tag="new" />
         <Carousel title="Trending Now" eyebrow="What's hot" tag="trending" />
         <BestSellers />
-        <FlashSale />
         <PrescriptionUploadTeaser />
         <DeliveryTracking />
         <Analytics />
