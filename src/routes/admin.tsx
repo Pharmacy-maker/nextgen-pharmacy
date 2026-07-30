@@ -20,7 +20,7 @@ export const Route = createFileRoute("/admin")({
   }),
 });
 
-const NAV = [
+const NAV: { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/inventory", label: "Inventory", icon: Boxes },
@@ -30,7 +30,7 @@ const NAV = [
   { to: "/admin/prescriptions", label: "Prescriptions", icon: FileText },
   { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/admin/settings", label: "Settings", icon: Settings },
-] as const;
+];
 
 function AdminLayout() {
   return (
@@ -71,7 +71,7 @@ function AdminShell() {
               return (
                 <Link
                   key={n.to}
-                  to={n.to}
+                  to={n.to as "/admin"}
                   onClick={() => setOpen(false)}
                   className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-colors ${
                     active ? "bg-white/10 text-foreground font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
