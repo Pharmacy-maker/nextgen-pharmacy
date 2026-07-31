@@ -110,7 +110,7 @@ export function Header() {
                         search={{ q: p.name }}
                         className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/10"
                       >
-                        <img src={p.image} alt={p.name} className="h-10 w-10 rounded-lg object-cover" loading="lazy" />
+                        <ProductImage src={p.image} seed={p.id} alt={p.name} className="h-10 w-10 rounded-lg object-cover" />
                         <div className="min-w-0 flex-1">
                           <div className="text-sm font-medium truncate">{p.name}</div>
                           <div className="text-xs text-muted-foreground">{p.category}</div>

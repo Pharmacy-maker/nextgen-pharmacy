@@ -86,7 +86,7 @@ function AdminProducts() {
               <tr key={p.id} className="hover:bg-white/5">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    {p.image && <img src={p.image} alt={p.name} className="h-9 w-9 rounded-lg object-cover" loading="lazy" />}
+                    <ProductImage src={p.image} seed={p.id} alt={p.name} className="h-9 w-9 rounded-lg object-cover" />
                     <span className="font-medium">{p.name}</span>
                   </div>
                 </td>

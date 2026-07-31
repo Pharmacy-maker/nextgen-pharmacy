@@ -107,7 +107,7 @@ function CustomerDashboard() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {wishlist.map((p) => (
               <Link key={p!.id} to="/products" search={{ q: p!.name }} className="glass rounded-2xl p-4 hover:bg-white/10">
-                <img src={p!.image} alt={p!.name} className="h-28 w-full object-cover rounded-xl" loading="lazy" />
+                <ProductImage src={p!.image} seed={p!.id} alt={p!.name} className="h-28 w-full object-cover rounded-xl" />
                 <div className="mt-3 font-semibold text-sm">{p!.name}</div>
                 <div className="text-xs text-muted-foreground">{p!.category}</div>
               </Link>
