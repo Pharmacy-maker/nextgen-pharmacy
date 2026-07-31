@@ -1,23 +1,9 @@
 import type { Product } from "../types/models";
+import { placeholderProductImage } from "./images";
 
 export type { Product };
 
 
-// Copyright-safe pharmacy placeholder photos (Unsplash, replaceable later).
-const IMG = [
-  "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=600&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=600&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1550572017-edd951b55104?w=600&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=600&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=600&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1550831107-1553da8c8464?w=600&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1585435557343-3b092031d4df?w=600&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1584362917165-526a968579e8?w=600&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=600&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1585435557885-1d928a4c2dfc?w=600&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1576602976047-174e57a47881?w=600&q=80&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1580281657527-47f249e8f4df?w=600&q=80&auto=format&fit=crop",
-];
 
 const base: Omit<Product, "id" | "image">[] = [
   { name: "CardioGuard 40mg", category: "Cardiac", supplier: "MediWave", manufacturer: "Zynex Labs", mfg: "01/2026", exp: "01/2028", stock: 128, rating: 4.8, reviews: 421, price: 249, discount: 20, grad: "var(--grad-cool)", tags: ["best", "new"] },
@@ -37,7 +23,7 @@ const base: Omit<Product, "id" | "image">[] = [
 export const products: Product[] = base.map((p, i) => ({
   ...p,
   id: `p-${i + 1}`,
-  image: IMG[i % IMG.length],
+  image: placeholderProductImage(i),
 }));
 
 export const byTag = (tag: string) => products.filter((p) => p.tags?.includes(tag));

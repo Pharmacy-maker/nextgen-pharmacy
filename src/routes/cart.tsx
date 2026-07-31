@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { PageShell, Section } from "../components/site/Section";
 import { useCart } from "../lib/store";
+import { ProductImage } from "../components/site/ProductImage";
 
 export const Route = createFileRoute("/cart")({
   component: CartPage,
@@ -38,7 +39,7 @@ function CartPage() {
             <div className="lg:col-span-2 space-y-3">
               {detailed.map(({ product, qty, line }) => (
                 <div key={product.id} className="glass rounded-2xl p-4 flex items-center gap-4">
-                  <img src={product.image} alt={product.name} className="h-20 w-20 rounded-xl object-cover" />
+                  <ProductImage src={product.image} seed={product.id} alt={product.name} className="h-20 w-20 rounded-xl object-cover" />
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold truncate">{product.name}</div>
                     <div className="text-xs text-muted-foreground">{product.category} • {product.manufacturer}</div>

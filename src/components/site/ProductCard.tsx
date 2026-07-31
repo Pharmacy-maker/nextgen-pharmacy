@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Heart, Plus, Star } from "lucide-react";
 import { discountedPrice, type Product } from "../../lib/products";
 import { useCart, useWishlist } from "../../lib/store";
+import { ProductImage } from "./ProductImage";
 
 export function ProductCard({ p, compact = false }: { p: Product; compact?: boolean }) {
   const { add } = useCart();
@@ -19,10 +20,10 @@ export function ProductCard({ p, compact = false }: { p: Product; compact?: bool
     <div className={`group relative rounded-3xl glass hover-lift overflow-hidden flex flex-col ${compact ? "min-w-[260px]" : ""}`}>
       <div className="relative h-44 overflow-hidden" style={{ background: p.grad }}>
         <div className="absolute inset-0 opacity-30 grid-bg" />
-        <img
+        <ProductImage
           src={p.image}
+          seed={p.id}
           alt={p.name}
-          loading="lazy"
           className="absolute inset-0 h-full w-full object-cover mix-blend-luminosity opacity-80 group-hover:opacity-100 transition-opacity"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />

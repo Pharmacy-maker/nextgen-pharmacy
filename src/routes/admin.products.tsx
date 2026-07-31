@@ -7,6 +7,7 @@ import { AdminPageHeader, DataTable, StatusBadge, inr } from "../components/admi
 import { AsyncBoundary } from "../components/site/AsyncState";
 import { productService } from "../lib/api";
 import type { Product } from "../types/models";
+import { ProductImage } from "../components/site/ProductImage";
 
 export const Route = createFileRoute("/admin/products")({ component: AdminProducts });
 
@@ -86,7 +87,7 @@ function AdminProducts() {
               <tr key={p.id} className="hover:bg-white/5">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    {p.image && <img src={p.image} alt={p.name} className="h-9 w-9 rounded-lg object-cover" loading="lazy" />}
+                    <ProductImage src={p.image} seed={p.id} alt={p.name} className="h-9 w-9 rounded-lg object-cover" />
                     <span className="font-medium">{p.name}</span>
                   </div>
                 </td>
