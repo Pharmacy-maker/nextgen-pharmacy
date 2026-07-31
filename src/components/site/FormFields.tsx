@@ -222,8 +222,9 @@ export function ConfirmPasswordField({
   const [show, setShow] = useState(false);
   const matches = value.length > 0 && value === original;
   const hasValue = value.length > 0;
-  const error = touched && hasValue && !matches ? "Passwords do not match" : undefined;
-  const status: Status = !hasValue ? "idle" : matches ? "valid" : touched ? "invalid" : "idle";
+  // Live feedback: as soon as anything is typed we say whether it matches.
+  const error = hasValue && !matches ? "Passwords do not match" : undefined;
+  const status: Status = !hasValue ? "idle" : matches ? "valid" : "invalid";
 
   return (
     <Field label={label} error={error} htmlFor={id}>
