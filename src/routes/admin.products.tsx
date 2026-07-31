@@ -7,6 +7,7 @@ import { AdminPageHeader, DataTable, StatusBadge, inr } from "../components/admi
 import { AsyncBoundary } from "../components/site/AsyncState";
 import { productService } from "../lib/api";
 import type { Product } from "../types/models";
+import { ProductImage } from "../components/site/ProductImage";
 
 export const Route = createFileRoute("/admin/products")({ component: AdminProducts });
 

@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Heart, Plus, Star } from "lucide-react";
 import { discountedPrice, type Product } from "../../lib/products";
 import { useCart, useWishlist } from "../../lib/store";
+import { ProductImage } from "./ProductImage";
 
 export function ProductCard({ p, compact = false }: { p: Product; compact?: boolean }) {
   const { add } = useCart();

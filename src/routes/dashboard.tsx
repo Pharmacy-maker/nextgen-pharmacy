@@ -8,6 +8,7 @@ import { DataTable, StatCard, StatusBadge, inr } from "../components/admin/Admin
 import { orderService, prescriptionService, userService } from "../lib/api";
 import { useAuth, useCart, useWishlist } from "../lib/store";
 import { findProduct } from "../lib/products";
+import { ProductImage } from "../components/site/ProductImage";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardRoute,
