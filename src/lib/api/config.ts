@@ -24,6 +24,8 @@ export const ENDPOINTS = {
     signup: "/auth/signup",
     me: "/auth/me",
     logout: "/auth/logout",
+    forgotPassword: "/auth/forgot-password",
+    resetPassword: "/auth/reset-password",
   },
   products: {
     list: "/products",
@@ -59,6 +61,11 @@ export const ENDPOINTS = {
     mine: "/prescriptions/me",
     upload: "/prescriptions",
     review: (id: string) => `/prescriptions/${id}/review`,
+  },
+  payments: {
+    create: "/payments/orders",
+    verify: "/payments/verify",
+    status: (id: string) => `/payments/${id}/status`,
   },
   analytics: {
     stats: "/analytics/stats",
