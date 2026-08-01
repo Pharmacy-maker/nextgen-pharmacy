@@ -1,9 +1,11 @@
 import { apiFetch, mockDelay, setToken } from "../client";
 import { ENDPOINTS, USE_MOCK_API } from "../config";
 import {
+  consumeResetToken,
   createAccount,
   findAccount,
   hashPassword,
+  issueResetToken,
   toUser,
 } from "../mock/accounts";
 import type { AuthSession, User } from "../../../types/models";
@@ -57,6 +59,31 @@ export const authService = {
       throw new AuthError("FORBIDDEN", "These credentials are not authorised for this area.");
     }
     return session;
+  },
+
+  /**
+   * Starts a password reset. Always resolves successfully so the UI never
+   * leaks whether an email is registered. In mock mode the token is returned
+   * so the reset screen can be reached without an inbox.
+   */
+  async requestPasswordReset(email: string): Promise<{ token?: string }> {
+    if (!USE_MOCK_API) {
+      await apiFetch<void>(ENDPOINTS.auth.forgotPassword, { method: "POST", body: { email } });
+      return {};
+    }
+    const token = await issueResetToken(email);
+    return mockDelay(token ? { token } : {}, 600);
+  },
+
+  /** Completes a password reset with a single-use token. */
+  async resetPassword(token: string, password: string): Promise<void> {
+    if (!USE_MOCK_API) {
+      await apiFetch<void>(ENDPOINTS.auth.resetPassword, { method: "POST", body: { token, password } });
+      return;
+    }
+    const result = await consumeResetToken(token, password);
+    if (!result.ok) throw new AuthError("EMAIL_NOT_FOUND", result.reason ?? "Reset failed.");
+    await mockDelay(null, 500);
   },
 
   async me(): Promise<User | null> {
