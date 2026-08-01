@@ -188,7 +188,7 @@ function LoginFormEl({ onDone }: { onDone: (u: AuthUser) => void }) {
   );
 }
 
-function SignupFormEl({ onDone }: { onDone: (u: AuthUser) => void }) {
+function SignupFormEl({ onRegistered }: { onRegistered: () => void }) {
   const [form, setForm] = useState<SignupForm>({ name: "", email: "", phone: "", password: "", confirm: "" });
   const [touched, setTouched] = useState<Record<keyof SignupForm, boolean>>({
     name: false, email: false, phone: false, password: false, confirm: false,
@@ -224,20 +224,15 @@ function SignupFormEl({ onDone }: { onDone: (u: AuthUser) => void }) {
     if (!validate(form) || submitting) return;
     setSubmitting(true);
     try {
-      const session = await authService.signup({
+      await authService.signup({
         name: form.name,
         email: form.email,
         phone: form.phone,
         password: form.password,
       });
-      toast.success("Account created — welcome to Rays Pharmacy!");
-      onDone({
-        id: session.user.id,
-        name: session.user.name,
-        email: session.user.email,
-        phone: session.user.phone,
-        role: session.user.role,
-      });
+      toast.success("Account created successfully. Please log in.");
+      setForm({ name: "", email: "", phone: "", password: "", confirm: "" });
+      onRegistered();
     } catch (err) {
       toast.error((err as Error).message || "Sign up failed. Please try again.");
     } finally {
