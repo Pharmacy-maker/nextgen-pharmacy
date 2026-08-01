@@ -32,6 +32,7 @@ import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminPrescriptionsRouteImport } from './routes/admin.prescriptions'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
+import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -149,6 +150,11 @@ const AdminInventoryRoute = AdminInventoryRouteImport.update({
   path: '/inventory',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -172,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/prescriptions': typeof AdminPrescriptionsRoute
@@ -197,6 +204,7 @@ export interface FileRoutesByTo {
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/prescriptions': typeof AdminPrescriptionsRoute
@@ -224,6 +232,7 @@ export interface FileRoutesById {
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/prescriptions': typeof AdminPrescriptionsRoute
@@ -252,6 +261,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/reset-password'
     | '/admin/analytics'
+    | '/admin/categories'
     | '/admin/inventory'
     | '/admin/orders'
     | '/admin/prescriptions'
@@ -277,6 +287,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/reset-password'
     | '/admin/analytics'
+    | '/admin/categories'
     | '/admin/inventory'
     | '/admin/orders'
     | '/admin/prescriptions'
@@ -303,6 +314,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/reset-password'
     | '/admin/analytics'
+    | '/admin/categories'
     | '/admin/inventory'
     | '/admin/orders'
     | '/admin/prescriptions'
@@ -494,6 +506,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminInventoryRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/analytics': {
       id: '/admin/analytics'
       path: '/analytics'
@@ -506,6 +525,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminPrescriptionsRoute: typeof AdminPrescriptionsRoute
@@ -518,6 +538,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminCategoriesRoute: AdminCategoriesRoute,
   AdminInventoryRoute: AdminInventoryRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminPrescriptionsRoute: AdminPrescriptionsRoute,

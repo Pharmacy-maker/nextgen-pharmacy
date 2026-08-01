@@ -184,6 +184,9 @@ function LoginFormEl({ onDone }: { onDone: (u: AuthUser) => void }) {
         {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
         {submitting ? "Signing in…" : "Sign in"}
       </button>
+      <Link to="/forgot-password" className="block text-center text-xs text-muted-foreground hover:text-foreground">
+        Forgot your password?
+      </Link>
     </form>
   );
 }
