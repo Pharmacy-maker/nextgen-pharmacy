@@ -1,6 +1,6 @@
 export * from "./config";
 export * from "./client";
-export { authService, DEMO_ADMIN } from "./services/auth.service";
+export { authService, AuthError } from "./services/auth.service";
 export { productService } from "./services/product.service";
 export { orderService } from "./services/order.service";
 export { userService } from "./services/user.service";
