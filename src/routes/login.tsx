@@ -12,7 +12,7 @@ import {
   type FieldErrors,
 } from "../lib/validation";
 import { useAuth, type AuthUser } from "../lib/store";
-import { authService, DEMO_ADMIN } from "../lib/api";
+import { authService } from "../lib/api";
 import {
   ConfirmPasswordField,
   PasswordField,
@@ -94,10 +94,11 @@ function LoginPage() {
               Sign up
             </button>
           </div>
-          {mode === "login" ? <LoginFormEl onDone={afterAuth} /> : <SignupFormEl onDone={afterAuth} />}
-          <p className="mt-5 text-xs text-muted-foreground text-center">
-            Demo admin access — <span className="text-foreground">{DEMO_ADMIN.email}</span> with any valid password.
-          </p>
+          {mode === "login" ? (
+            <LoginFormEl onDone={afterAuth} />
+          ) : (
+            <SignupFormEl onRegistered={() => setMode("login")} />
+          )}
         </div>
       </Section>
     </PageShell>
