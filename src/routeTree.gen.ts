@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrescriptionRouteImport } from './routes/prescription'
 import { Route as PaymentRouteImport } from './routes/payment'
@@ -33,6 +34,11 @@ import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -164,6 +170,7 @@ export interface FileRoutesByFullPath {
   '/payment': typeof PaymentRoute
   '/prescription': typeof PrescriptionRoute
   '/products': typeof ProductsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -188,6 +195,7 @@ export interface FileRoutesByTo {
   '/payment': typeof PaymentRoute
   '/prescription': typeof PrescriptionRoute
   '/products': typeof ProductsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -214,6 +222,7 @@ export interface FileRoutesById {
   '/payment': typeof PaymentRoute
   '/prescription': typeof PrescriptionRoute
   '/products': typeof ProductsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -241,6 +250,7 @@ export interface FileRouteTypes {
     | '/payment'
     | '/prescription'
     | '/products'
+    | '/reset-password'
     | '/admin/analytics'
     | '/admin/inventory'
     | '/admin/orders'
@@ -265,6 +275,7 @@ export interface FileRouteTypes {
     | '/payment'
     | '/prescription'
     | '/products'
+    | '/reset-password'
     | '/admin/analytics'
     | '/admin/inventory'
     | '/admin/orders'
@@ -290,6 +301,7 @@ export interface FileRouteTypes {
     | '/payment'
     | '/prescription'
     | '/products'
+    | '/reset-password'
     | '/admin/analytics'
     | '/admin/inventory'
     | '/admin/orders'
@@ -316,10 +328,18 @@ export interface RootRouteChildren {
   PaymentRoute: typeof PaymentRoute
   PrescriptionRoute: typeof PrescriptionRoute
   ProductsRoute: typeof ProductsRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/products': {
       id: '/products'
       path: '/products'
@@ -525,6 +545,7 @@ const rootRouteChildren: RootRouteChildren = {
   PaymentRoute: PaymentRoute,
   PrescriptionRoute: PrescriptionRoute,
   ProductsRoute: ProductsRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
