@@ -3,6 +3,7 @@ export * from "./client";
 export { authService, AuthError } from "./services/auth.service";
 export { productService } from "./services/product.service";
 export { orderService } from "./services/order.service";
+export { paymentService } from "./services/payment.service";
 export { userService } from "./services/user.service";
 export { inventoryService } from "./services/inventory.service";
 export { supplierService } from "./services/supplier.service";

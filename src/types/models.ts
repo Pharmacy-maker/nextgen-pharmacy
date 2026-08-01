@@ -134,7 +134,33 @@ export interface PurchaseRecord {
 
 export type OrderStatus = "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
 export type PaymentStatus = "paid" | "unpaid" | "refunded" | "failed";
-export type PaymentMethod = "card" | "upi" | "cod" | "netbanking";
+export type PaymentMethod =
+  | "card"
+  | "credit_card"
+  | "debit_card"
+  | "upi"
+  | "netbanking"
+  | "wallet"
+  | "cod";
+
+export type PaymentState = "processing" | "success" | "failed" | "pending";
+
+export interface PaymentOrder {
+  id: ID;
+  orderId?: ID;
+  amount: number;
+  currency: string;
+  method: PaymentMethod;
+  status: PaymentState;
+  gatewayRef?: string;
+  createdAt: ISODate;
+}
+
+export interface PaymentVerification {
+  paymentId: ID;
+  status: PaymentState;
+  message: string;
+}
 
 export interface OrderItem {
   id: ID;

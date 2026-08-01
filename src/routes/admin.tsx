@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import {
-  LayoutDashboard, Package, Boxes, Truck, Users, ShoppingBag, FileText,
+  LayoutDashboard, Package, Boxes, Truck, Users, ShoppingBag, FileText, Tags,
   BarChart3, Settings, LogOut, Menu, X, Pill, Store,
 } from "lucide-react";
 import { RoleGuard } from "../components/auth/RoleGuard";
@@ -23,9 +23,10 @@ export const Route = createFileRoute("/admin")({
 const NAV: { to: string; label: string; icon: typeof LayoutDashboard; exact?: boolean }[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/products", label: "Products", icon: Package },
+  { to: "/admin/categories", label: "Categories", icon: Tags },
   { to: "/admin/inventory", label: "Inventory", icon: Boxes },
   { to: "/admin/suppliers", label: "Suppliers", icon: Truck },
-  { to: "/admin/users", label: "Users", icon: Users },
+  { to: "/admin/users", label: "Customers", icon: Users },
   { to: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { to: "/admin/prescriptions", label: "Prescriptions", icon: FileText },
   { to: "/admin/analytics", label: "Analytics", icon: BarChart3 },

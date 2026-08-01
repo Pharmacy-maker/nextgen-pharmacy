@@ -9,10 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrescriptionRouteImport } from './routes/prescription'
 import { Route as PaymentRouteImport } from './routes/payment'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DeliveryRouteImport } from './routes/delivery'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -30,8 +32,14 @@ import { Route as AdminProductsRouteImport } from './routes/admin.products'
 import { Route as AdminPrescriptionsRouteImport } from './routes/admin.prescriptions'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
+import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -50,6 +58,11 @@ const PaymentRoute = PaymentRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeliveryRoute = DeliveryRouteImport.update({
@@ -137,6 +150,11 @@ const AdminInventoryRoute = AdminInventoryRouteImport.update({
   path: '/inventory',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
@@ -153,11 +171,14 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/delivery': typeof DeliveryRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/payment': typeof PaymentRoute
   '/prescription': typeof PrescriptionRoute
   '/products': typeof ProductsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/prescriptions': typeof AdminPrescriptionsRoute
@@ -176,11 +197,14 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/delivery': typeof DeliveryRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/payment': typeof PaymentRoute
   '/prescription': typeof PrescriptionRoute
   '/products': typeof ProductsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/prescriptions': typeof AdminPrescriptionsRoute
@@ -201,11 +225,14 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/delivery': typeof DeliveryRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/payment': typeof PaymentRoute
   '/prescription': typeof PrescriptionRoute
   '/products': typeof ProductsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/categories': typeof AdminCategoriesRoute
   '/admin/inventory': typeof AdminInventoryRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/prescriptions': typeof AdminPrescriptionsRoute
@@ -227,11 +254,14 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/delivery'
+    | '/forgot-password'
     | '/login'
     | '/payment'
     | '/prescription'
     | '/products'
+    | '/reset-password'
     | '/admin/analytics'
+    | '/admin/categories'
     | '/admin/inventory'
     | '/admin/orders'
     | '/admin/prescriptions'
@@ -250,11 +280,14 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/delivery'
+    | '/forgot-password'
     | '/login'
     | '/payment'
     | '/prescription'
     | '/products'
+    | '/reset-password'
     | '/admin/analytics'
+    | '/admin/categories'
     | '/admin/inventory'
     | '/admin/orders'
     | '/admin/prescriptions'
@@ -274,11 +307,14 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/delivery'
+    | '/forgot-password'
     | '/login'
     | '/payment'
     | '/prescription'
     | '/products'
+    | '/reset-password'
     | '/admin/analytics'
+    | '/admin/categories'
     | '/admin/inventory'
     | '/admin/orders'
     | '/admin/prescriptions'
@@ -299,14 +335,23 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   DeliveryRoute: typeof DeliveryRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PaymentRoute: typeof PaymentRoute
   PrescriptionRoute: typeof PrescriptionRoute
   ProductsRoute: typeof ProductsRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/products': {
       id: '/products'
       path: '/products'
@@ -333,6 +378,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/delivery': {
@@ -454,6 +506,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminInventoryRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/analytics': {
       id: '/admin/analytics'
       path: '/analytics'
@@ -466,6 +525,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminInventoryRoute: typeof AdminInventoryRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminPrescriptionsRoute: typeof AdminPrescriptionsRoute
@@ -478,6 +538,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminCategoriesRoute: AdminCategoriesRoute,
   AdminInventoryRoute: AdminInventoryRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminPrescriptionsRoute: AdminPrescriptionsRoute,
@@ -500,10 +561,12 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   DeliveryRoute: DeliveryRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PaymentRoute: PaymentRoute,
   PrescriptionRoute: PrescriptionRoute,
   ProductsRoute: ProductsRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

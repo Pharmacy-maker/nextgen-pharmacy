@@ -121,3 +121,59 @@ export function toUser(account: StoredAccount): User {
   const { passwordHash: _passwordHash, ...user } = account;
   return user;
 }
+
+/* ---------------- Password reset (mock) ---------------- */
+
+const RESET_KEY = "rays:reset-tokens";
+
+type ResetToken = { token: string; email: string; expiresAt: number };
+
+function readTokens(): ResetToken[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(RESET_KEY);
+    return raw ? (JSON.parse(raw) as ResetToken[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeTokens(tokens: ResetToken[]) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(RESET_KEY, JSON.stringify(tokens));
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Issues a single-use, 30-minute reset token. Server-side: emailed link. */
+export async function issueResetToken(email: string): Promise<string | null> {
+  const account = await findAccount(email);
+  if (!account) return null;
+  const token = `rst-${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`;
+  const tokens = readTokens().filter((t) => normalizeEmail(t.email) !== normalizeEmail(email));
+  tokens.push({ token, email: normalizeEmail(email), expiresAt: Date.now() + 30 * 60 * 1000 });
+  writeTokens(tokens);
+  return token;
+}
+
+export async function consumeResetToken(
+  token: string,
+  newPassword: string,
+): Promise<{ ok: boolean; reason?: string }> {
+  const tokens = readTokens();
+  const entry = tokens.find((t) => t.token === token);
+  if (!entry) return { ok: false, reason: "This reset link is invalid." };
+  if (entry.expiresAt < Date.now()) {
+    writeTokens(tokens.filter((t) => t.token !== token));
+    return { ok: false, reason: "This reset link has expired. Please request a new one." };
+  }
+  const accounts = read();
+  const idx = accounts.findIndex((a) => normalizeEmail(a.email) === entry.email);
+  if (idx === -1) return { ok: false, reason: "Account no longer exists." };
+  accounts[idx] = { ...accounts[idx], passwordHash: await hashPassword(newPassword) };
+  write(accounts);
+  writeTokens(tokens.filter((t) => t.token !== token));
+  return { ok: true };
+}
