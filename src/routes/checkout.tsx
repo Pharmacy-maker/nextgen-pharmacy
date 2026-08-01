@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Banknote, CreditCard, Loader2, Truck, Wallet } from "lucide-react";
+import { Banknote, CreditCard, Landmark, Loader2, Smartphone, Truck, Wallet } from "lucide-react";
 import { PageShell, Section } from "../components/site/Section";
 import { useCart } from "../lib/store";
 import { checkoutSchema, toFieldErrors, type FieldErrors } from "../lib/validation";
 import { TextField } from "../components/site/FormFields";
+import type { PaymentMethod } from "../types/models";
 
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
@@ -28,7 +29,7 @@ function CheckoutPage() {
     name: false, phone: false, address: false, city: false, pincode: false,
   });
   const [errors, setErrors] = useState<FieldErrors<Form>>({});
-  const [pay, setPay] = useState<"UPI" | "Card" | "NetBank" | "COD">("UPI");
+  const [pay, setPay] = useState<PaymentMethod>("upi");
   const [slot, setSlot] = useState(0);
   const [coupon, setCoupon] = useState("");
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
@@ -37,11 +38,13 @@ function CheckoutPage() {
 
   const slots = ["Now (30 min)", "Today • 4–6 PM", "Tomorrow • 10 AM", "Tomorrow • 6 PM"];
   const options = [
-    { k: "UPI", i: Wallet, label: "UPI" },
-    { k: "Card", i: CreditCard, label: "Card" },
-    { k: "NetBank", i: Banknote, label: "Net Banking" },
-    { k: "COD", i: Truck, label: "Cash on Delivery" },
-  ] as const;
+    { k: "upi", i: Smartphone, label: "UPI" },
+    { k: "credit_card", i: CreditCard, label: "Credit Card" },
+    { k: "debit_card", i: Banknote, label: "Debit Card" },
+    { k: "netbanking", i: Landmark, label: "Net Banking" },
+    { k: "wallet", i: Wallet, label: "Wallet" },
+    { k: "cod", i: Truck, label: "Cash on Delivery" },
+  ] as const satisfies readonly { k: PaymentMethod; i: typeof Wallet; label: string }[];
 
   const shipping = subtotal > 0 && subtotal < 499 ? 49 : 0;
   const total = Math.max(0, subtotal + shipping - discount);
@@ -180,7 +183,7 @@ function CheckoutPage() {
               </div>
               <div className="glass rounded-3xl p-6">
                 <div className="font-semibold mb-3">Payment method</div>
-                <div className="grid sm:grid-cols-4 gap-3">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {options.map((o) => {
                     const Icon = o.i;
                     const active = pay === o.k;

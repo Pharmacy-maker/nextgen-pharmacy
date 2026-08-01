@@ -172,7 +172,7 @@ function PaymentPage() {
           ) : (
             <>
               <div className="text-sm text-muted-foreground">Payment method</div>
-              <div className="text-2xl font-bold mb-1">{PAYMENT_METHOD_LABELS[method]}</div>
+              <div className="text-2xl font-bold mb-1">{PAYMENT_METHOD_LABELS[method as PaymentMethod]}</div>
               <div className="text-sm text-muted-foreground">Amount</div>
               <div className="text-3xl font-bold text-grad-hero">₹{total}</div>
               <div className="text-sm text-muted-foreground mt-2">Delivery slot: {slot || "—"}</div>
