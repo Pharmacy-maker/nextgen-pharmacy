@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { AlertTriangle, CheckCircle2, Clock, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell, Section } from "../components/site/Section";
-import { useCart } from "../lib/store";
-import { paymentService } from "../lib/api";
+import { useAuth, useCart } from "../lib/store";
+import { orderService, paymentService } from "../lib/api";
 import type { PaymentMethod, PaymentState } from "../types/models";
 
 const METHODS = ["upi", "credit_card", "debit_card", "netbanking", "wallet", "cod"] as const;
@@ -44,12 +45,14 @@ type Screen = "idle" | "processing" | "success" | "failed" | "pending";
 
 function PaymentPage() {
   const { method, total, slot } = Route.useSearch();
-  const { clear } = useCart();
+  const { items, clear } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [screen, setScreen] = useState<Screen>("idle");
   const [message, setMessage] = useState<string>("");
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  const queryClient = useQueryClient();
   const cleared = useRef(false);
 
   const settle = useCallback(
@@ -58,12 +61,26 @@ function PaymentPage() {
       setScreen(status === "processing" ? "processing" : status);
       if ((status === "success" || status === "pending") && !cleared.current) {
         cleared.current = true;
+        const snapshot = items.map((it) => ({ productId: it.id, quantity: it.qty }));
+        if (user && snapshot.length > 0) {
+          let shippingAddress = "Saved address";
+          try {
+            const raw = localStorage.getItem("rays:pending-order");
+            if (raw) shippingAddress = (JSON.parse(raw) as { shippingAddress?: string }).shippingAddress ?? shippingAddress;
+          } catch {
+            /* ignore malformed cache */
+          }
+          void orderService
+            .create({ userId: user.id, items: snapshot, shippingAddress, paymentMethod: method })
+            .then(() => queryClient.invalidateQueries({ queryKey: ["me"] }))
+            .catch(() => toast.error("Order saved locally, but we couldn't sync it."));
+        }
         clear();
       }
       if (status === "success") toast.success("Payment successful!");
       if (status === "failed") toast.error(note || "Payment failed.");
     },
-    [clear],
+    [clear, items, user, method, queryClient],
   );
 
   const pay = async () => {
