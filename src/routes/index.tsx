@@ -3,13 +3,9 @@ import { useEffect, useRef, useState } from "react";
 import {
   Upload, Sparkles, Brain, Baby, Dog, Zap, Shield, Sun, Droplet, Leaf, Activity, Smile, Flower2,
   HeartPulse, ChevronRight, ChevronLeft, Truck, MapPin, Package, Clock, CheckCircle2,
-  TrendingUp, DollarSign, Users, BarChart3, ArrowRight,
+  ArrowRight,
   CreditCard, Wallet, Banknote,
 } from "lucide-react";
-import {
-  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
-} from "recharts";
 import heroPharmacy from "../assets/hero-pharmacy.jpg.asset.json";
 import { Section } from "../components/site/Section";
 import { ProductCard } from "../components/site/ProductCard";
@@ -370,138 +366,6 @@ function DeliveryTracking() {
   );
 }
 
-/* -------------------- ANALYTICS -------------------- */
-const salesData = Array.from({ length: 12 }, (_, i) => ({
-  m: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][i],
-  sales: 40 + Math.round(Math.sin(i / 2) * 20 + i * 5),
-  revenue: 60 + Math.round(Math.cos(i / 2) * 20 + i * 6),
-}));
-const categoryData = [
-  { name: "Cardiac", v: 34, c: "oklch(0.72 0.24 350)" },
-  { name: "Diabetes", v: 28, c: "oklch(0.82 0.16 200)" },
-  { name: "Immunity", v: 22, c: "oklch(0.9 0.24 130)" },
-  { name: "Skin Care", v: 16, c: "oklch(0.65 0.25 300)" },
-];
-const dailyOrders = Array.from({ length: 7 }, (_, i) => ({
-  d: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][i],
-  o: 120 + ((i * 37) % 80),
-}));
-function Analytics() {
-  return (
-    <Section eyebrow="Admin insights" title="Analytics | Dashboard |" subtitle="A live snapshot of your pharmacy performance.">
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {[
-          { l: "Revenue", v: "₹4.82L", d: "+12.4%", i: DollarSign, g: "var(--grad-cool)" },
-          { l: "Orders", v: "2,148", d: "+8.1%", i: Package, g: "var(--grad-warm)" },
-          { l: "Customers", v: "18.6K", d: "+5.7%", i: Users, g: "var(--grad-neon)" },
-          { l: "Growth", v: "+24%", d: "MoM", i: TrendingUp, g: "var(--grad-hero)" },
-        ].map((k) => {
-          const Icon = k.i;
-          return (
-            <div key={k.l} className="rounded-2xl p-5 glass hover-lift relative overflow-hidden">
-              <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full opacity-40 blur-2xl" style={{ background: k.g }} />
-              <div className="flex items-center justify-between">
-                <div className="h-10 w-10 rounded-xl grid place-items-center" style={{ background: k.g }}>
-                  <Icon className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-xs text-emerald font-semibold">{k.d}</span>
-              </div>
-              <div className="mt-4 text-2xl font-bold">{k.v}</div>
-              <div className="text-xs text-muted-foreground">{k.l}</div>
-            </div>
-          );
-        })}
-      </div>
-      <div className="grid lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 rounded-3xl glass p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="font-semibold">Monthly Sales & Revenue</div>
-              <div className="text-xs text-muted-foreground">Last 12 months</div>
-            </div>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </div>
-          <div className="h-72">
-            <ResponsiveContainer>
-              <AreaChart data={salesData}>
-                <defs>
-                  <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="oklch(0.68 0.22 260)" stopOpacity={0.7} />
-                    <stop offset="100%" stopColor="oklch(0.68 0.22 260)" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="g2" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="oklch(0.72 0.24 350)" stopOpacity={0.7} />
-                    <stop offset="100%" stopColor="oklch(0.72 0.24 350)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
-                <XAxis dataKey="m" stroke="oklch(0.72 0.02 260)" fontSize={12} />
-                <YAxis stroke="oklch(0.72 0.02 260)" fontSize={12} />
-                <Tooltip contentStyle={{ background: "oklch(0.18 0.04 265)", border: "1px solid oklch(1 0 0 / 0.1)", borderRadius: 12 }} />
-                <Area type="monotone" dataKey="revenue" stroke="oklch(0.72 0.24 350)" fill="url(#g2)" strokeWidth={2} />
-                <Area type="monotone" dataKey="sales" stroke="oklch(0.68 0.22 260)" fill="url(#g1)" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-        <div className="rounded-3xl glass p-5">
-          <div className="font-semibold mb-2">Category share</div>
-          <div className="h-64">
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie data={categoryData} dataKey="v" innerRadius={55} outerRadius={90} paddingAngle={4}>
-                  {categoryData.map((c, i) => <Cell key={i} fill={c.c} />)}
-                </Pie>
-                <Tooltip contentStyle={{ background: "oklch(0.18 0.04 265)", border: "1px solid oklch(1 0 0 / 0.1)", borderRadius: 12 }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="space-y-1.5">
-            {categoryData.map((c) => (
-              <div key={c.name} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ background: c.c }} />
-                  {c.name}
-                </div>
-                <span className="text-muted-foreground">{c.v}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="lg:col-span-2 rounded-3xl glass p-5">
-          <div className="font-semibold mb-3">Daily orders</div>
-          <div className="h-56">
-            <ResponsiveContainer>
-              <BarChart data={dailyOrders}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.06)" />
-                <XAxis dataKey="d" stroke="oklch(0.72 0.02 260)" fontSize={12} />
-                <YAxis stroke="oklch(0.72 0.02 260)" fontSize={12} />
-                <Tooltip contentStyle={{ background: "oklch(0.18 0.04 265)", border: "1px solid oklch(1 0 0 / 0.1)", borderRadius: 12 }} />
-                <Bar dataKey="o" radius={[8, 8, 0, 0]} fill="oklch(0.82 0.16 200)" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-        <div className="rounded-3xl glass p-5">
-          <div className="font-semibold mb-3">Low stock alerts</div>
-          <div className="space-y-3">
-            {products.slice(0, 4).map((r) => (
-              <div key={r.id} className="flex items-center justify-between">
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold truncate">{r.name}</div>
-                  <div className="h-1.5 rounded-full bg-white/10 mt-1 overflow-hidden">
-                    <div className="h-full bg-grad-warm" style={{ width: `${Math.min(100, (r.stock % 20) * 6)}%` }} />
-                  </div>
-                </div>
-                <span className="ml-3 text-xs text-orange font-semibold">{r.stock % 20} left</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </Section>
-  );
-}
 
 /* -------------------- CHECKOUT TEASER -------------------- */
 function CheckoutTeaser() {
@@ -613,7 +477,6 @@ function Landing() {
         <BestSellers />
         <PrescriptionUploadTeaser />
         <DeliveryTracking />
-        <Analytics />
         <CheckoutTeaser />
       </main>
     </div>
