@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Upload, Sparkles, Brain, Baby, Dog, Zap, Shield, Sun, Droplet, Leaf, Activity, Smile, Flower2,
-  HeartPulse, ChevronRight, ChevronLeft, Truck, MapPin, Package, Clock, CheckCircle2,
+  HeartPulse, ChevronRight, ChevronLeft, Truck, CheckCircle2,
   ArrowRight,
   CreditCard, Wallet, Banknote,
 } from "lucide-react";
