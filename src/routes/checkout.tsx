@@ -85,6 +85,18 @@ function CheckoutPage() {
     setSubmitting(true);
     try {
       await new Promise((r) => setTimeout(r, 700));
+      try {
+        localStorage.setItem(
+          "rays:pending-order",
+          JSON.stringify({
+            shippingAddress: `${form.address}, ${form.city} ${form.pincode}`,
+            customerName: form.name,
+            phone: form.phone,
+          }),
+        );
+      } catch {
+        /* storage unavailable — order is still created with a fallback address */
+      }
       navigate({ to: "/payment", search: { method: pay, total, slot: slots[slot] } });
     } finally {
       setSubmitting(false);
