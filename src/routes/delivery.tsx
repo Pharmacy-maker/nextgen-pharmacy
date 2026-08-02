@@ -143,7 +143,7 @@ function TrackingPanel({ orderId, userId }: { orderId: string; userId: string })
     <AsyncBoundary
       isLoading={tracking.isLoading}
       error={tracking.error}
-      data={tracking.data}
+      data={tracking.data ?? undefined}
       onRetry={() => tracking.refetch()}
       loadingLabel="Loading tracking…"
       empty={<EmptyState title="Tracking unavailable" hint="We couldn't find tracking for this order." />}
