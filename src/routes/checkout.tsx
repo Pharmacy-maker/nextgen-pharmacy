@@ -29,7 +29,7 @@ function CheckoutPage() {
     name: false, phone: false, address: false, city: false, pincode: false,
   });
   const [errors, setErrors] = useState<FieldErrors<Form>>({});
-  const [pay, setPay] = useState<PaymentMethod>("upi");
+  const [pay, setPay] = useState<Exclude<PaymentMethod, "card">>("upi");
   const [slot, setSlot] = useState(0);
   const [coupon, setCoupon] = useState("");
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
@@ -44,7 +44,7 @@ function CheckoutPage() {
     { k: "netbanking", i: Landmark, label: "Net Banking" },
     { k: "wallet", i: Wallet, label: "Wallet" },
     { k: "cod", i: Truck, label: "Cash on Delivery" },
-  ] as const satisfies readonly { k: PaymentMethod; i: typeof Wallet; label: string }[];
+  ] as const satisfies readonly { k: Exclude<PaymentMethod, "card">; i: typeof Wallet; label: string }[];
 
   const shipping = subtotal > 0 && subtotal < 499 ? 49 : 0;
   const total = Math.max(0, subtotal + shipping - discount);
