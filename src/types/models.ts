@@ -277,3 +277,41 @@ export interface Paginated<T> {
   pageSize: number;
   total: number;
 }
+
+/* -------------------- DELIVERY TRACKING -------------------- */
+
+export type TrackingStage = "confirmed" | "packed" | "dispatched" | "out_for_delivery" | "delivered";
+
+export interface Rider {
+  id: ID;
+  name: string;
+  phone: string;
+  rating: number;
+  vehicle: string;
+}
+
+export interface GeoPoint {
+  lat: number;
+  lng: number;
+}
+
+export interface TrackingEvent {
+  stage: TrackingStage;
+  label: string;
+  at: string;
+  done: boolean;
+  active: boolean;
+}
+
+export interface OrderTracking {
+  orderId: ID;
+  reference: string;
+  status: OrderStatus;
+  stage: TrackingStage;
+  etaMinutes: number;
+  etaLabel: string;
+  rider: Rider | null;
+  destination: string;
+  coordinates: { hub: GeoPoint; rider: GeoPoint; destination: GeoPoint };
+  timeline: TrackingEvent[];
+}

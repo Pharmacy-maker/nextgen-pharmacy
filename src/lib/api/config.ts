@@ -56,6 +56,10 @@ export const ENDPOINTS = {
     mine: "/orders/me",
     updateStatus: (id: string) => `/orders/${id}/status`,
   },
+  tracking: {
+    mine: "/tracking/me",
+    detail: (id: string) => `/tracking/orders/${id}`,
+  },
   prescriptions: {
     list: "/prescriptions",
     mine: "/prescriptions/me",
