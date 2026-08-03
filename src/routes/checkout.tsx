@@ -332,6 +332,15 @@ function CheckoutPage() {
                     error={errors.pincode}
                     touched={touched.pincode}
                   />
+                  <label className="sm:col-span-2 flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={saveAddress}
+                      onChange={(e) => setSaveAddress(e.target.checked)}
+                      className="accent-primary h-4 w-4"
+                    />
+                    Save this address for future orders
+                  </label>
                 </div>
               </div>
               <div className="glass rounded-3xl p-6">
