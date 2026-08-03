@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { PageShell, Section } from "../components/site/Section";
-import { useCart } from "../lib/store";
+import { useAuth, useCart } from "../lib/store";
 import { ProductImage } from "../components/site/ProductImage";
+
 
 export const Route = createFileRoute("/cart")({
   component: CartPage,
@@ -18,9 +20,20 @@ export const Route = createFileRoute("/cart")({
 
 function CartPage() {
   const { detailed, remove, setQty, subtotal, clear, count } = useCart();
+  const { user, ready } = useAuth();
   const navigate = useNavigate();
   const shipping = subtotal > 0 && subtotal < 499 ? 49 : 0;
   const total = subtotal + shipping;
+
+  const goToCheckout = () => {
+    if (ready && !user) {
+      toast.error("Please log in or create an account to continue with your purchase.");
+      navigate({ to: "/login", search: { redirect: "/checkout" } });
+      return;
+    }
+    navigate({ to: "/checkout" });
+  };
+
 
   return (
     <PageShell>
@@ -93,7 +106,7 @@ function CartPage() {
                 <span className="text-2xl font-bold text-grad-hero">₹{total}</span>
               </div>
               <button
-                onClick={() => navigate({ to: "/checkout" })}
+                onClick={goToCheckout}
                 className="mt-4 w-full py-3 rounded-2xl bg-grad-hero text-white font-semibold glow"
               >
                 Proceed to Checkout

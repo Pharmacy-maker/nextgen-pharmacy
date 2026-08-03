@@ -20,6 +20,9 @@ import {
 } from "../components/site/FormFields";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: typeof search["redirect"] === "string" ? (search["redirect"] as string) : undefined,
+  }),
   component: LoginPage,
   head: () => ({
     meta: [
@@ -38,11 +41,15 @@ function LoginPage() {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const { login, user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
+  const { redirect } = Route.useSearch();
 
   const afterAuth = (u: AuthUser) => {
     login(u);
-    navigate({ to: u.role === "admin" ? "/admin" : "/dashboard" });
+    const fallbackTo = u.role === "admin" ? "/admin" : "/dashboard";
+    const dest = u.role === "admin" ? fallbackTo : (redirect ?? fallbackTo);
+    navigate({ to: dest as "/dashboard" });
   };
+
 
   if (user) {
     return (
@@ -51,12 +58,18 @@ function LoginPage() {
           <div className="glass rounded-3xl p-8 max-w-md mx-auto text-center">
             <div className="text-sm text-muted-foreground">{user.email}</div>
             <div className="flex flex-wrap justify-center gap-3 mt-6">
+              {!isAdmin && redirect === "/checkout" && (
+                <Link to="/checkout" className="rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow">
+                  Continue to checkout
+                </Link>
+              )}
               <Link
                 to={isAdmin ? "/admin" : "/dashboard"}
                 className="rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow"
               >
                 {isAdmin ? "Admin dashboard" : "My dashboard"}
               </Link>
+
               {!isAdmin && (
                 <Link to="/cart" className="rounded-xl px-5 py-2.5 glass hover:bg-white/15">
                   View cart

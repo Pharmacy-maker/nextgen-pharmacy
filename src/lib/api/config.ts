@@ -48,6 +48,7 @@ export const ENDPOINTS = {
     list: "/users",
     detail: (id: string) => `/users/${id}`,
     addresses: (id: string) => `/users/${id}/addresses`,
+    address: (id: string, addressId: string) => `/users/${id}/addresses/${addressId}`,
   },
   orders: {
     list: "/orders",

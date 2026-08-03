@@ -1,11 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Banknote, CreditCard, Landmark, Loader2, Smartphone, Truck, Wallet } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Banknote, CreditCard, Landmark, Loader2, MapPin, Plus, Smartphone, Truck, Wallet } from "lucide-react";
+import { toast } from "sonner";
 import { PageShell, Section } from "../components/site/Section";
-import { useCart } from "../lib/store";
-import { checkoutSchema, toFieldErrors, type FieldErrors } from "../lib/validation";
+import { useAuth, useCart } from "../lib/store";
+import { userService } from "../lib/api";
+import { checkoutSchema, emailSchema, toFieldErrors, type FieldErrors } from "../lib/validation";
 import { TextField } from "../components/site/FormFields";
-import type { PaymentMethod } from "../types/models";
+import type { Address, PaymentMethod } from "../types/models";
+
 
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
@@ -19,14 +23,20 @@ export const Route = createFileRoute("/checkout")({
   }),
 });
 
-type Form = { name: string; phone: string; address: string; city: string; pincode: string };
+type Form = { name: string; email: string; phone: string; address: string; city: string; pincode: string };
+
+const formSchema = checkoutSchema.extend({ email: emailSchema });
+
+const EMPTY_FORM: Form = { name: "", email: "", phone: "", address: "", city: "", pincode: "" };
 
 function CheckoutPage() {
   const { detailed, subtotal, count } = useCart();
+  const { user, ready } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState<Form>({ name: "", phone: "", address: "", city: "", pincode: "" });
+  const queryClient = useQueryClient();
+  const [form, setForm] = useState<Form>(EMPTY_FORM);
   const [touched, setTouched] = useState<Record<keyof Form, boolean>>({
-    name: false, phone: false, address: false, city: false, pincode: false,
+    name: false, email: false, phone: false, address: false, city: false, pincode: false,
   });
   const [errors, setErrors] = useState<FieldErrors<Form>>({});
   const [pay, setPay] = useState<Exclude<PaymentMethod, "card">>("upi");
@@ -35,6 +45,57 @@ function CheckoutPage() {
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
   const [discount, setDiscount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [showNewAddress, setShowNewAddress] = useState(false);
+  const [saveAddress, setSaveAddress] = useState(true);
+  const [prefilled, setPrefilled] = useState(false);
+
+  /* Guests may browse and fill the cart, but never reach checkout. */
+  useEffect(() => {
+    if (ready && !user) {
+      toast.error("Please log in or create an account to continue with your purchase.");
+      navigate({ to: "/login", search: { redirect: "/checkout" } });
+    }
+  }, [ready, user, navigate]);
+
+  const addressesQuery = useQuery({
+    queryKey: ["addresses", user?.id],
+    queryFn: () => userService.addresses(user!.id),
+    enabled: !!user,
+  });
+  const addresses = useMemo(() => addressesQuery.data ?? [], [addressesQuery.data]);
+
+  /* Prefill profile details (name / email / phone) once the session is known. */
+  useEffect(() => {
+    if (!user || prefilled) return;
+    setPrefilled(true);
+    setForm((f) => ({
+      ...f,
+      name: f.name || user.name,
+      email: f.email || user.email,
+      phone: f.phone || user.phone || "",
+    }));
+  }, [user, prefilled]);
+
+  const applyAddress = (a: Address) => {
+    setSelectedAddressId(a.id);
+    setShowNewAddress(false);
+    setForm((f) => ({
+      ...f,
+      phone: a.phone || f.phone,
+      address: a.line1,
+      city: a.city,
+      pincode: a.pincode,
+    }));
+  };
+
+  /* Auto-select the default saved address. */
+  useEffect(() => {
+    if (selectedAddressId || showNewAddress || addresses.length === 0) return;
+    const preferred = addresses.find((a) => a.isDefault) ?? addresses[0];
+    if (preferred) applyAddress(preferred);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addresses]);
 
   const slots = ["Now (30 min)", "Today • 4–6 PM", "Tomorrow • 10 AM", "Tomorrow • 6 PM"];
   const options = [
@@ -50,7 +111,7 @@ function CheckoutPage() {
   const total = Math.max(0, subtotal + shipping - discount);
 
   const validate = (next: Form) => {
-    const r = checkoutSchema.safeParse(next);
+    const r = formSchema.safeParse(next);
     if (r.success) {
       setErrors({});
       return true;
@@ -65,7 +126,8 @@ function CheckoutPage() {
     validate(next);
   };
 
-  const isValid = useMemo(() => checkoutSchema.safeParse(form).success, [form]);
+  const isValid = useMemo(() => formSchema.safeParse(form).success, [form]);
+
 
   const applyCoupon = () => {
     if (coupon.trim().toUpperCase() === "RAYS10") {
@@ -80,17 +142,38 @@ function CheckoutPage() {
   const placeOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (count === 0 || submitting) return;
-    setTouched({ name: true, phone: true, address: true, city: true, pincode: true });
-    if (!validate(form)) return;
+    setTouched({ name: true, email: true, phone: true, address: true, city: true, pincode: true });
+    if (!validate(form) || !user) return;
     setSubmitting(true);
     try {
-      await new Promise((r) => setTimeout(r, 700));
+      /* Save the address book entry so it can be reused for future orders. */
+      const isNew =
+        !selectedAddressId ||
+        !addresses.some(
+          (a) => a.id === selectedAddressId && a.line1 === form.address && a.pincode === form.pincode,
+        );
+      if (isNew && saveAddress) {
+        try {
+          await userService.addAddress(user.id, {
+            label: addresses.length === 0 ? "Home" : "Other",
+            line1: form.address,
+            city: form.city,
+            pincode: form.pincode,
+            phone: form.phone,
+            isDefault: addresses.length === 0,
+          });
+          await queryClient.invalidateQueries({ queryKey: ["addresses", user.id] });
+        } catch {
+          toast.error("We couldn't save this address, but your order can continue.");
+        }
+      }
       try {
         localStorage.setItem(
           "rays:pending-order",
           JSON.stringify({
             shippingAddress: `${form.address}, ${form.city} ${form.pincode}`,
             customerName: form.name,
+            email: form.email,
             phone: form.phone,
           }),
         );
@@ -102,6 +185,23 @@ function CheckoutPage() {
       setSubmitting(false);
     }
   };
+
+  if (!ready || !user) {
+    return (
+      <PageShell>
+        <Section eyebrow="Secure checkout" title="Sign | in |" subtitle="Please log in or create an account to continue with your purchase.">
+          <div className="glass rounded-3xl p-10 text-center">
+            <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+            <div className="mt-4 text-sm text-muted-foreground">Taking you to the login page…</div>
+            <Link to="/login" search={{ redirect: "/checkout" }} className="inline-block mt-5 rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow">
+              Log in / Sign up
+            </Link>
+          </div>
+        </Section>
+      </PageShell>
+    );
+  }
+
 
   return (
     <PageShell>
@@ -118,6 +218,53 @@ function CheckoutPage() {
             <div className="lg:col-span-2 space-y-5">
               <div className="glass rounded-3xl p-6">
                 <div className="font-semibold mb-3">Delivery address</div>
+                {addresses.length > 0 ? (
+                  <div className="grid sm:grid-cols-2 gap-3 mb-4">
+                    {addresses.map((a) => {
+                      const active = a.id === selectedAddressId && !showNewAddress;
+                      return (
+                        <button
+                          type="button"
+                          key={a.id}
+                          onClick={() => applyAddress(a)}
+                          aria-pressed={active}
+                          className={`text-left rounded-2xl p-4 border transition ${
+                            active ? "border-transparent bg-grad-cool text-white glow" : "border-white/10 glass hover:bg-white/10"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 text-sm font-semibold">
+                            <MapPin className="h-4 w-4" /> {a.label}
+                            {a.isDefault && <span className="text-[10px] uppercase opacity-70">Default</span>}
+                          </div>
+                          <div className="text-xs mt-1 opacity-80">
+                            {a.line1}, {a.city} {a.pincode}
+                          </div>
+                        </button>
+                      );
+                    })}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowNewAddress(true);
+                        setSelectedAddressId(null);
+                        setForm((f) => ({ ...f, address: "", city: "", pincode: "" }));
+                      }}
+                      aria-pressed={showNewAddress}
+                      className={`text-left rounded-2xl p-4 border transition ${
+                        showNewAddress ? "border-transparent bg-grad-cool text-white glow" : "border-white/10 glass hover:bg-white/10"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 text-sm font-semibold">
+                        <Plus className="h-4 w-4" /> Add new address
+                      </div>
+                      <div className="text-xs mt-1 opacity-80">Save it for future orders</div>
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground mb-4">
+                    You don't have a saved delivery address yet — add one below and we'll keep it for future orders.
+                  </p>
+                )}
                 <div className="grid sm:grid-cols-2 gap-3">
                   <TextField
                     label="Full name"
@@ -130,6 +277,17 @@ function CheckoutPage() {
                     touched={touched.name}
                   />
                   <TextField
+                    label="Email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@email.com"
+                    value={form.email}
+                    onChange={(v) => setField("email", v)}
+                    onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+                    error={errors.email}
+                    touched={touched.email}
+                  />
+                  <TextField
                     label="Phone"
                     inputMode="numeric"
                     autoComplete="tel"
@@ -140,6 +298,7 @@ function CheckoutPage() {
                     error={errors.phone}
                     touched={touched.phone}
                   />
+
                   <div className="sm:col-span-2">
                     <TextField
                       label="Address"
@@ -173,6 +332,15 @@ function CheckoutPage() {
                     error={errors.pincode}
                     touched={touched.pincode}
                   />
+                  <label className="sm:col-span-2 flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={saveAddress}
+                      onChange={(e) => setSaveAddress(e.target.checked)}
+                      className="accent-primary h-4 w-4"
+                    />
+                    Save this address for future orders
+                  </label>
                 </div>
               </div>
               <div className="glass rounded-3xl p-6">
