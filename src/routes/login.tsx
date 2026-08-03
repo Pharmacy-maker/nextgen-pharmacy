@@ -58,12 +58,18 @@ function LoginPage() {
           <div className="glass rounded-3xl p-8 max-w-md mx-auto text-center">
             <div className="text-sm text-muted-foreground">{user.email}</div>
             <div className="flex flex-wrap justify-center gap-3 mt-6">
+              {!isAdmin && redirect === "/checkout" && (
+                <Link to="/checkout" className="rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow">
+                  Continue to checkout
+                </Link>
+              )}
               <Link
                 to={isAdmin ? "/admin" : "/dashboard"}
                 className="rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow"
               >
                 {isAdmin ? "Admin dashboard" : "My dashboard"}
               </Link>
+
               {!isAdmin && (
                 <Link to="/cart" className="rounded-xl px-5 py-2.5 glass hover:bg-white/15">
                   View cart
