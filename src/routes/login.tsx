@@ -20,6 +20,9 @@ import {
 } from "../components/site/FormFields";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: typeof search["redirect"] === "string" ? (search["redirect"] as string) : undefined,
+  }),
   component: LoginPage,
   head: () => ({
     meta: [
@@ -38,11 +41,15 @@ function LoginPage() {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const { login, user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
+  const { redirect } = Route.useSearch();
 
   const afterAuth = (u: AuthUser) => {
     login(u);
-    navigate({ to: u.role === "admin" ? "/admin" : "/dashboard" });
+    const fallbackTo = u.role === "admin" ? "/admin" : "/dashboard";
+    const dest = u.role === "admin" ? fallbackTo : (redirect ?? fallbackTo);
+    navigate({ to: dest as "/dashboard" });
   };
+
 
   if (user) {
     return (
