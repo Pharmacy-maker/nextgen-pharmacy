@@ -1,11 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { Banknote, CreditCard, Landmark, Loader2, Smartphone, Truck, Wallet } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Banknote, CreditCard, Landmark, Loader2, MapPin, Plus, Smartphone, Truck, Wallet } from "lucide-react";
+import { toast } from "sonner";
 import { PageShell, Section } from "../components/site/Section";
-import { useCart } from "../lib/store";
-import { checkoutSchema, toFieldErrors, type FieldErrors } from "../lib/validation";
+import { useAuth, useCart } from "../lib/store";
+import { userService } from "../lib/api";
+import { checkoutSchema, emailSchema, toFieldErrors, type FieldErrors } from "../lib/validation";
 import { TextField } from "../components/site/FormFields";
-import type { PaymentMethod } from "../types/models";
+import type { Address, PaymentMethod } from "../types/models";
+
 
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
