@@ -218,6 +218,53 @@ function CheckoutPage() {
             <div className="lg:col-span-2 space-y-5">
               <div className="glass rounded-3xl p-6">
                 <div className="font-semibold mb-3">Delivery address</div>
+                {addresses.length > 0 ? (
+                  <div className="grid sm:grid-cols-2 gap-3 mb-4">
+                    {addresses.map((a) => {
+                      const active = a.id === selectedAddressId && !showNewAddress;
+                      return (
+                        <button
+                          type="button"
+                          key={a.id}
+                          onClick={() => applyAddress(a)}
+                          aria-pressed={active}
+                          className={`text-left rounded-2xl p-4 border transition ${
+                            active ? "border-transparent bg-grad-cool text-white glow" : "border-white/10 glass hover:bg-white/10"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 text-sm font-semibold">
+                            <MapPin className="h-4 w-4" /> {a.label}
+                            {a.isDefault && <span className="text-[10px] uppercase opacity-70">Default</span>}
+                          </div>
+                          <div className="text-xs mt-1 opacity-80">
+                            {a.line1}, {a.city} {a.pincode}
+                          </div>
+                        </button>
+                      );
+                    })}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowNewAddress(true);
+                        setSelectedAddressId(null);
+                        setForm((f) => ({ ...f, address: "", city: "", pincode: "" }));
+                      }}
+                      aria-pressed={showNewAddress}
+                      className={`text-left rounded-2xl p-4 border transition ${
+                        showNewAddress ? "border-transparent bg-grad-cool text-white glow" : "border-white/10 glass hover:bg-white/10"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 text-sm font-semibold">
+                        <Plus className="h-4 w-4" /> Add new address
+                      </div>
+                      <div className="text-xs mt-1 opacity-80">Save it for future orders</div>
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground mb-4">
+                    You don't have a saved delivery address yet — add one below and we'll keep it for future orders.
+                  </p>
+                )}
                 <div className="grid sm:grid-cols-2 gap-3">
                   <TextField
                     label="Full name"
@@ -230,6 +277,17 @@ function CheckoutPage() {
                     touched={touched.name}
                   />
                   <TextField
+                    label="Email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="you@email.com"
+                    value={form.email}
+                    onChange={(v) => setField("email", v)}
+                    onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+                    error={errors.email}
+                    touched={touched.email}
+                  />
+                  <TextField
                     label="Phone"
                     inputMode="numeric"
                     autoComplete="tel"
@@ -240,6 +298,7 @@ function CheckoutPage() {
                     error={errors.phone}
                     touched={touched.phone}
                   />
+
                   <div className="sm:col-span-2">
                     <TextField
                       label="Address"
