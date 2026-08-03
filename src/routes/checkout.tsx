@@ -23,14 +23,20 @@ export const Route = createFileRoute("/checkout")({
   }),
 });
 
-type Form = { name: string; phone: string; address: string; city: string; pincode: string };
+type Form = { name: string; email: string; phone: string; address: string; city: string; pincode: string };
+
+const formSchema = checkoutSchema.extend({ email: emailSchema });
+
+const EMPTY_FORM: Form = { name: "", email: "", phone: "", address: "", city: "", pincode: "" };
 
 function CheckoutPage() {
   const { detailed, subtotal, count } = useCart();
+  const { user, ready } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState<Form>({ name: "", phone: "", address: "", city: "", pincode: "" });
+  const queryClient = useQueryClient();
+  const [form, setForm] = useState<Form>(EMPTY_FORM);
   const [touched, setTouched] = useState<Record<keyof Form, boolean>>({
-    name: false, phone: false, address: false, city: false, pincode: false,
+    name: false, email: false, phone: false, address: false, city: false, pincode: false,
   });
   const [errors, setErrors] = useState<FieldErrors<Form>>({});
   const [pay, setPay] = useState<Exclude<PaymentMethod, "card">>("upi");
@@ -39,6 +45,57 @@ function CheckoutPage() {
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
   const [discount, setDiscount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [showNewAddress, setShowNewAddress] = useState(false);
+  const [saveAddress, setSaveAddress] = useState(true);
+  const [prefilled, setPrefilled] = useState(false);
+
+  /* Guests may browse and fill the cart, but never reach checkout. */
+  useEffect(() => {
+    if (ready && !user) {
+      toast.error("Please log in or create an account to continue with your purchase.");
+      navigate({ to: "/login", search: { redirect: "/checkout" } });
+    }
+  }, [ready, user, navigate]);
+
+  const addressesQuery = useQuery({
+    queryKey: ["addresses", user?.id],
+    queryFn: () => userService.addresses(user!.id),
+    enabled: !!user,
+  });
+  const addresses = useMemo(() => addressesQuery.data ?? [], [addressesQuery.data]);
+
+  /* Prefill profile details (name / email / phone) once the session is known. */
+  useEffect(() => {
+    if (!user || prefilled) return;
+    setPrefilled(true);
+    setForm((f) => ({
+      ...f,
+      name: f.name || user.name,
+      email: f.email || user.email,
+      phone: f.phone || user.phone || "",
+    }));
+  }, [user, prefilled]);
+
+  const applyAddress = (a: Address) => {
+    setSelectedAddressId(a.id);
+    setShowNewAddress(false);
+    setForm((f) => ({
+      ...f,
+      phone: a.phone || f.phone,
+      address: a.line1,
+      city: a.city,
+      pincode: a.pincode,
+    }));
+  };
+
+  /* Auto-select the default saved address. */
+  useEffect(() => {
+    if (selectedAddressId || showNewAddress || addresses.length === 0) return;
+    const preferred = addresses.find((a) => a.isDefault) ?? addresses[0];
+    if (preferred) applyAddress(preferred);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addresses]);
 
   const slots = ["Now (30 min)", "Today • 4–6 PM", "Tomorrow • 10 AM", "Tomorrow • 6 PM"];
   const options = [
@@ -54,7 +111,7 @@ function CheckoutPage() {
   const total = Math.max(0, subtotal + shipping - discount);
 
   const validate = (next: Form) => {
-    const r = checkoutSchema.safeParse(next);
+    const r = formSchema.safeParse(next);
     if (r.success) {
       setErrors({});
       return true;
@@ -69,7 +126,8 @@ function CheckoutPage() {
     validate(next);
   };
 
-  const isValid = useMemo(() => checkoutSchema.safeParse(form).success, [form]);
+  const isValid = useMemo(() => formSchema.safeParse(form).success, [form]);
+
 
   const applyCoupon = () => {
     if (coupon.trim().toUpperCase() === "RAYS10") {
