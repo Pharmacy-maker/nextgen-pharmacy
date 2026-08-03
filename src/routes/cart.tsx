@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { PageShell, Section } from "../components/site/Section";
-import { useCart } from "../lib/store";
+import { useAuth, useCart } from "../lib/store";
 import { ProductImage } from "../components/site/ProductImage";
+
 
 export const Route = createFileRoute("/cart")({
   component: CartPage,
