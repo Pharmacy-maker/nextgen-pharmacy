@@ -20,9 +20,20 @@ export const Route = createFileRoute("/cart")({
 
 function CartPage() {
   const { detailed, remove, setQty, subtotal, clear, count } = useCart();
+  const { user, ready } = useAuth();
   const navigate = useNavigate();
   const shipping = subtotal > 0 && subtotal < 499 ? 49 : 0;
   const total = subtotal + shipping;
+
+  const goToCheckout = () => {
+    if (ready && !user) {
+      toast.error("Please log in or create an account to continue with your purchase.");
+      navigate({ to: "/login", search: { redirect: "/checkout" } });
+      return;
+    }
+    navigate({ to: "/checkout" });
+  };
+
 
   return (
     <PageShell>
