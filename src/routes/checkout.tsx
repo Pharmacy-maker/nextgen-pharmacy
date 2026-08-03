@@ -142,17 +142,38 @@ function CheckoutPage() {
   const placeOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (count === 0 || submitting) return;
-    setTouched({ name: true, phone: true, address: true, city: true, pincode: true });
-    if (!validate(form)) return;
+    setTouched({ name: true, email: true, phone: true, address: true, city: true, pincode: true });
+    if (!validate(form) || !user) return;
     setSubmitting(true);
     try {
-      await new Promise((r) => setTimeout(r, 700));
+      /* Save the address book entry so it can be reused for future orders. */
+      const isNew =
+        !selectedAddressId ||
+        !addresses.some(
+          (a) => a.id === selectedAddressId && a.line1 === form.address && a.pincode === form.pincode,
+        );
+      if (isNew && saveAddress) {
+        try {
+          await userService.addAddress(user.id, {
+            label: addresses.length === 0 ? "Home" : "Other",
+            line1: form.address,
+            city: form.city,
+            pincode: form.pincode,
+            phone: form.phone,
+            isDefault: addresses.length === 0,
+          });
+          await queryClient.invalidateQueries({ queryKey: ["addresses", user.id] });
+        } catch {
+          toast.error("We couldn't save this address, but your order can continue.");
+        }
+      }
       try {
         localStorage.setItem(
           "rays:pending-order",
           JSON.stringify({
             shippingAddress: `${form.address}, ${form.city} ${form.pincode}`,
             customerName: form.name,
+            email: form.email,
             phone: form.phone,
           }),
         );
@@ -164,6 +185,23 @@ function CheckoutPage() {
       setSubmitting(false);
     }
   };
+
+  if (!ready || !user) {
+    return (
+      <PageShell>
+        <Section eyebrow="Secure checkout" title="Sign | in |" subtitle="Please log in or create an account to continue with your purchase.">
+          <div className="glass rounded-3xl p-10 text-center">
+            <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
+            <div className="mt-4 text-sm text-muted-foreground">Taking you to the login page…</div>
+            <Link to="/login" search={{ redirect: "/checkout" }} className="inline-block mt-5 rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow">
+              Log in / Sign up
+            </Link>
+          </div>
+        </Section>
+      </PageShell>
+    );
+  }
+
 
   return (
     <PageShell>
