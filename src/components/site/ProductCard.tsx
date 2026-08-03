@@ -1,20 +1,28 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Heart, Plus, Star } from "lucide-react";
+import { toast } from "sonner";
 import { discountedPrice, type Product } from "../../lib/products";
-import { useCart, useWishlist } from "../../lib/store";
+import { useAuth, useCart, useWishlist } from "../../lib/store";
 import { ProductImage } from "./ProductImage";
 
 export function ProductCard({ p, compact = false }: { p: Product; compact?: boolean }) {
   const { add } = useCart();
   const { toggle, has } = useWishlist();
+  const { user, ready } = useAuth();
   const navigate = useNavigate();
   const price = discountedPrice(p);
   const wished = has(p.id);
 
   const buyNow = () => {
     add(p.id, 1);
+    if (ready && !user) {
+      toast.error("Please log in or create an account to continue with your purchase.");
+      navigate({ to: "/login", search: { redirect: "/checkout" } });
+      return;
+    }
     navigate({ to: "/checkout" });
   };
+
 
   return (
     <div className={`group relative rounded-3xl glass hover-lift overflow-hidden flex flex-col ${compact ? "min-w-[260px]" : ""}`}>
