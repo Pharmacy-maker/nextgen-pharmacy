@@ -106,7 +106,7 @@ function CartPage() {
                 <span className="text-2xl font-bold text-grad-hero">₹{total}</span>
               </div>
               <button
-                onClick={() => navigate({ to: "/checkout" })}
+                onClick={goToCheckout}
                 className="mt-4 w-full py-3 rounded-2xl bg-grad-hero text-white font-semibold glow"
               >
                 Proceed to Checkout
