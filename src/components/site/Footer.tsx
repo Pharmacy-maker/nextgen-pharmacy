@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Facebook, Instagram, Pill, Twitter, Youtube } from "lucide-react";
+import { Pill } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { emailSchema } from "../../lib/validation";
@@ -43,21 +43,9 @@ export function Footer() {
               <div className="h-9 w-9 rounded-xl bg-grad-hero grid place-items-center">
                 <Pill className="h-5 w-5 text-white" />
               </div>
-              <span className="font-display font-bold text-lg">Rays Pharmacy</span>
+              <span className="font-brand text-lg">Rays Pharmacy</span>
             </div>
             <p className="text-sm text-muted-foreground">The AI-powered pharmacy for a healthier tomorrow.</p>
-            <div className="flex gap-2 mt-4">
-              {[
-                { I: Instagram, href: "https://instagram.com" },
-                { I: Twitter, href: "https://twitter.com" },
-                { I: Facebook, href: "https://facebook.com" },
-                { I: Youtube, href: "https://youtube.com" },
-              ].map(({ I, href }, i) => (
-                <a key={i} href={href} target="_blank" rel="noreferrer noopener" className="h-9 w-9 rounded-xl glass grid place-items-center hover:bg-white/15 transition">
-                  <I className="h-4 w-4" />
-                </a>
-              ))}
-            </div>
           </div>
           <div>
             <div className="font-semibold mb-3">Explore</div>

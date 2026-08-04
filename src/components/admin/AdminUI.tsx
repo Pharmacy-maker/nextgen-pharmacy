@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { Pencil, Trash2 } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell } from "recharts";
 import type { SeriesPoint } from "../../types/models";
 
@@ -139,6 +140,152 @@ export function DonutSeries({ data }: { data: SeriesPoint[] }) {
         <Tooltip contentStyle={{ background: "rgba(12,16,28,0.9)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }} />
       </PieChart>
     </ResponsiveContainer>
+  );
+}
+
+/** Edit / Delete controls used in every admin data table. */
+export function RowActions({
+  onEdit,
+  onDelete,
+  label,
+  disabled,
+}: {
+  onEdit: () => void;
+  onDelete: () => void;
+  label: string;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={onEdit}
+        disabled={disabled}
+        aria-label={`Edit ${label}`}
+        title="Edit"
+        className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs font-semibold hover:bg-white/10 transition disabled:opacity-50"
+      >
+        <Pencil className="h-3.5 w-3.5" /> Edit
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          if (typeof window === "undefined" || window.confirm(`Delete ${label}? This cannot be undone.`)) onDelete();
+        }}
+        disabled={disabled}
+        aria-label={`Delete ${label}`}
+        title="Delete"
+        className="inline-flex items-center gap-1 rounded-lg border border-pink/30 bg-pink/10 px-2.5 py-1.5 text-xs font-semibold text-pink hover:bg-pink/20 transition disabled:opacity-50"
+      >
+        <Trash2 className="h-3.5 w-3.5" /> Delete
+      </button>
+    </div>
+  );
+}
+
+/** Accessible switch used for every editable admin toggle. */
+export function Toggle({
+  checked,
+  onChange,
+  label,
+  disabled,
+}: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  label: string;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={`relative h-6 w-11 shrink-0 rounded-full border transition disabled:opacity-50 ${
+        checked ? "bg-grad-cool border-transparent" : "bg-white/10 border-white/15"
+      }`}
+    >
+      <span
+        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${checked ? "left-[22px]" : "left-0.5"}`}
+      />
+    </button>
+  );
+}
+
+export type EditField = {
+  key: string;
+  label: string;
+  type?: "text" | "number" | "select";
+  options?: { value: string; label: string }[];
+};
+
+/**
+ * Generic edit form for a table row. Field definitions are data-driven so the
+ * same panel works for products, categories, inventory, suppliers and users.
+ */
+export function EditPanel({
+  title,
+  fields,
+  value,
+  saving,
+  onCancel,
+  onSave,
+}: {
+  title: string;
+  fields: EditField[];
+  value: Record<string, string | number>;
+  saving?: boolean;
+  onCancel: () => void;
+  onSave: (next: Record<string, string | number>) => void;
+}) {
+  const [draft, setDraft] = useState<Record<string, string | number>>(value);
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSave(draft);
+      }}
+      className="glass rounded-2xl p-5 mb-6"
+    >
+      <div className="font-semibold mb-4">{title}</div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {fields.map((f) => (
+          <label key={f.key} className="block text-sm">
+            <span className="text-xs text-muted-foreground">{f.label}</span>
+            {f.type === "select" ? (
+              <select
+                value={String(draft[f.key] ?? "")}
+                onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })}
+                className="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
+              >
+                {(f.options ?? []).map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type={f.type === "number" ? "number" : "text"}
+                value={String(draft[f.key] ?? "")}
+                onChange={(e) =>
+                  setDraft({ ...draft, [f.key]: f.type === "number" ? Number(e.target.value) : e.target.value })
+                }
+                className="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
+              />
+            )}
+          </label>
+        ))}
+      </div>
+      <div className="mt-4 flex gap-2">
+        <button type="submit" disabled={saving} className="rounded-xl px-5 py-2.5 bg-grad-hero text-white text-sm font-semibold glow disabled:opacity-60">
+          {saving ? "Saving…" : "Save changes"}
+        </button>
+        <button type="button" onClick={onCancel} className="rounded-xl px-5 py-2.5 border border-white/10 text-sm font-semibold hover:bg-white/5">
+          Cancel
+        </button>
+      </div>
+    </form>
   );
 }
 

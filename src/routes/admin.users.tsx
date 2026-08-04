@@ -1,16 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AdminPageHeader, DataTable, StatusBadge } from "../components/admin/AdminUI";
+import { useState } from "react";
+import { AdminPageHeader, DataTable, EditPanel, RowActions, StatusBadge } from "../components/admin/AdminUI";
 import { AsyncBoundary } from "../components/site/AsyncState";
 import { userService } from "../lib/api";
-import type { UserStatus } from "../types/models";
+import type { User, UserStatus } from "../types/models";
 
 export const Route = createFileRoute("/admin/users")({ component: AdminUsers });
 
 function AdminUsers() {
   const qc = useQueryClient();
   const { data, isLoading, error, refetch } = useQuery({ queryKey: ["admin", "users"], queryFn: () => userService.list() });
+  const [editing, setEditing] = useState<User | null>(null);
+  const edit = useMutation({
+    mutationFn: (input: { id: string; patch: Partial<User> }) => userService.update(input.id, input.patch),
+    onSuccess: () => { toast.success("User updated"); setEditing(null); qc.invalidateQueries({ queryKey: ["admin", "users"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const remove = useMutation({
+    mutationFn: (id: string) => userService.remove(id),
+    onSuccess: () => { toast.success("User deleted"); qc.invalidateQueries({ queryKey: ["admin", "users"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const update = useMutation({
     mutationFn: ({ id, status }: { id: string; status: UserStatus }) => userService.updateStatus(id, status),
     onSuccess: () => { toast.success("User status updated"); qc.invalidateQueries({ queryKey: ["admin", "users"] }); },
@@ -20,6 +32,29 @@ function AdminUsers() {
   return (
     <div>
       <AdminPageHeader title="User management" subtitle="Customer list, contact details, account status and roles." />
+      {editing && (
+        <EditPanel
+          title={`Edit user • ${editing.name}`}
+          saving={edit.isPending}
+          value={{ name: editing.name, email: editing.email, phone: editing.phone ?? "", role: editing.role, status: editing.status }}
+          fields={[
+            { key: "name", label: "Name" },
+            { key: "email", label: "Email" },
+            { key: "phone", label: "Phone" },
+            { key: "role", label: "Role", type: "select", options: [
+              { value: "user", label: "User" },
+              { value: "admin", label: "Admin" },
+            ] },
+            { key: "status", label: "Status", type: "select", options: [
+              { value: "active", label: "Active" },
+              { value: "inactive", label: "Inactive" },
+              { value: "blocked", label: "Blocked" },
+            ] },
+          ]}
+          onCancel={() => setEditing(null)}
+          onSave={(next) => edit.mutate({ id: editing.id, patch: next as unknown as Partial<User> })}
+        />
+      )}
       <AsyncBoundary isLoading={isLoading} error={error} data={data} onRetry={() => refetch()}>
         {(list) => (
           <DataTable headers={["Name", "Email", "Phone", "Role", "Joined", "Status", "Actions"]}>
@@ -42,6 +77,14 @@ function AdminUsers() {
                     <option value="inactive">Inactive</option>
                     <option value="blocked">Blocked</option>
                   </select>
+                  <div className="mt-2">
+                    <RowActions
+                      label={u.name}
+                      disabled={remove.isPending}
+                      onEdit={() => setEditing(u)}
+                      onDelete={() => remove.mutate(u.id)}
+                    />
+                  </div>
                 </td>
               </tr>
             ))}

@@ -110,7 +110,7 @@ export function useCart() {
 }
 
 /* -------------------- Wishlist -------------------- */
-type WishCtx = { ids: string[]; toggle: (id: string) => void; has: (id: string) => boolean };
+type WishCtx = { ids: string[]; count: number; toggle: (id: string) => void; has: (id: string) => boolean; remove: (id: string) => void; clear: () => void };
 const WishContext = createContext<WishCtx | null>(null);
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
@@ -130,7 +130,19 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     [setIds],
   );
   const has = useCallback((id: string) => ids.includes(id), [ids]);
-  return <WishContext.Provider value={{ ids, toggle, has }}>{children}</WishContext.Provider>;
+  const removeItem = useCallback(
+    (id: string) => {
+      setIds((prev) => prev.filter((x) => x !== id));
+      toast("Removed from wishlist");
+    },
+    [setIds],
+  );
+  const clear = useCallback(() => setIds([]), [setIds]);
+  return (
+    <WishContext.Provider value={{ ids, count: ids.length, toggle, has, remove: removeItem, clear }}>
+      {children}
+    </WishContext.Provider>
+  );
 }
 export function useWishlist() {
   const ctx = useContext(WishContext);
@@ -152,6 +164,8 @@ type AuthCtx = {
   ready: boolean;
   isAdmin: boolean;
   login: (u: AuthUser) => void;
+  /** Patches the signed-in profile (mirrors a PATCH /users/:id response). */
+  updateUser: (patch: Partial<Omit<AuthUser, "id" | "role">>) => void;
   logout: () => void;
 };
 const AuthContext = createContext<AuthCtx | null>(null);
@@ -170,6 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(u);
           toast.success(`Welcome, ${u.name}`);
         },
+        updateUser: (patch) => setUser((prev) => (prev ? { ...prev, ...patch } : prev)),
         logout: () => {
           setUser(null);
           setToken(null);

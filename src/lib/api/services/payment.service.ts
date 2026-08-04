@@ -28,8 +28,7 @@ const ledger = new Map<ID, PaymentOrder>();
 
 function mockStatus(input: CreatePaymentOrderInput): PaymentOrder["status"] {
   if (input.amount <= 0) return "failed";
-  if (input.method === "cod") return "pending";
-  return "processing";
+  return input.method === "cod" ? "pending" : "processing";
 }
 
 export const paymentService = {
@@ -68,18 +67,24 @@ export const paymentService = {
         700,
       );
     }
+    /**
+     * No fake approvals: without a backend gateway there is nothing that can
+     * legitimately confirm a transfer, so online payments stay `pending` until
+     * a real verification endpoint replaces this branch. COD is "pending" too —
+     * cash is collected at the door.
+     */
     const status: PaymentOrder["status"] =
-      existing.status === "processing" ? "success" : existing.status;
+      existing.status === "processing" ? "pending" : existing.status;
     ledger.set(paymentId, { ...existing, status });
     return mockDelay(
       {
         paymentId,
         status,
         message:
-          status === "success"
-            ? "Payment captured successfully."
+          status === "pending" && existing.method === "cod"
+            ? "Order confirmed. Payment will be collected on delivery."
             : status === "pending"
-              ? "Payment will be collected on delivery."
+              ? "Awaiting payment confirmation. Your order is reserved and will be marked paid once the payment gateway verifies this transaction."
               : "Payment could not be completed.",
       },
       1400,

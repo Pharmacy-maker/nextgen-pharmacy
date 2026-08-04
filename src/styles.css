@@ -41,6 +41,7 @@
 
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-brand: "Sora", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
@@ -100,6 +101,11 @@
 }
 
 @layer utilities {
+  .font-brand {
+    font-family: var(--font-brand);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+  }
   .bg-grad-hero { background-image: var(--grad-hero); }
   .bg-grad-cyan { background-image: var(--grad-cyan); }
   .bg-grad-warm { background-image: var(--grad-warm); }

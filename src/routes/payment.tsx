@@ -8,24 +8,16 @@ import { toast } from "sonner";
 import { PageShell, Section } from "../components/site/Section";
 import { useAuth, useCart } from "../lib/store";
 import { orderService, paymentService } from "../lib/api";
+import { PAYMENT_METHOD_LABELS, upiAppLabel } from "../lib/payments";
 import type { PaymentMethod, PaymentState } from "../types/models";
 
-const METHODS = ["upi", "credit_card", "debit_card", "netbanking", "wallet", "cod"] as const;
-
-export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
-  upi: "UPI",
-  card: "Card",
-  credit_card: "Credit Card",
-  debit_card: "Debit Card",
-  netbanking: "Net Banking",
-  wallet: "Wallet",
-  cod: "Cash on Delivery",
-};
+const METHODS = ["upi", "cod"] as const;
 
 const searchSchema = z.object({
   method: fallback(z.enum(METHODS), "upi").default("upi"),
   total: fallback(z.number(), 0).default(0),
   slot: fallback(z.string(), "").default(""),
+  app: fallback(z.string(), "").default(""),
 });
 
 export const Route = createFileRoute("/payment")({
@@ -44,7 +36,7 @@ export const Route = createFileRoute("/payment")({
 type Screen = "idle" | "processing" | "success" | "failed" | "pending";
 
 function PaymentPage() {
-  const { method, total, slot } = Route.useSearch();
+  const { method, total, slot, app } = Route.useSearch();
   const { items, clear } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -189,7 +181,10 @@ function PaymentPage() {
           ) : (
             <>
               <div className="text-sm text-muted-foreground">Payment method</div>
-              <div className="text-2xl font-bold mb-1">{PAYMENT_METHOD_LABELS[method as PaymentMethod]}</div>
+              <div className="text-2xl font-bold mb-1">
+                {PAYMENT_METHOD_LABELS[method as PaymentMethod]}
+                {method === "upi" && upiAppLabel(app) ? ` • ${upiAppLabel(app)}` : ""}
+              </div>
               <div className="text-sm text-muted-foreground">Amount</div>
               <div className="text-3xl font-bold text-grad-hero">₹{total}</div>
               <div className="text-sm text-muted-foreground mt-2">Delivery slot: {slot || "—"}</div>

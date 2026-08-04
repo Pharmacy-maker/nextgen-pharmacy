@@ -72,6 +72,20 @@ export interface Product {
   image: string;
   description?: string;
   tags?: string[];
+
+  /* ---- Product detail page fields (nullable until the backend supplies them) ---- */
+  /** e.g. "Tablet", "Syrup", "Capsule" */
+  form?: string;
+  /** e.g. "Strip of 10 tablets" */
+  packSize?: string;
+  /** Active ingredients / composition. */
+  composition?: string[];
+  dosage?: string;
+  usage?: string;
+  warnings?: string[];
+  sideEffects?: string[];
+  storage?: string;
+  prescriptionRequired?: boolean;
 }
 
 export type ProductInput = Omit<Product, "id" | "rating" | "reviews"> &

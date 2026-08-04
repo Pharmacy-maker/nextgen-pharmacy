@@ -2,23 +2,47 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AdminPageHeader, DataTable, StatusBadge } from "../components/admin/AdminUI";
+import { AdminPageHeader, DataTable, StatusBadge, Toggle } from "../components/admin/AdminUI";
 import { AsyncBoundary } from "../components/site/AsyncState";
 import { settingsService } from "../lib/api";
 import { useAuth } from "../lib/store";
+import { userService } from "../lib/api";
 import type { SiteSettings } from "../types/models";
 
 export const Route = createFileRoute("/admin/settings")({ component: AdminSettings });
 
 function AdminSettings() {
   const qc = useQueryClient();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const site = useQuery({ queryKey: ["admin", "settings", "site"], queryFn: () => settingsService.getSite() });
   const roles = useQuery({ queryKey: ["admin", "settings", "roles"], queryFn: () => settingsService.roles() });
   const notifications = useQuery({ queryKey: ["admin", "settings", "notifications"], queryFn: () => settingsService.notifications() });
 
   const [form, setForm] = useState<SiteSettings | null>(null);
   useEffect(() => { if (site.data) setForm(site.data); }, [site.data]);
+
+  const [profile, setProfile] = useState({ name: "", email: "", phone: "" });
+  useEffect(() => {
+    if (user) setProfile({ name: user.name, email: user.email, phone: user.phone ?? "" });
+  }, [user]);
+
+  const saveProfile = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error("Not signed in");
+      return userService.update(user.id, profile);
+    },
+    onSuccess: (updated) => {
+      updateUser({ name: updated.name, email: updated.email, phone: updated.phone });
+      toast.success("Admin profile updated");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggleNotification = useMutation({
+    mutationFn: ({ id, enabled }: { id: string; enabled: boolean }) => settingsService.updateNotification(id, enabled),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "settings", "notifications"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const save = useMutation({
     mutationFn: (input: SiteSettings) => settingsService.updateSite(input),
@@ -58,11 +82,18 @@ function AdminSettings() {
 
         <div className="glass rounded-2xl p-5">
           <h2 className="font-semibold mb-4">Admin profile</h2>
-          <dl className="text-sm space-y-2">
-            <div className="flex justify-between"><dt className="text-muted-foreground">Name</dt><dd>{user?.name}</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">Email</dt><dd>{user?.email}</dd></div>
-            <div className="flex justify-between"><dt className="text-muted-foreground">Role</dt><dd><StatusBadge label="admin" tone="blue" /></dd></div>
-          </dl>
+          <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); saveProfile.mutate(); }}>
+            <Field label="Name" value={profile.name} onChange={(v) => setProfile({ ...profile, name: v })} />
+            <Field label="Email" value={profile.email} onChange={(v) => setProfile({ ...profile, email: v })} />
+            <Field label="Phone" value={profile.phone} onChange={(v) => setProfile({ ...profile, phone: v })} />
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Role</span>
+              <StatusBadge label="admin" tone="blue" />
+            </div>
+            <button type="submit" disabled={saveProfile.isPending} className="rounded-xl px-5 py-2.5 bg-grad-hero text-white text-sm font-semibold disabled:opacity-60">
+              {saveProfile.isPending ? "Saving…" : "Save profile"}
+            </button>
+          </form>
 
           <h2 className="font-semibold mt-6 mb-3">Notifications</h2>
           <AsyncBoundary isLoading={notifications.isLoading} error={notifications.error} data={notifications.data} onRetry={() => notifications.refetch()}>
@@ -74,7 +105,12 @@ function AdminSettings() {
                       <div className="text-sm font-medium">{n.label}</div>
                       <div className="text-xs text-muted-foreground">{n.description}</div>
                     </div>
-                    <StatusBadge label={n.enabled ? "on" : "off"} tone={n.enabled ? "green" : "gray"} />
+                    <Toggle
+                      label={n.label}
+                      checked={n.enabled}
+                      disabled={toggleNotification.isPending}
+                      onChange={(next) => toggleNotification.mutate({ id: n.id, enabled: next })}
+                    />
                   </li>
                 ))}
               </ul>
