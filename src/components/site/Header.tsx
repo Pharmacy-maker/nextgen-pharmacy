@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bell, Menu, Pill, Search, ShoppingCart, User, X, LogOut } from "lucide-react";
-import { useAuth, useCart } from "../../lib/store";
+import { Bell, Heart, Menu, Pill, Search, ShoppingCart, User, X, LogOut } from "lucide-react";
+import { useAuth, useCart, useWishlist } from "../../lib/store";
 import { searchProducts, discountedPrice } from "../../lib/products";
 import { ProductImage } from "./ProductImage";
 
@@ -23,6 +23,7 @@ export function Header() {
   const [userMenu, setUserMenu] = useState(false);
   const navigate = useNavigate();
   const { count } = useCart();
+  const { count: wishCount } = useWishlist();
   const { user, logout } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const searchRef = useRef<HTMLDivElement>(null);
@@ -107,8 +108,8 @@ export function Header() {
                     results.map((p) => (
                       <Link
                         key={p.id}
-                        to="/products"
-                        search={{ q: p.name }}
+                        to="/product/$id"
+                        params={{ id: p.id }}
                         className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/10"
                       >
                         <ProductImage src={p.image} seed={p.id} alt={p.name} className="h-10 w-10 rounded-lg object-cover" />
@@ -126,6 +127,14 @@ export function Header() {
             <IconBtn onClick={() => navigate({ to: "/delivery" })} label="Notifications">
               <Bell className="h-4 w-4" />
               <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-pink" />
+            </IconBtn>
+            <IconBtn onClick={() => navigate({ to: "/wishlist" })} label="Wishlist">
+              <Heart className="h-4 w-4" />
+              {wishCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full text-[10px] bg-grad-warm grid place-items-center font-semibold text-white">
+                  {wishCount}
+                </span>
+              )}
             </IconBtn>
             <div className="relative" ref={userRef}>
               <IconBtn onClick={() => (user ? setUserMenu((v) => !v) : navigate({ to: "/login" }))} label="Account">
@@ -179,8 +188,8 @@ export function Header() {
                 className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
               />
             </form>
-            {[...NAV, { label: "Cart", to: "/cart" as const }, { label: user ? "Account" : "Login", to: "/login" as const }].map((n) => (
-              <Link key={n.to} to={n.to} className="px-3 py-2 rounded-lg text-sm hover:bg-white/5">
+            {[...NAV, { label: `Wishlist${wishCount ? ` (${wishCount})` : ""}`, to: "/wishlist" as const }, { label: `Cart${count ? ` (${count})` : ""}`, to: "/cart" as const }, { label: user ? "Account" : "Login", to: "/login" as const }].map((n) => (
+              <Link key={n.label} to={n.to} className="px-3 py-2 rounded-lg text-sm hover:bg-white/5">
                 {n.label}
               </Link>
             ))}

@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrescriptionRouteImport } from './routes/prescription'
@@ -36,6 +37,11 @@ import { Route as AdminInventoryRouteImport } from './routes/admin.inventory'
 import { Route as AdminCategoriesRouteImport } from './routes/admin.categories'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
 
+const WishlistRoute = WishlistRouteImport.update({
+  id: '/wishlist',
+  path: '/wishlist',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -183,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/prescription': typeof PrescriptionRoute
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/inventory': typeof AdminInventoryRoute
@@ -210,6 +217,7 @@ export interface FileRoutesByTo {
   '/prescription': typeof PrescriptionRoute
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/inventory': typeof AdminInventoryRoute
@@ -239,6 +247,7 @@ export interface FileRoutesById {
   '/prescription': typeof PrescriptionRoute
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/inventory': typeof AdminInventoryRoute
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/prescription'
     | '/products'
     | '/reset-password'
+    | '/wishlist'
     | '/admin/analytics'
     | '/admin/categories'
     | '/admin/inventory'
@@ -296,6 +306,7 @@ export interface FileRouteTypes {
     | '/prescription'
     | '/products'
     | '/reset-password'
+    | '/wishlist'
     | '/admin/analytics'
     | '/admin/categories'
     | '/admin/inventory'
@@ -324,6 +335,7 @@ export interface FileRouteTypes {
     | '/prescription'
     | '/products'
     | '/reset-password'
+    | '/wishlist'
     | '/admin/analytics'
     | '/admin/categories'
     | '/admin/inventory'
@@ -353,11 +365,19 @@ export interface RootRouteChildren {
   PrescriptionRoute: typeof PrescriptionRoute
   ProductsRoute: typeof ProductsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  WishlistRoute: typeof WishlistRoute
   ProductIdRoute: typeof ProductIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wishlist': {
+      id: '/wishlist'
+      path: '/wishlist'
+      fullPath: '/wishlist'
+      preLoaderRoute: typeof WishlistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -587,6 +607,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrescriptionRoute: PrescriptionRoute,
   ProductsRoute: ProductsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  WishlistRoute: WishlistRoute,
   ProductIdRoute: ProductIdRoute,
 }
 export const routeTree = rootRouteImport

@@ -25,8 +25,8 @@ export function ProductCard({ p, compact = false }: { p: Product; compact?: bool
 
 
   return (
-    <div className={`group relative rounded-3xl glass hover-lift overflow-hidden flex flex-col ${compact ? "min-w-[260px]" : ""}`}>
-      <div className="relative h-44 overflow-hidden" style={{ background: p.grad }}>
+    <div className={`group relative rounded-3xl glass hover-lift overflow-hidden flex flex-col ${compact ? "min-w-[220px] sm:min-w-[260px]" : ""}`}>
+      <div className="relative h-36 sm:h-44 overflow-hidden" style={{ background: p.grad }}>
         <div className="absolute inset-0 opacity-30 grid-bg" />
         <ProductImage
           src={p.image}
@@ -50,17 +50,19 @@ export function ProductCard({ p, compact = false }: { p: Product; compact?: bool
         </button>
         <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all">
           <Link
-            to="/products"
-            search={{ q: p.name }}
+            to="/product/$id"
+            params={{ id: p.id }}
             className="glass px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1"
           >
-            Quick View <ArrowRight className="h-3 w-3" />
+            View details <ArrowRight className="h-3 w-3" />
           </Link>
         </div>
       </div>
       <div className="p-4 flex flex-col gap-2 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold leading-tight">{p.name}</h3>
+          <Link to="/product/$id" params={{ id: p.id }} className="font-semibold leading-tight hover:text-grad-hero">
+            <h3>{p.name}</h3>
+          </Link>
           <div className="flex items-center gap-1 text-xs shrink-0">
             <Star className="h-3.5 w-3.5 fill-neon text-neon" />
             <span className="font-semibold">{p.rating}</span>
