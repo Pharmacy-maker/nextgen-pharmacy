@@ -164,6 +164,8 @@ type AuthCtx = {
   ready: boolean;
   isAdmin: boolean;
   login: (u: AuthUser) => void;
+  /** Patches the signed-in profile (mirrors a PATCH /users/:id response). */
+  updateUser: (patch: Partial<Omit<AuthUser, "id" | "role">>) => void;
   logout: () => void;
 };
 const AuthContext = createContext<AuthCtx | null>(null);
@@ -182,6 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(u);
           toast.success(`Welcome, ${u.name}`);
         },
+        updateUser: (patch) => setUser((prev) => (prev ? { ...prev, ...patch } : prev)),
         logout: () => {
           setUser(null);
           setToken(null);
