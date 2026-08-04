@@ -34,10 +34,14 @@ export const ENDPOINTS = {
     update: (id: string) => `/products/${id}`,
     remove: (id: string) => `/products/${id}`,
     categories: "/categories",
+    categoryCreate: "/categories",
+    categoryUpdate: (id: string) => `/categories/${id}`,
+    categoryRemove: (id: string) => `/categories/${id}`,
   },
   inventory: {
     batches: "/inventory/batches",
     movements: "/inventory/movements",
+    batch: (id: string) => `/inventory/batches/${id}`,
   },
   suppliers: {
     list: "/suppliers",
@@ -80,5 +84,7 @@ export const ENDPOINTS = {
     site: "/settings/site",
     roles: "/settings/roles",
     notifications: "/settings/notifications",
+    notification: (id: string) => `/settings/notifications/${id}`,
+    profile: "/settings/profile",
   },
 } as const;

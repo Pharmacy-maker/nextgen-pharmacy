@@ -25,6 +25,21 @@ export const userService = {
     return mockDelay(users.find((u) => u.id === id)!, 300);
   },
 
+  async update(id: ID, input: Partial<Pick<User, "name" | "email" | "phone" | "role" | "status">>): Promise<User> {
+    if (!USE_MOCK_API) return apiFetch<User>(ENDPOINTS.users.detail(id), { method: "PATCH", body: input });
+    users = users.map((u) => (u.id === id ? { ...u, ...input } : u));
+    return mockDelay(users.find((u) => u.id === id)!, 300);
+  },
+
+  async remove(id: ID): Promise<void> {
+    if (!USE_MOCK_API) {
+      await apiFetch<void>(ENDPOINTS.users.detail(id), { method: "DELETE" });
+      return;
+    }
+    users = users.filter((u) => u.id !== id);
+    await mockDelay(null, 250);
+  },
+
   async addresses(userId: ID): Promise<Address[]> {
     if (!USE_MOCK_API) return apiFetch<Address[]>(ENDPOINTS.users.addresses(userId));
     return mockDelay(addressStore.list(userId), 200);

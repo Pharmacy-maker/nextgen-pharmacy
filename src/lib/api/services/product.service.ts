@@ -6,6 +6,7 @@ import type { Category, ID, Product, ProductInput } from "../../../types/models"
 
 /** In-memory overlay so admin CRUD works against mock data. */
 let catalog: Product[] = [...mockProducts];
+let categoryList: Category[] = [...mockCategories];
 
 export type ProductQuery = {
   search?: string;
@@ -68,6 +69,30 @@ export const productService = {
 
   async categories(): Promise<Category[]> {
     if (!USE_MOCK_API) return apiFetch<Category[]>(ENDPOINTS.products.categories);
-    return mockDelay(mockCategories);
+    return mockDelay(categoryList);
+  },
+
+  async createCategory(input: Omit<Category, "id">): Promise<Category> {
+    if (!USE_MOCK_API)
+      return apiFetch<Category>(ENDPOINTS.products.categoryCreate, { method: "POST", body: input });
+    const category: Category = { ...input, id: `c-${Date.now()}` };
+    categoryList = [category, ...categoryList];
+    return mockDelay(category, 300);
+  },
+
+  async updateCategory(id: ID, input: Partial<Category>): Promise<Category> {
+    if (!USE_MOCK_API)
+      return apiFetch<Category>(ENDPOINTS.products.categoryUpdate(id), { method: "PUT", body: input });
+    categoryList = categoryList.map((c) => (c.id === id ? { ...c, ...input } : c));
+    return mockDelay(categoryList.find((c) => c.id === id)!, 300);
+  },
+
+  async removeCategory(id: ID): Promise<void> {
+    if (!USE_MOCK_API) {
+      await apiFetch<void>(ENDPOINTS.products.categoryRemove(id), { method: "DELETE" });
+      return;
+    }
+    categoryList = categoryList.filter((c) => c.id !== id);
+    await mockDelay(null, 250);
   },
 };

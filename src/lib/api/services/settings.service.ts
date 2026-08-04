@@ -4,6 +4,7 @@ import { mockNotifications, mockRoles, mockSiteSettings } from "../mock/db";
 import type { NotificationSetting, RolePermission, SiteSettings } from "../../../types/models";
 
 let site: SiteSettings = { ...mockSiteSettings };
+let notifications: NotificationSetting[] = mockNotifications.map((n) => ({ ...n }));
 
 export const settingsService = {
   async getSite(): Promise<SiteSettings> {
@@ -24,6 +25,16 @@ export const settingsService = {
 
   async notifications(): Promise<NotificationSetting[]> {
     if (!USE_MOCK_API) return apiFetch<NotificationSetting[]>(ENDPOINTS.settings.notifications);
-    return mockDelay(mockNotifications);
+    return mockDelay(notifications);
+  },
+
+  async updateNotification(id: string, enabled: boolean): Promise<NotificationSetting> {
+    if (!USE_MOCK_API)
+      return apiFetch<NotificationSetting>(ENDPOINTS.settings.notification(id), {
+        method: "PATCH",
+        body: { enabled },
+      });
+    notifications = notifications.map((n) => (n.id === id ? { ...n, enabled } : n));
+    return mockDelay(notifications.find((n) => n.id === id)!, 200);
   },
 };
