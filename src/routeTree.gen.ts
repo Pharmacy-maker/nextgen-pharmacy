@@ -25,6 +25,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as ProductIdRouteImport } from './routes/product.$id'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminSuppliersRouteImport } from './routes/admin.suppliers'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
@@ -115,6 +116,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const ProductIdRoute = ProductIdRouteImport.update({
+  id: '/product/$id',
+  path: '/product/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -186,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/suppliers': typeof AdminSuppliersRoute
   '/admin/users': typeof AdminUsersRoute
+  '/product/$id': typeof ProductIdRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/suppliers': typeof AdminSuppliersRoute
   '/admin/users': typeof AdminUsersRoute
+  '/product/$id': typeof ProductIdRoute
   '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
@@ -240,6 +248,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/suppliers': typeof AdminSuppliersRoute
   '/admin/users': typeof AdminUsersRoute
+  '/product/$id': typeof ProductIdRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/suppliers'
     | '/admin/users'
+    | '/product/$id'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -295,6 +305,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/suppliers'
     | '/admin/users'
+    | '/product/$id'
     | '/admin'
   id:
     | '__root__'
@@ -322,6 +333,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/suppliers'
     | '/admin/users'
+    | '/product/$id'
     | '/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -341,6 +353,7 @@ export interface RootRouteChildren {
   PrescriptionRoute: typeof PrescriptionRoute
   ProductsRoute: typeof ProductsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ProductIdRoute: typeof ProductIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -457,6 +470,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/product/$id': {
+      id: '/product/$id'
+      path: '/product/$id'
+      fullPath: '/product/$id'
+      preLoaderRoute: typeof ProductIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/users': {
       id: '/admin/users'
       path: '/users'
@@ -567,6 +587,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrescriptionRoute: PrescriptionRoute,
   ProductsRoute: ProductsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ProductIdRoute: ProductIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
