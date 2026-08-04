@@ -66,7 +66,7 @@ export function Header() {
               <Pill className="h-5 w-5 text-white" />
               <div className="absolute inset-0 rounded-xl bg-grad-hero blur-xl opacity-60 -z-10" />
             </div>
-            <span className="font-display font-bold text-lg tracking-tight">Rays Pharmacy</span>
+            <span className="font-brand text-lg">Rays Pharmacy</span>
           </Link>
           <nav className="hidden lg:flex items-center gap-1 mx-2">
             {NAV.map((n) => (
