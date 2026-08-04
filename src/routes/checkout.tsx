@@ -1,14 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Banknote, CreditCard, Landmark, Loader2, MapPin, Plus, Smartphone, Truck, Wallet } from "lucide-react";
+import { Loader2, MapPin, Plus, Smartphone, Truck } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell, Section } from "../components/site/Section";
 import { useAuth, useCart } from "../lib/store";
 import { userService } from "../lib/api";
 import { checkoutSchema, emailSchema, toFieldErrors, type FieldErrors } from "../lib/validation";
 import { TextField } from "../components/site/FormFields";
-import type { Address, PaymentMethod } from "../types/models";
+import { UPI_APPS, type SupportedPaymentMethod, type UpiAppId } from "../lib/payments";
+import type { Address } from "../types/models";
 
 
 export const Route = createFileRoute("/checkout")({
@@ -39,7 +40,8 @@ function CheckoutPage() {
     name: false, email: false, phone: false, address: false, city: false, pincode: false,
   });
   const [errors, setErrors] = useState<FieldErrors<Form>>({});
-  const [pay, setPay] = useState<Exclude<PaymentMethod, "card">>("upi");
+  const [pay, setPay] = useState<SupportedPaymentMethod>("upi");
+  const [upiApp, setUpiApp] = useState<UpiAppId>("phonepe");
   const [slot, setSlot] = useState(0);
   const [coupon, setCoupon] = useState("");
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
@@ -100,12 +102,8 @@ function CheckoutPage() {
   const slots = ["Now (30 min)", "Today • 4–6 PM", "Tomorrow • 10 AM", "Tomorrow • 6 PM"];
   const options = [
     { k: "upi", i: Smartphone, label: "UPI" },
-    { k: "credit_card", i: CreditCard, label: "Credit Card" },
-    { k: "debit_card", i: Banknote, label: "Debit Card" },
-    { k: "netbanking", i: Landmark, label: "Net Banking" },
-    { k: "wallet", i: Wallet, label: "Wallet" },
     { k: "cod", i: Truck, label: "Cash on Delivery" },
-  ] as const satisfies readonly { k: Exclude<PaymentMethod, "card">; i: typeof Wallet; label: string }[];
+  ] as const satisfies readonly { k: SupportedPaymentMethod; i: typeof Truck; label: string }[];
 
   const shipping = subtotal > 0 && subtotal < 499 ? 49 : 0;
   const total = Math.max(0, subtotal + shipping - discount);
@@ -180,7 +178,7 @@ function CheckoutPage() {
       } catch {
         /* storage unavailable — order is still created with a fallback address */
       }
-      navigate({ to: "/payment", search: { method: pay, total, slot: slots[slot] } });
+      navigate({ to: "/payment", search: { method: pay, total, slot: slots[slot], app: pay === "upi" ? upiApp : "" } });
     } finally {
       setSubmitting(false);
     }
@@ -363,7 +361,7 @@ function CheckoutPage() {
               </div>
               <div className="glass rounded-3xl p-6">
                 <div className="font-semibold mb-3">Payment method</div>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   {options.map((o) => {
                     const Icon = o.i;
                     const active = pay === o.k;
@@ -383,6 +381,33 @@ function CheckoutPage() {
                     );
                   })}
                 </div>
+                {pay === "upi" && (
+                  <div className="mt-4">
+                    <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Pay using</div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {UPI_APPS.map((a) => {
+                        const active = upiApp === a.id;
+                        return (
+                          <button
+                            type="button"
+                            key={a.id}
+                            onClick={() => setUpiApp(a.id)}
+                            aria-pressed={active}
+                            className={`rounded-xl px-3 py-2.5 text-xs font-semibold border transition flex items-center gap-2 ${
+                              active ? "border-transparent bg-white/15 glow" : "border-white/10 glass hover:bg-white/10"
+                            }`}
+                          >
+                            <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: a.accent }} />
+                            <span className="truncate">{a.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="mt-2 text-[11px] text-muted-foreground">
+                      You'll approve the request in your UPI app. Payment is confirmed only after verification.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
             <div className="glass rounded-3xl p-6 h-fit sticky top-24">
