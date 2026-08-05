@@ -50,7 +50,6 @@ export const prescriptionService = {
     );
     return mockDelay(prescriptions.find((p) => p.id === id)!, 300);
   },
-,
 
   /**
    * Kicks off backend OCR + AI medicine extraction for an uploaded
