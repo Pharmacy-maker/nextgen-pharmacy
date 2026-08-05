@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { Brain, CheckCircle2, Sparkles, Upload, X } from "lucide-react";
+import { AlertTriangle, Brain, CheckCircle2, Loader2, Sparkles, Upload, X } from "lucide-react";
 import { PageShell, Section } from "../components/site/Section";
 import {
   PRESCRIPTION_MAX_BYTES,
   PRESCRIPTION_MIME,
   validatePrescription,
 } from "../lib/validation";
-import { useCart } from "../lib/store";
-import { products } from "../lib/products";
+import { useAuth, useCart } from "../lib/store";
+import { prescriptionService } from "../lib/api";
+import type { PrescriptionScan } from "../types/models";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/prescription")({
@@ -23,47 +24,53 @@ export const Route = createFileRoute("/prescription")({
   }),
 });
 
+type Phase = "idle" | "uploading" | "scanning" | "done" | "error";
+
 function PrescriptionPage() {
   const [drag, setDrag] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [scanning, setScanning] = useState(false);
+  const [phase, setPhase] = useState<Phase>("idle");
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [complete, setComplete] = useState(false);
+  const [scan, setScan] = useState<PrescriptionScan | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { add } = useCart();
+  const { user } = useAuth();
 
-  const acceptFile = (f: File | null) => {
+  const busy = phase === "uploading" || phase === "scanning";
+
+  const acceptFile = async (f: File | null) => {
     setError(null);
-    setComplete(false);
+    setScan(null);
     if (!f) return;
     const err = validatePrescription(f);
     if (err) {
       setError(err);
+      setPhase("error");
       return;
     }
     setFile(f);
-    setScanning(true);
-    setProgress(0);
-    const id = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 100) {
-          clearInterval(id);
-          setScanning(false);
-          setComplete(true);
-          return 100;
-        }
-        return p + 4;
-      });
-    }, 80);
+    setPhase("uploading");
+    try {
+      const rx = await prescriptionService.upload(f, user?.id ?? "guest");
+      setPhase("scanning");
+      const result = await prescriptionService.scan(rx.id);
+      setScan(result);
+      setPhase(result.status === "failed" ? "error" : "done");
+      if (result.status === "failed") setError(result.message ?? "Scan failed. Please try again.");
+      else toast.success("Prescription uploaded");
+    } catch (e) {
+      setPhase("error");
+      setError(e instanceof Error ? e.message : "Upload failed. Please try again.");
+    }
   };
 
-  const extracted = products.slice(0, 4);
+  const extracted = scan?.medicines ?? [];
 
   const addAll = () => {
-    extracted.forEach((p) => add(p.id, 1));
+    extracted.forEach((m) => m.productId && add(m.productId, m.quantity ?? 1));
     toast.success("Added extracted medicines to your cart");
   };
+
 
   return (
     <PageShell>
