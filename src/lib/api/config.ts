@@ -70,6 +70,12 @@ export const ENDPOINTS = {
     mine: "/prescriptions/me",
     upload: "/prescriptions",
     review: (id: string) => `/prescriptions/${id}/review`,
+    scan: (id: string) => `/prescriptions/${id}/scan`,
+    scanStatus: (id: string) => `/prescriptions/${id}/scan/status`,
+  },
+  chat: {
+    send: "/chat/messages",
+    conversation: (id: string) => `/chat/conversations/${id}`,
   },
   payments: {
     create: "/payments/orders",
