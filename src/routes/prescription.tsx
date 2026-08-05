@@ -101,7 +101,7 @@ function PrescriptionPage() {
                 <div className="h-20 w-20 rounded-2xl bg-grad-hero grid place-items-center glow">
                   <Upload className="h-8 w-8 text-white" />
                 </div>
-                {scanning && <div className="absolute inset-0 rounded-2xl border-2 border-neon animate-pulse-glow" />}
+                {busy && <div className="absolute inset-0 rounded-2xl border-2 border-neon animate-pulse-glow" />}
               </div>
               <div>
                 <div className="font-semibold text-lg">Drop prescription here</div>
@@ -111,7 +111,8 @@ function PrescriptionPage() {
               </div>
               <button
                 onClick={() => inputRef.current?.click()}
-                className="mt-2 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow"
+                disabled={busy}
+                className="mt-2 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow disabled:opacity-60"
               >
                 <Sparkles className="h-4 w-4" /> {file ? "Choose different file" : "Choose file"}
               </button>
@@ -121,8 +122,9 @@ function PrescriptionPage() {
                   <button
                     onClick={() => {
                       setFile(null);
-                      setProgress(0);
-                      setComplete(false);
+                      setScan(null);
+                      setError(null);
+                      setPhase("idle");
                     }}
                     className="h-6 w-6 grid place-items-center rounded-md hover:bg-white/10"
                     aria-label="Remove file"
@@ -131,16 +133,20 @@ function PrescriptionPage() {
                   </button>
                 </div>
               )}
-              {error && <div className="w-full text-sm text-pink text-left">{error}</div>}
-              {(scanning || progress > 0) && !error && (
-                <div className="w-full mt-2">
-                  <div className="flex justify-between text-xs mb-2">
-                    <span>{scanning ? "AI scanning…" : "Scan complete"}</span>
-                    <span>{progress}%</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-                    <div className="h-full bg-grad-neon transition-all" style={{ width: `${progress}%` }} />
-                  </div>
+              {error && (
+                <div className="w-full text-sm text-pink text-left flex items-start gap-2" role="alert">
+                  <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" /> {error}
+                </div>
+              )}
+              {busy && (
+                <div className="w-full mt-2 flex items-center gap-2 text-sm text-muted-foreground" aria-live="polite">
+                  <Loader2 className="h-4 w-4 animate-spin text-neon" />
+                  {phase === "uploading" ? "Uploading prescription…" : "AI scanning…"}
+                </div>
+              )}
+              {phase === "done" && (
+                <div className="w-full mt-2 flex items-center gap-2 text-sm text-emerald" aria-live="polite">
+                  <CheckCircle2 className="h-4 w-4" /> Prescription uploaded successfully
                 </div>
               )}
             </div>
@@ -150,22 +156,35 @@ function PrescriptionPage() {
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
               <Brain className="h-4 w-4 text-neon" /> AI extraction preview
             </div>
-            {extracted.map((p) => (
-              <div key={p.id} className="flex items-center justify-between py-3 border-b border-white/10 last:border-0">
+            {extracted.map((m, i) => (
+              <div key={`${m.name}-${i}`} className="flex items-center justify-between py-3 border-b border-white/10 last:border-0">
                 <div>
-                  <div className="font-semibold">{p.name}</div>
-                  <div className="text-xs text-muted-foreground">1 pack • as prescribed</div>
+                  <div className="font-semibold">{m.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {[m.dosage, m.quantity ? `Qty ${m.quantity}` : null, m.instructions]
+                      .filter(Boolean)
+                      .join(" • ") || "As prescribed"}
+                  </div>
                 </div>
                 <CheckCircle2 className="h-5 w-5 text-emerald" />
               </div>
             ))}
+            {extracted.length === 0 && (
+              <div className="text-sm text-muted-foreground py-6">
+                {scan?.message ??
+                  (busy
+                    ? "Reading your prescription…"
+                    : "Upload a prescription to see extracted medicines, dosages, and quantities here.")}
+              </div>
+            )}
             <button
-              disabled={!complete}
+              disabled={extracted.length === 0}
               onClick={addAll}
               className="mt-4 w-full rounded-xl py-2.5 bg-grad-cool text-white font-semibold disabled:opacity-60"
             >
-              {complete ? "Add all to cart" : "Upload a prescription to enable"}
+              {extracted.length > 0 ? "Add all to cart" : "No medicines extracted yet"}
             </button>
+
           </div>
         </div>
       </Section>
