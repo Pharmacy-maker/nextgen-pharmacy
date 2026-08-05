@@ -1,7 +1,12 @@
 import { apiFetch, mockDelay } from "../client";
 import { ENDPOINTS, USE_MOCK_API } from "../config";
 import { mockPrescriptions } from "../mock/db";
-import type { ID, Prescription, PrescriptionStatus } from "../../../types/models";
+import type {
+  ID,
+  Prescription,
+  PrescriptionScan,
+  PrescriptionStatus,
+} from "../../../types/models";
 
 let prescriptions: Prescription[] = [...mockPrescriptions];
 
@@ -44,5 +49,40 @@ export const prescriptionService = {
       p.id === id ? { ...p, status, note, reviewedBy: "Admin" } : p,
     );
     return mockDelay(prescriptions.find((p) => p.id === id)!, 300);
+  },
+,
+
+  /**
+   * Kicks off backend OCR + AI medicine extraction for an uploaded
+   * prescription. The backend returns a `PrescriptionScan`; poll
+   * `scanStatus` while `status` is "queued" or "processing".
+   */
+  async scan(prescriptionId: ID): Promise<PrescriptionScan> {
+    if (!USE_MOCK_API)
+      return apiFetch<PrescriptionScan>(ENDPOINTS.prescriptions.scan(prescriptionId), {
+        method: "POST",
+      });
+    /**
+     * No fabricated extraction: OCR and medicine matching can only come from
+     * the backend AI service, so the mock branch reports it as unavailable.
+     */
+    return mockDelay(
+      {
+        id: `scan-${prescriptionId}`,
+        prescriptionId,
+        status: "unavailable" as const,
+        medicines: [],
+        message:
+          "Your prescription was uploaded and is queued for pharmacist review. Automatic medicine extraction becomes available once the AI scanning service is connected.",
+      },
+      1200,
+    );
+  },
+
+  /** Polls an in-flight scan. */
+  async scanStatus(prescriptionId: ID): Promise<PrescriptionScan> {
+    if (!USE_MOCK_API)
+      return apiFetch<PrescriptionScan>(ENDPOINTS.prescriptions.scanStatus(prescriptionId));
+    return prescriptionService.scan(prescriptionId);
   },
 };
