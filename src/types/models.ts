@@ -232,6 +232,70 @@ export interface Prescription {
   extractedMedicines?: { name: string; dosage: string }[];
 }
 
+/**
+ * OCR / AI extraction contract.
+ *
+ * The backend owns OCR and medicine extraction; the frontend only renders
+ * whatever this shape carries, so no UI change is needed once the real
+ * service is connected.
+ */
+export type PrescriptionScanStatus =
+  | "queued"
+  | "processing"
+  | "completed"
+  | "failed"
+  | "unavailable";
+
+export interface ExtractedMedicine {
+  name: string;
+  dosage?: string;
+  quantity?: number;
+  instructions?: string;
+  /** Set by the backend when it can map the line to a catalog product. */
+  productId?: ID;
+  /** 0–1 OCR/AI confidence. */
+  confidence?: number;
+}
+
+export interface PrescriptionScan {
+  id: ID;
+  prescriptionId: ID;
+  status: PrescriptionScanStatus;
+  progress?: number;
+  medicines: ExtractedMedicine[];
+  rawText?: string;
+  message?: string;
+  completedAt?: ISODate;
+}
+
+/* ---------------- Chatbot ---------------- */
+
+export type ChatRole = "user" | "assistant" | "system";
+
+export interface ChatMessage {
+  id: ID;
+  role: ChatRole;
+  content: string;
+  createdAt: ISODate;
+  /** Backend may attach product/order references for rich replies later. */
+  references?: { type: "product" | "order" | "article"; id: ID; label: string }[];
+}
+
+export interface ChatReply {
+  conversationId: ID;
+  message: ChatMessage;
+  /** Suggested follow-up prompts the backend can drive. */
+  suggestions?: string[];
+}
+
+export interface ChatConversation {
+  id: ID;
+  userId?: ID;
+  messages: ChatMessage[];
+  updatedAt: ISODate;
+}
+
+
 /* ---------------- Analytics ---------------- */
 
 export interface AdminStats {

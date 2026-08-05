@@ -9,5 +9,7 @@ export { userService } from "./services/user.service";
 export { inventoryService } from "./services/inventory.service";
 export { supplierService } from "./services/supplier.service";
 export { prescriptionService } from "./services/prescription.service";
+export { chatService, createMessage } from "./services/chat.service";
+
 export { analyticsService } from "./services/analytics.service";
 export { settingsService } from "./services/settings.service";
