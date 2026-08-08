@@ -63,11 +63,14 @@ export function Header() {
       <div className="mx-auto max-w-7xl px-4">
         <div className={`glass-strong rounded-2xl px-4 md:px-6 py-3 flex items-center gap-4 ${scrolled ? "glow" : ""}`}>
           <Link to="/" className="flex items-center gap-2 shrink-0">
-            <div className="relative h-9 w-9 rounded-xl bg-grad-hero grid place-items-center glow">
-              <Pill className="h-5 w-5 text-white" />
-              <div className="absolute inset-0 rounded-xl bg-grad-hero blur-xl opacity-60 -z-10" />
-            </div>
-            <span className="font-brand text-lg">Rays Pharmacy</span>
+            <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-xl">
+              <img
+                src="/logo.png"
+                alt="Rays Pharmacy"
+                className="h-full w-full object-contain"
+              />
+           </div>
+           <span className="font-brand text-lg">Rays Pharmacy</span>
           </Link>
           <nav className="hidden lg:flex items-center gap-1 mx-2">
             {NAV.map((n) => (
