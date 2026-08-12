@@ -1,10 +1,16 @@
-import { apiFetch, mockDelay } from "../client";
+import { apiFetch } from "../client";
 import { ENDPOINTS, USE_MOCK_API } from "../config";
+import { supabase } from "../../supabase";
 import { mockCategories } from "../mock/db";
 import { products as mockProducts } from "../../products";
-import type { Category, ID, Product, ProductInput } from "../../../types/models";
 
-/** In-memory overlay so admin CRUD works against mock data. */
+import type {
+  Category,
+  ID,
+  Product,
+  ProductInput,
+} from "../../../types/models";
+
 let catalog: Product[] = [...mockProducts];
 let categoryList: Category[] = [...mockCategories];
 
@@ -15,10 +21,15 @@ export type ProductQuery = {
   sort?: "popular" | "price-asc" | "price-desc" | "rating";
 };
 
-function applyQuery(list: Product[], q: ProductQuery): Product[] {
+function applyQuery(
+  list: Product[],
+  q: ProductQuery,
+): Product[] {
   let out = [...list];
+
   if (q.search) {
     const s = q.search.trim().toLowerCase();
+
     out = out.filter(
       (p) =>
         p.name.toLowerCase().includes(s) ||
@@ -26,73 +37,323 @@ function applyQuery(list: Product[], q: ProductQuery): Product[] {
         p.manufacturer.toLowerCase().includes(s),
     );
   }
-  if (q.category) out = out.filter((p) => p.category.toLowerCase() === q.category!.toLowerCase());
-  if (q.tag) out = out.filter((p) => p.tags?.includes(q.tag!));
-  if (q.sort === "price-asc") out.sort((a, b) => a.price - b.price);
-  if (q.sort === "price-desc") out.sort((a, b) => b.price - a.price);
-  if (q.sort === "rating") out.sort((a, b) => b.rating - a.rating);
+
+  if (q.category) {
+    out = out.filter(
+      (p) =>
+        p.category.toLowerCase() ===
+        q.category!.toLowerCase(),
+    );
+  }
+
+  if (q.tag) {
+    out = out.filter((p) =>
+      p.tags?.includes(q.tag!),
+    );
+  }
+
+  if (q.sort === "price-asc") {
+    out.sort((a, b) => a.price - b.price);
+  }
+
+  if (q.sort === "price-desc") {
+    out.sort((a, b) => b.price - a.price);
+  }
+
+  if (q.sort === "rating") {
+    out.sort((a, b) => b.rating - a.rating);
+  }
+
   return out;
 }
 
+function mapSupabaseProduct(row: any): Product {
+  return {
+    id: String(row.id),
+
+    name: row.name ?? "Unnamed Product",
+
+    category: row.category ?? "Uncategorized",
+    categoryId: row.category_id ?? undefined,
+
+    supplier: row.supplier ?? "—",
+    supplierId: row.supplier_id ?? undefined,
+
+    manufacturer: row.manufacturer ?? "—",
+
+    mfg: row.mfg ?? "",
+    exp: row.exp ?? "",
+
+    stock: Number(row.stock ?? 0),
+
+    rating: Number(row.rating ?? 0),
+    reviews: Number(row.reviews ?? 0),
+
+    price: Number(row.price ?? 0),
+    discount: Number(row.discount ?? 0),
+
+    grad: row.grad ?? "var(--grad-cool)",
+
+    image:
+      row.image ||
+      "/images/medicine-placeholder.png",
+
+    description: row.description ?? "",
+
+    form: row.form ?? undefined,
+
+    packSize:
+      row.pack_size ??
+      row.packSize ??
+      undefined,
+
+    composition: Array.isArray(row.composition)
+      ? row.composition
+      : row.composition
+      ? [row.composition]
+      : [],
+
+    dosage: row.dosage ?? undefined,
+
+    usage: row.usage ?? undefined,
+
+    warnings: Array.isArray(row.warnings)
+      ? row.warnings
+      : [],
+
+    sideEffects: Array.isArray(row.side_effects)
+      ? row.side_effects
+      : [],
+
+    storage: row.storage ?? undefined,
+
+    prescriptionRequired:
+      row.prescription_required ?? false,
+
+    tags: Array.isArray(row.tags)
+      ? row.tags
+      : [],
+  };
+}
+
 export const productService = {
-  async list(query: ProductQuery = {}): Promise<Product[]> {
-    if (!USE_MOCK_API) return apiFetch<Product[]>(ENDPOINTS.products.list, { query });
-    return mockDelay(applyQuery(catalog, query));
+  async list(
+    query: ProductQuery = {},
+  ): Promise<Product[]> {
+    if (!USE_MOCK_API) {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*");
+
+      if (error) {
+        console.error(
+          "Supabase products error:",
+          error,
+        );
+        throw error;
+      }
+
+      const products = (data ?? []).map(
+        mapSupabaseProduct,
+      );
+
+      console.log(
+        "========== SUPABASE DEBUG ==========",
+      );
+      console.log(
+        "USE_MOCK_API:",
+        USE_MOCK_API,
+      );
+      console.log(
+        "Products Count:",
+        products.length,
+      );
+      console.log(
+        "Raw Supabase Row:",
+        data?.[0],
+      );
+      console.log(
+        "Mapped Product:",
+        products[0],
+      );
+      console.log(
+        "===================================",
+      );
+
+      return applyQuery(products, query);
+    }
+
+    return applyQuery(catalog, query);
   },
 
-  async get(id: ID): Promise<Product | null> {
-    if (!USE_MOCK_API) return apiFetch<Product>(ENDPOINTS.products.detail(id));
-    return mockDelay(catalog.find((p) => p.id === id) ?? null);
+  async get(
+    id: ID,
+  ): Promise<Product | null> {
+    if (!USE_MOCK_API) {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (error) {
+        console.error(
+          "Supabase product error:",
+          error,
+        );
+        throw error;
+      }
+
+      return data
+        ? mapSupabaseProduct(data)
+        : null;
+    }
+
+    return (
+      catalog.find((p) => p.id === id) ??
+      null
+    );
   },
 
-  async create(input: ProductInput): Promise<Product> {
-    if (!USE_MOCK_API) return apiFetch<Product>(ENDPOINTS.products.create, { method: "POST", body: input });
-    const product: Product = { rating: 4.5, reviews: 0, ...input, id: `p-${Date.now()}` };
+  async create(
+    input: ProductInput,
+  ): Promise<Product> {
+    if (!USE_MOCK_API) {
+      const { data, error } = await supabase
+        .from("products")
+        .insert(input)
+        .select("*")
+        .single();
+
+      if (error) {
+        console.error(
+          "Supabase create error:",
+          error,
+        );
+        throw error;
+      }
+
+      return mapSupabaseProduct(data);
+    }
+
+    const product: Product = {
+      ...(input as Product),
+      id: `p-${Date.now()}`,
+      rating: 4.5,
+      reviews: 0,
+    };
+
     catalog = [product, ...catalog];
-    return mockDelay(product, 400);
+
+    return product;
   },
 
-  async update(id: ID, input: Partial<ProductInput>): Promise<Product> {
-    if (!USE_MOCK_API) return apiFetch<Product>(ENDPOINTS.products.update(id), { method: "PUT", body: input });
-    catalog = catalog.map((p) => (p.id === id ? { ...p, ...input } : p));
-    return mockDelay(catalog.find((p) => p.id === id)!, 400);
+  async update(
+    id: ID,
+    input: Partial<Product>,
+  ): Promise<Product> {
+    if (!USE_MOCK_API) {
+      const { data, error } = await supabase
+        .from("products")
+        .update(input)
+        .eq("id", id)
+        .select("*")
+        .single();
+
+      if (error) {
+        console.error(
+          "Supabase update error:",
+          error,
+        );
+        throw error;
+      }
+
+      return mapSupabaseProduct(data);
+    }
+
+    catalog = catalog.map((p) =>
+      p.id === id
+        ? { ...p, ...input }
+        : p,
+    );
+
+    const product = catalog.find(
+      (p) => p.id === id,
+    );
+
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    return product;
   },
 
   async remove(id: ID): Promise<void> {
     if (!USE_MOCK_API) {
-      await apiFetch<void>(ENDPOINTS.products.remove(id), { method: "DELETE" });
+      const { error } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        throw error;
+      }
+
       return;
     }
-    catalog = catalog.filter((p) => p.id !== id);
-    await mockDelay(null, 300);
+
+    catalog = catalog.filter(
+      (p) => p.id !== id,
+    );
   },
 
   async categories(): Promise<Category[]> {
-    if (!USE_MOCK_API) return apiFetch<Category[]>(ENDPOINTS.products.categories);
-    return mockDelay(categoryList);
+    return categoryList;
   },
 
-  async createCategory(input: Omit<Category, "id">): Promise<Category> {
-    if (!USE_MOCK_API)
-      return apiFetch<Category>(ENDPOINTS.products.categoryCreate, { method: "POST", body: input });
-    const category: Category = { ...input, id: `c-${Date.now()}` };
-    categoryList = [category, ...categoryList];
-    return mockDelay(category, 300);
+  async createCategory(
+    input: Omit<Category, "id">,
+  ): Promise<Category> {
+    const category: Category = {
+      ...input,
+      id: `c-${Date.now()}`,
+    };
+
+    categoryList = [
+      category,
+      ...categoryList,
+    ];
+
+    return category;
   },
 
-  async updateCategory(id: ID, input: Partial<Category>): Promise<Category> {
-    if (!USE_MOCK_API)
-      return apiFetch<Category>(ENDPOINTS.products.categoryUpdate(id), { method: "PUT", body: input });
-    categoryList = categoryList.map((c) => (c.id === id ? { ...c, ...input } : c));
-    return mockDelay(categoryList.find((c) => c.id === id)!, 300);
-  },
+  async updateCategory(
+    id: ID,
+    input: Partial<Category>,
+  ): Promise<Category> {
+    categoryList = categoryList.map(
+      (c) =>
+        c.id === id
+          ? { ...c, ...input }
+          : c,
+    );
 
-  async removeCategory(id: ID): Promise<void> {
-    if (!USE_MOCK_API) {
-      await apiFetch<void>(ENDPOINTS.products.categoryRemove(id), { method: "DELETE" });
-      return;
+    const category = categoryList.find(
+      (c) => c.id === id,
+    );
+
+    if (!category) {
+      throw new Error("Category not found");
     }
-    categoryList = categoryList.filter((c) => c.id !== id);
-    await mockDelay(null, 250);
+
+    return category;
+  },
+
+  async removeCategory(
+    id: ID,
+  ): Promise<void> {
+    categoryList = categoryList.filter(
+      (c) => c.id !== id,
+    );
   },
 };

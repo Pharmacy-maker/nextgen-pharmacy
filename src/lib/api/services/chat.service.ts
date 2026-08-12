@@ -1,4 +1,4 @@
-import { apiFetch, mockDelay } from "../client";
+import { apiFetch, mockDelay, ApiError } from "../client";
 import { ENDPOINTS, USE_MOCK_API } from "../config";
 import type { ChatConversation, ChatMessage, ChatReply, ID } from "../../../types/models";
 
@@ -53,10 +53,21 @@ export function createMessage(role: ChatMessage["role"], content: string): ChatM
 export const chatService = {
   /** Persisted conversation history (replaced by a backend read later). */
   async history(conversationId: ID): Promise<ChatConversation | null> {
-    if (!USE_MOCK_API)
-      return apiFetch<ChatConversation>(ENDPOINTS.chat.conversation(conversationId));
-    return readStore()[conversationId] ?? null;
-  },
+  if (!USE_MOCK_API) {
+    try {
+      return await apiFetch<ChatConversation>(
+        ENDPOINTS.chat.conversation(conversationId)
+      );
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  return readStore()[conversationId] ?? null;
+},
 
   /** Persists the local transcript so history survives reloads. */
   async saveHistory(conversation: ChatConversation): Promise<void> {
