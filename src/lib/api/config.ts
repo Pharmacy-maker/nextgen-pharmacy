@@ -11,7 +11,7 @@ const env = import.meta.env as Record<string, string | undefined>;
 export const API_BASE_URL = (env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
 
 export const USE_MOCK_API =
-  env.VITE_USE_MOCK_API === "true" || API_BASE_URL === "";
+  env.VITE_USE_MOCK_API === "true";
 
 export const API_TIMEOUT_MS = Number(env.VITE_API_TIMEOUT_MS ?? 15000);
 

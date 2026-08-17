@@ -25,7 +25,7 @@ function ForgotPasswordPage() {
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
-  const [devToken, setDevToken] = useState<string | null>(null);
+  
 
   const error = useMemo(() => {
     const r = emailSchema.safeParse(email);
@@ -40,7 +40,7 @@ function ForgotPasswordPage() {
     try {
       const res = await authService.requestPasswordReset(email);
       setSent(true);
-      setDevToken(res.token ?? null);
+      
       toast.success("If that email is registered, a reset link is on its way.");
     } catch (err) {
       toast.error((err as Error).message || "Could not send the reset link.");
@@ -63,15 +63,7 @@ function ForgotPasswordPage() {
                 If an account exists for <span className="text-foreground">{email}</span>, you'll receive a reset link
                 valid for 30 minutes.
               </p>
-              {devToken && (
-                <button
-                  type="button"
-                  onClick={() => navigate({ to: "/reset-password", search: { token: devToken } })}
-                  className="mt-5 w-full py-3 rounded-2xl bg-grad-hero text-white font-semibold glow"
-                >
-                  Open reset link
-                </button>
-              )}
+              
               <Link to="/login" className="mt-3 block text-xs text-muted-foreground hover:text-foreground">
                 ← Back to login
               </Link>

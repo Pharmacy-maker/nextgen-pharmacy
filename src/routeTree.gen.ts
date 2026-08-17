@@ -24,6 +24,7 @@ import { Route as PaymentRouteImport } from './routes/payment'
 import { Route as PrescriptionRouteImport } from './routes/prescription'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as TestMedicinesRouteImport } from './routes/test-medicines'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin.analytics'
@@ -112,6 +113,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TestMedicinesRoute = TestMedicinesRouteImport.update({
+  id: '/test-medicines',
+  path: '/test-medicines',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WishlistRoute = WishlistRouteImport.update({
   id: '/wishlist',
   path: '/wishlist',
@@ -189,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/prescription': typeof PrescriptionRoute
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/test-medicines': typeof TestMedicinesRoute
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -217,6 +224,7 @@ export interface FileRoutesByTo {
   '/prescription': typeof PrescriptionRoute
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/test-medicines': typeof TestMedicinesRoute
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -247,6 +255,7 @@ export interface FileRoutesById {
   '/prescription': typeof PrescriptionRoute
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/test-medicines': typeof TestMedicinesRoute
   '/wishlist': typeof WishlistRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -278,6 +287,7 @@ export interface FileRouteTypes {
     | '/prescription'
     | '/products'
     | '/reset-password'
+    | '/test-medicines'
     | '/wishlist'
     | '/admin/analytics'
     | '/admin/categories'
@@ -306,6 +316,7 @@ export interface FileRouteTypes {
     | '/prescription'
     | '/products'
     | '/reset-password'
+    | '/test-medicines'
     | '/wishlist'
     | '/admin/analytics'
     | '/admin/categories'
@@ -335,6 +346,7 @@ export interface FileRouteTypes {
     | '/prescription'
     | '/products'
     | '/reset-password'
+    | '/test-medicines'
     | '/wishlist'
     | '/admin/analytics'
     | '/admin/categories'
@@ -365,6 +377,7 @@ export interface RootRouteChildren {
   PrescriptionRoute: typeof PrescriptionRoute
   ProductsRoute: typeof ProductsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  TestMedicinesRoute: typeof TestMedicinesRoute
   WishlistRoute: typeof WishlistRoute
   ProductIdRoute: typeof ProductIdRoute
 }
@@ -474,6 +487,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test-medicines': {
+      id: '/test-medicines'
+      path: '/test-medicines'
+      fullPath: '/test-medicines'
+      preLoaderRoute: typeof TestMedicinesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wishlist': {
@@ -607,6 +627,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrescriptionRoute: PrescriptionRoute,
   ProductsRoute: ProductsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  TestMedicinesRoute: TestMedicinesRoute,
   WishlistRoute: WishlistRoute,
   ProductIdRoute: ProductIdRoute,
 }
