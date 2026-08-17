@@ -33,7 +33,10 @@ function PrescriptionPage() {
   const [error, setError] = useState<string | null>(null);
   const [scan, setScan] = useState<PrescriptionScan | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { add } = useCart();
+  const cart = useCart();
+  console.log("PRESCRIPTION CART:", cart);
+  const { add } = cart;
+  console.log("ADD FUNCTION REF:", add);
   const { user } = useAuth();
 
   const busy = phase === "uploading" || phase === "scanning";
@@ -51,6 +54,8 @@ function PrescriptionPage() {
     setFile(f);
     setPhase("uploading");
     try {
+      console.log("AUTH USER:", user);
+      console.log("USER ID:", user?.id);
       const rx = await prescriptionService.upload(f, user?.id ?? "guest");
       setPhase("scanning");
       const result = await prescriptionService.scan(rx.id);
@@ -65,13 +70,27 @@ function PrescriptionPage() {
   };
 
   const extracted = scan?.medicines ?? [];
+  const matchedProducts = scan?.matchedProducts ?? [];
+
+  console.log("SCAN RESULT:", scan);
+  console.log("MATCHED PRODUCTS:", matchedProducts);
+  console.log("EXTRACTED:", extracted);
 
   const addAll = () => {
-    extracted.forEach((m) => m.productId && add(m.productId, m.quantity ?? 1));
-    toast.success("Added extracted medicines to your cart");
-  };
+  alert("BUTTON CLICKED");
 
+  console.log("MATCHED PRODUCTS COUNT:", matchedProducts.length);
+  console.log("MATCHED PRODUCTS:", matchedProducts);
 
+  matchedProducts.forEach((p, index) => {
+    console.log("ITEM", index, p);
+
+    console.log("CALLING ADD FOR:", p.id);
+    add(p.id, 1);
+  });
+
+  alert("FINISHED LOOP");
+};
   return (
     <PageShell>
       <Section eyebrow="AI Vision" title="Upload Your | Prescription |" subtitle="Drop a photo — our AI extracts medicines, dosages, and finds the best price in seconds.">

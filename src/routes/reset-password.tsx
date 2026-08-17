@@ -13,9 +13,7 @@ import {
 import { passwordSchema } from "../lib/validation";
 import { supabase } from "../lib/supabase";
 
-const searchSchema = z.object({
-  token: fallback(z.string(), "").default(""),
-});
+const searchSchema = z.object({});
 
 export const Route = createFileRoute("/reset-password")({
   validateSearch: zodValidator(searchSchema),
@@ -41,7 +39,7 @@ export const Route = createFileRoute("/reset-password")({
 });
 
 function ResetPasswordPage() {
-  const { token } = Route.useSearch();
+  
   const navigate = useNavigate();
 
   const [password, setPassword] = useState("");
@@ -98,11 +96,7 @@ function ResetPasswordPage() {
         // If there is a token in the query string, keep compatibility
         // with the old flow. Supabase recovery itself does not normally
         // require this token.
-        if (token) {
-          setRecoveryReady(true);
-        } else {
-          setRecoveryReady(false);
-        }
+        setRecoveryReady(false);
       } catch {
         if (mounted) {
           setRecoveryReady(false);
@@ -131,7 +125,7 @@ function ResetPasswordPage() {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [token]);
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -232,14 +226,20 @@ function ResetPasswordPage() {
                 Your password has been changed successfully. You can now sign
                 in with your new password.
               </p>
-
-              <button
-                type="button"
-                onClick={() => navigate({ to: "/login" })}
-                className="mt-5 w-full py-3 rounded-2xl bg-grad-hero text-white font-semibold glow"
-              >
-                Go to login
-              </button>
+            <button
+              type="button"
+              onClick={() =>
+                navigate({
+                  to: "/login",
+                  search: {
+                    redirect: "/dashboard",
+                  },
+                })
+              }
+              className="mt-5 w-full py-3 rounded-2xl bg-grad-hero text-white font-semibold glow"
+            >
+              Go to login
+            </button>
             </div>
           ) : (
             <form

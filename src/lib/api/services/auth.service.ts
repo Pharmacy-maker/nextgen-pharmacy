@@ -68,6 +68,15 @@ export const authService = {
       throw new AuthError("FORBIDDEN", "Unable to create account.");
     }
 
+    await supabase.from("users").insert({
+      id: data.user.id,
+      full_name: payload.name,
+      email: payload.email,
+      phone: payload.phone,
+      role: "user",
+      is_active: true,
+    });
+
     return {
       id: data.user.id,
       name: payload.name,
@@ -98,6 +107,15 @@ export const authService = {
     if (!data.user || !data.session) {
       throw new AuthError("FORBIDDEN", "Unable to sign in.");
     }
+
+    await supabase.from("users").insert({
+      id: data.user.id,
+      full_name: payload.name,
+      email: payload.email,
+      phone: payload.phone,
+      role: "user",
+      is_active: true,
+    });
 
     const user: User = {
       id: data.user.id,

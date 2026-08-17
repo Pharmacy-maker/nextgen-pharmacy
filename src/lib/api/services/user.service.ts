@@ -1,4 +1,5 @@
 import { apiFetch, mockDelay } from "../client";
+import { supabase } from "../../supabase";
 import { ENDPOINTS, USE_MOCK_API } from "../config";
 import { mockUsers } from "../mock/db";
 import { addressStore } from "../mock/addresses";
@@ -41,28 +42,101 @@ export const userService = {
   },
 
   async addresses(userId: ID): Promise<Address[]> {
-    if (!USE_MOCK_API) return apiFetch<Address[]>(ENDPOINTS.users.addresses(userId));
-    return mockDelay(addressStore.list(userId), 200);
-  },
+  const { data, error } = await supabase
+    .from("addresses")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    userId: row.user_id,
+    fullName: row.full_name,
+    phone: row.phone,
+    line1: row.address_line_1,
+    line2: row.address_line_2 ?? "",
+    city: row.city,
+    state: row.state,
+    postalCode: row.postal_code,
+    country: row.country,
+    isDefault: row.is_default,
+  }));
+},
 
   async addAddress(userId: ID, input: Omit<AddressInput, "userId">): Promise<Address> {
-    if (!USE_MOCK_API)
-      return apiFetch<Address>(ENDPOINTS.users.addresses(userId), { method: "POST", body: input });
-    return mockDelay(addressStore.create({ ...input, userId }), 250);
-  },
+  const { data, error } = await supabase
+    .from("addresses")
+    .insert({
+      user_id: userId,
+      full_name: input.fullName,
+      phone: input.phone,
+      address_line_1: input.line1,
+      address_line_2: input.line2 || null,
+      city: input.city,
+      state: input.state,
+      postal_code: input.postalCode,
+      country: input.country,
+      is_default: input.isDefault ?? false,
+    })
+    .select()
+    .single();
 
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    id: data.id,
+    userId: data.user_id,
+    fullName: data.full_name,
+    phone: data.phone,
+    line1: data.address_line_1,
+    line2: data.address_line_2 ?? "",
+    city: data.city,
+    state: data.state,
+    postalCode: data.postal_code,
+    country: data.country,
+    isDefault: data.is_default,
+  };
+},
   async setDefaultAddress(userId: ID, addressId: ID): Promise<Address[]> {
-    if (!USE_MOCK_API)
-      return apiFetch<Address[]>(ENDPOINTS.users.address(userId, addressId), {
-        method: "PATCH",
-        body: { isDefault: true },
-      });
-    return mockDelay(addressStore.setDefault(userId, addressId), 200);
-  },
+  const { error: clearError } = await supabase
+    .from("addresses")
+    .update({ is_default: false })
+    .eq("user_id", userId);
+
+  if (clearError) {
+    throw new Error(clearError.message);
+  }
+
+  const { error: setError } = await supabase
+    .from("addresses")
+    .update({ is_default: true })
+    .eq("id", addressId)
+    .eq("user_id", userId);
+
+  if (setError) {
+    throw new Error(setError.message);
+  }
+
+  return this.addresses(userId);
+},
 
   async removeAddress(userId: ID, addressId: ID): Promise<Address[]> {
-    if (!USE_MOCK_API)
-      return apiFetch<Address[]>(ENDPOINTS.users.address(userId, addressId), { method: "DELETE" });
-    return mockDelay(addressStore.remove(userId, addressId), 200);
-  },
+  const { error } = await supabase
+    .from("addresses")
+    .delete()
+    .eq("id", addressId)
+    .eq("user_id", userId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return this.addresses(userId);
+},
 };

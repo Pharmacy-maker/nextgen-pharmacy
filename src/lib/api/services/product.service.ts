@@ -21,6 +21,11 @@ export type ProductQuery = {
   sort?: "popular" | "price-asc" | "price-desc" | "rating";
 };
 
+console.log(
+  "PRODUCT SUPABASE URL:",
+  import.meta.env.VITE_SUPABASE_URL
+);
+
 function applyQuery(
   list: Product[],
   q: ProductQuery,
@@ -139,11 +144,41 @@ function mapSupabaseProduct(row: any): Product {
 export const productService = {
   async list(
     query: ProductQuery = {},
-  ): Promise<Product[]> {
-    if (!USE_MOCK_API) {
+  ): Promise<Product[]> {console.log(
+    "USE_MOCK_API INSIDE LIST:",
+    USE_MOCK_API
+  );
+   console.log(
+  "USE_MOCK_API INSIDE LIST:",
+  USE_MOCK_API
+);
+  if (!USE_MOCK_API) {
       const { data, error } = await supabase
         .from("products")
         .select("*");
+        console.log(
+  "LAST PRODUCT:",
+  data?.[data.length - 1]
+);
+
+console.log(
+  "MEFTAL NAME SEARCH:",
+  data?.find((p) =>
+    String(p.name)
+      .toLowerCase()
+      .includes("meftal")
+  )
+);
+        const meftal = data?.find(
+  (p) =>
+    p.id ===
+    "af4a8b58-0850-48ec-ab7f-334acfa46c68"
+);
+
+console.log(
+  "MEFTAL FROM LIST QUERY:",
+  meftal
+);
 
       if (error) {
         console.error(
@@ -152,7 +187,24 @@ export const productService = {
         );
         throw error;
       }
+     
+      console.log(
+  "RAW HAS MEFTAL ID:",
+  data?.some(
+    (p) =>
+      p.id ===
+      "b3f91875-1796-400c-9c32-908e3f141d88"
+  )
+);
 
+console.log(
+  "RAW MEFTAL ROW:",
+  data?.find(
+    (p) =>
+      p.id ===
+      "b3f91875-1796-400c-9c32-908e3f141d88"
+  )
+);
       const products = (data ?? []).map(
         mapSupabaseProduct,
       );
@@ -163,6 +215,10 @@ export const productService = {
       console.log(
         "USE_MOCK_API:",
         USE_MOCK_API,
+      );
+      console.log(
+        "ENDPOINT:",
+        ENDPOINTS.products
       );
       console.log(
         "Products Count:",
@@ -195,6 +251,11 @@ export const productService = {
         .select("*")
         .eq("id", id)
         .maybeSingle();
+
+        console.log(
+          "GET PRODUCT RESULT:",
+          data?.id
+        );
 
       if (error) {
         console.error(

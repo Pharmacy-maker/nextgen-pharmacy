@@ -1,4 +1,5 @@
 import { apiFetch, mockDelay } from "../client";
+import { supabase } from "../../supabase";
 import { ENDPOINTS, USE_MOCK_API } from "../config";
 import { mockOrders } from "../mock/db";
 import { products } from "../../products";
@@ -13,9 +14,39 @@ export const orderService = {
   },
 
   async listMine(userId: ID): Promise<Order[]> {
-    if (!USE_MOCK_API) return apiFetch<Order[]>(ENDPOINTS.orders.mine);
-    return mockDelay(orders.filter((o) => o.userId === userId));
-  },
+  if (!USE_MOCK_API) {
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("user_id", userId)
+      .order("placed_at", { ascending: false });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return (data ?? []).map((row) => ({
+      id: row.id,
+      reference: row.reference,
+      userId: row.user_id,
+      customerName: row.customer_name,
+      customerEmail: row.customer_email,
+      subtotal: Number(row.subtotal ?? 0),
+      discount: Number(row.discount ?? 0),
+      deliveryFee: Number(row.delivery_fee ?? 0),
+      total: Number(row.total ?? 0),
+      status: row.status,
+      paymentStatus: row.payment_status,
+      paymentMethod: row.payment_method,
+      shippingAddress: row.shipping_address,
+      placedAt: row.placed_at,
+      deliveredAt: row.delivered_at,
+      items: [],
+    }));
+  }
+
+  return mockDelay(orders.filter((o) => o.userId === userId));
+},
 
   async get(id: ID): Promise<Order | null> {
     if (!USE_MOCK_API) return apiFetch<Order>(ENDPOINTS.orders.detail(id));

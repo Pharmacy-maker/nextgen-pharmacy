@@ -257,12 +257,22 @@ export interface ExtractedMedicine {
   confidence?: number;
 }
 
+
+export interface MatchedProduct {
+  id: string;
+  name: string;
+  quantity?: number;
+  dosage?: string;
+  instructions?: string;
+}
+
 export interface PrescriptionScan {
   id: ID;
   prescriptionId: ID;
   status: PrescriptionScanStatus;
   progress?: number;
   medicines: ExtractedMedicine[];
+  matchedProducts?: MatchedProduct[];
   rawText?: string;
   message?: string;
   completedAt?: ISODate;

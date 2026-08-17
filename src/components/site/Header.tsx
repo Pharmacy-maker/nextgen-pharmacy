@@ -23,6 +23,7 @@ export function Header() {
   const [userMenu, setUserMenu] = useState(false);
   const navigate = useNavigate();
   const { count } = useCart();
+  console.log("HEADER CART COUNT:", count);
   const { count: wishCount } = useWishlist();
   const { user, logout } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });

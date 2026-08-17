@@ -1,22 +1,13 @@
-import { apiFetch, mockDelay, ApiError } from "../client";
-import { ENDPOINTS, USE_MOCK_API } from "../config";
-import type { ChatConversation, ChatMessage, ChatReply, ID } from "../../../types/models";
-
-/**
- * Chatbot service — frontend only.
- *
- * The assistant's intelligence lives entirely in the backend. This module
- * defines the request/response contract (conversation id + full message
- * history in, one assistant message out) so an AI backend can be plugged in
- * by implementing `POST /chat/messages` — no UI change required.
- *
- * Planned backend capabilities: medicine information, dosage guidance,
- * pharmacy FAQs, order tracking lookups and general customer support.
- */
+import { mockDelay } from "../client";
+import type {
+  ChatConversation,
+  ChatMessage,
+  ChatReply,
+  ID,
+} from "../../../types/models";
 
 export type SendMessageInput = {
   conversationId: ID;
-  /** Full history, oldest first — the model is stateless. */
   messages: ChatMessage[];
   userId?: ID;
 };
@@ -25,8 +16,11 @@ const STORAGE_KEY = "rays:chat";
 
 function readStore(): Record<ID, ChatConversation> {
   if (typeof window === "undefined") return {};
+
   try {
-    return JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "{}");
+    return JSON.parse(
+      window.localStorage.getItem(STORAGE_KEY) ?? "{}"
+    );
   } catch {
     return {};
   }
@@ -34,16 +28,25 @@ function readStore(): Record<ID, ChatConversation> {
 
 function writeStore(store: Record<ID, ChatConversation>) {
   if (typeof window === "undefined") return;
+
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(store)
+    );
   } catch {
-    /* ignore */
+    // ignore
   }
 }
 
-export function createMessage(role: ChatMessage["role"], content: string): ChatMessage {
+export function createMessage(
+  role: ChatMessage["role"],
+  content: string
+): ChatMessage {
   return {
-    id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: `msg-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}`,
     role,
     content,
     createdAt: new Date().toISOString(),
@@ -51,59 +54,42 @@ export function createMessage(role: ChatMessage["role"], content: string): ChatM
 }
 
 export const chatService = {
-  /** Persisted conversation history (replaced by a backend read later). */
-  async history(conversationId: ID): Promise<ChatConversation | null> {
-  if (!USE_MOCK_API) {
-    try {
-      return await apiFetch<ChatConversation>(
-        ENDPOINTS.chat.conversation(conversationId)
-      );
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 404) {
-        return null;
-      }
-      throw error;
-    }
-  }
+  async history(
+    conversationId: ID
+  ): Promise<ChatConversation | null> {
+    return readStore()[conversationId] ?? null;
+  },
 
-  return readStore()[conversationId] ?? null;
-},
-
-  /** Persists the local transcript so history survives reloads. */
-  async saveHistory(conversation: ChatConversation): Promise<void> {
-    if (!USE_MOCK_API) return;
+  async saveHistory(
+    conversation: ChatConversation
+  ): Promise<void> {
     const store = readStore();
     store[conversation.id] = conversation;
     writeStore(store);
   },
 
   async clear(conversationId: ID): Promise<void> {
-    if (!USE_MOCK_API) return;
     const store = readStore();
     delete store[conversationId];
     writeStore(store);
   },
 
-  /**
-   * Sends the conversation to the AI backend and returns its reply.
-   *
-   * No mock answers are invented here: until a backend is connected the
-   * assistant honestly reports that it is not available yet.
-   */
-  async sendMessage(input: SendMessageInput): Promise<ChatReply> {
-    if (!USE_MOCK_API) {
-      return apiFetch<ChatReply>(ENDPOINTS.chat.send, { method: "POST", body: input });
-    }
-    return mockDelay(
-      {
-        conversationId: input.conversationId,
-        message: createMessage(
-          "assistant",
-          "The AI assistant isn't connected yet — replies will appear here once the backend AI service is live. In the meantime you can browse medicines, upload a prescription, or track an order from your account.",
-        ),
-        suggestions: ["Browse medicines", "Upload prescription", "Track my order"],
-      },
-      900,
-    );
+  async sendMessage(
+    input: SendMessageInput
+  ): Promise<ChatReply> {
+    const reply: ChatReply = {
+      conversationId: input.conversationId,
+      message: createMessage(
+        "assistant",
+        "AI chat is not connected yet. You can browse medicines, upload a prescription, or track your orders."
+      ),
+      suggestions: [
+        "Browse medicines",
+        "Upload prescription",
+        "Track my order",
+      ],
+    };
+
+    return mockDelay(reply, 500);
   },
 };

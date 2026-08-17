@@ -18,6 +18,7 @@ type CartCtx = {
 };
 
 const CartContext = createContext<CartCtx | null>(null);
+import { productService } from "./api/services/product.service";
 
 function useLocal<T>(key: string, initial: T): [T, (v: T | ((p: T) => T)) => void] {
   const [v, setV] = useState<T>(initial);
@@ -48,19 +49,92 @@ function useLocal<T>(key: string, initial: T): [T, (v: T | ((p: T) => T)) => voi
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useLocal<CartItem[]>("rays:cart", []);
+  useEffect(() => {
+  console.log("CART STORAGE:", items);
+}, [items]);
+  const [products, setProducts] = useState<Product[]>([]);
+  useEffect(() => {
+  productService.list()
+    .then((data) => {
+      console.log("STORE PRODUCTS:", data.length);
+      console.log("FIRST PRODUCT:", data[0]);
+      console.log("LOADED PRODUCTS:", data.length);
+      console.log("FIRST LOADED PRODUCT:", data[0]);
 
-  const add = useCallback(
-    (id: string, qty = 1) => {
-      setItems((prev) => {
-        const found = prev.find((i) => i.id === id);
-        if (found) return prev.map((i) => (i.id === id ? { ...i, qty: i.qty + qty } : i));
-        return [...prev, { id, qty }];
-      });
-      const p = findProduct(id);
-      if (p) toast.success(`${p.name} added to cart`);
-    },
-    [setItems],
+      console.log(
+  "HAS MEFTAL:",
+  data.some(
+    (p) =>
+      p.id ===
+      "af4a8b58-0850-48ec-ab7f-334acfa46c68"
+  )
+);
+
+console.log(
+  "MEFTAL RECORD:",
+  data.find(
+    (p) =>
+      p.id ===
+      "af4a8b58-0850-48ec-ab7f-334acfa46c68"
+  )
+);
+
+setProducts(data);
+    })
+    .catch(console.error);
+}, []);
+
+useEffect(() => {
+  console.log(
+    "PRODUCT IDS SAMPLE:",
+    products.slice(0, 5).map((p) => p.id)
   );
+  console.log(
+  "HAS CALPOL:",
+  products.some(
+    (p) =>
+      p.id ===
+      "2ece6de9-318e-4553-b839-99a94fa9a972"
+  )
+);
+
+console.log(
+  "HAS DELCON:",
+  products.some(
+    (p) =>
+      p.id ===
+      "056a363c-946e-4379-92e8-20764deea50b"
+  )
+);
+
+  console.log("CART ITEMS:", items);
+}, [products, items]);
+
+  useEffect(() => {
+  console.log("CART ITEMS:", items);
+
+  if (items.length > 0) {
+    console.log("FIRST CART ITEM:", items[0]);
+  }
+}, [items]);
+  const add = useCallback(
+  (id: string, qty = 1) => {
+    setItems((prev) => {
+      const found = prev.find((i) => i.id === id);
+
+      if (found) {
+        return prev.map((i) =>
+          i.id === id
+            ? { ...i, qty: i.qty + qty }
+            : i
+        );
+      }
+
+      return [...prev, { id, qty }];
+    });
+  },
+  [setItems],
+);
 
   const remove = useCallback(
     (id: string) => {
@@ -82,16 +156,67 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clear = useCallback(() => setItems([]), [setItems]);
 
   const detailed = useMemo(
-    () =>
-      items
-        .map((i) => {
-          const product = findProduct(i.id);
-          if (!product) return null;
-          return { product, qty: i.qty, line: discountedPrice(product) * i.qty };
-        })
-        .filter(Boolean) as { product: Product; qty: number; line: number }[],
-    [items],
-  );
+  () =>
+    items
+      .map((i) => {
+        console.log("CART ID:", i.id, typeof i.id);
+console.log(
+  "FIRST PRODUCT ID:",
+  products[0]?.id,
+  typeof products[0]?.id
+);
+console.log(
+  "DETAIL MAP ITEM:",
+  i.id
+);
+const product = products.find((p) => {
+  const match = String(p.id) === String(i.id);
+
+  if (match) {
+    console.log(
+      "MATCH FOUND:",
+      p.id,
+      i.id
+    );
+  }
+
+  return match;
+});
+
+        console.log("LOOKUP:", i.id);
+
+const exactMatch = products.find(
+  (p) => String(p.id) === String(i.id)
+);
+
+console.log("EXACT MATCH:", exactMatch);
+
+console.log(
+  "PRODUCT CONTAINS ID:",
+  products.some(
+    (p) => String(p.id) === String(i.id)
+  )
+);
+
+        if (!product) return null;
+
+        return {
+          product,
+          qty: i.qty,
+          line: discountedPrice(product) * i.qty,
+        };
+      })
+      .filter(Boolean) as {
+      product: Product;
+      qty: number;
+      line: number;
+    }[],
+  [items, products],
+);
+
+useEffect(() => {
+  console.log("DETAILED:", detailed);
+}, [detailed]);
 
   const count = detailed.reduce((s, d) => s + d.qty, 0);
   const subtotal = detailed.reduce((s, d) => s + d.line, 0);
