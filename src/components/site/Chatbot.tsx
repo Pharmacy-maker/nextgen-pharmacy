@@ -1,131 +1,400 @@
 import { useEffect, useRef, useState } from "react";
 import { Bot, Send, X } from "lucide-react";
-import { chatService, createMessage } from "../../lib/api";
-import { useAuth } from "../../lib/store";
+
+import { chatService } from "../../lib/services/chatService";
+import { supabase } from "../../lib/supabase";
 import type { ChatMessage } from "../../types/models";
 
-const CONVERSATION_ID = "default";
+type ChatbotProps = {
+  className?: string;
+};
 
-const GREETING = createMessage(
-  "assistant",
-  "Hi! I'm Rays AI. Ask me about medicines, dosages, orders, or upload a prescription.",
-);
+const createLocalMessage = (
+  role: "user" | "assistant",
+  content: string
+): ChatMessage => ({
+  id: crypto.randomUUID(),
+  role,
+  content,
+  createdAt: new Date().toISOString(),
+});
 
-/**
- * Chat UI shell. All intelligence comes from `chatService`, so connecting a
- * backend AI endpoint requires no changes here.
- */
-export function Chatbot() {
+export function Chatbot({
+  className = "",
+}: ChatbotProps) {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([GREETING]);
-  const [suggestions, setSuggestions] = useState<string[]>(["Fever meds", "Skin care", "Track order"]);
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [txt, setTxt] = useState("");
-  const { user } = useAuth();
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [conversationId, setConversationId] =
+    useState<string>("default");
+  const [loading, setLoading] = useState(false);
 
-  // Restore persisted conversation history.
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  /* =========================================================
+     INITIAL GREETING
+  ========================================================= */
+
   useEffect(() => {
-    let alive = true;
-    chatService.history(CONVERSATION_ID).then((c) => {
-      if (alive && c?.messages?.length) setMessages(c.messages);
-    });
-    return () => {
-      alive = false;
-    };
+    setMessages([
+      createLocalMessage(
+        "assistant",
+        "Hello! Welcome to Rays Pharmacy. How can I help you?"
+      ),
+    ]);
   }, []);
 
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, sending]);
+  /* =========================================================
+     SCROLL TO LATEST MESSAGE
+  ========================================================= */
 
-  const send = async (v: string) => {
-    if (!v.trim() || sending) return;
-    setError(null);
-    const next = [...messages, createMessage("user", v.trim())];
-    setMessages(next);
-    setTxt("");
-    setSending(true);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages, loading]);
+
+  /* =========================================================
+     SEND MESSAGE
+     LOGIN IS REQUIRED
+  ========================================================= */
+
+  const sendMessage = async () => {
+    const text = input.trim();
+
+    if (!text || loading) {
+      return;
+    }
+
+    /* =====================================================
+       CHECK IF USER IS LOGGED IN
+    ===================================================== */
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    /* =====================================================
+       USER IS NOT LOGGED IN
+    ===================================================== */
+
+    if (authError || !user) {
+      setMessages((previous) => [
+        ...previous,
+        createLocalMessage(
+          "assistant",
+          "Please login to use the chatbot."
+        ),
+      ]);
+
+      return;
+    }
+
+    /* =====================================================
+       USER IS LOGGED IN
+    ===================================================== */
+
+    setInput("");
+
+    const userMessage = createLocalMessage(
+      "user",
+      text
+    );
+
+    const updatedMessages = [
+      ...messages,
+      userMessage,
+    ];
+
+    setMessages(updatedMessages);
+    setLoading(true);
+
     try {
       const reply = await chatService.sendMessage({
-        conversationId: CONVERSATION_ID,
-        messages: next,
-        userId: user?.id,
+        conversationId,
+        messages: updatedMessages,
+        userId: user.id,
       });
-      const history = [...next, reply.message];
-      setMessages(history);
-      if (reply.suggestions) setSuggestions(reply.suggestions);
-      void chatService.saveHistory({
-        id: CONVERSATION_ID,
-        userId: user?.id,
-        messages: history,
-        updatedAt: new Date().toISOString(),
-      });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't reach the assistant. Please try again.");
+
+      setConversationId(
+        reply.conversationId
+      );
+
+      setMessages((previous) => [
+        ...previous,
+        reply.message,
+      ]);
+    } catch (error) {
+      console.error(
+        "Chatbot error:",
+        error
+      );
+
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again.";
+
+      setMessages((previous) => [
+        ...previous,
+        createLocalMessage(
+          "assistant",
+          errorMessage
+        ),
+      ]);
     } finally {
-      setSending(false);
+      setLoading(false);
     }
+  };
+
+  /* =========================================================
+     ENTER KEY
+  ========================================================= */
+
+  const handleKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      sendMessage();
+    }
+  };
+
+  /* =========================================================
+     SUGGESTIONS
+  ========================================================= */
+
+  const handleSuggestion = (
+    suggestion: string
+  ) => {
+    setInput(suggestion);
   };
 
   return (
     <>
+      {/* =====================================================
+          CHAT BUTTON
+      ===================================================== */}
+
       <button
-        onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full bg-grad-hero grid place-items-center glow hover-lift"
-        aria-label="Open chat"
+        type="button"
+        onClick={() => setOpen(true)}
+        className={`fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full border border-cyan-300/30 bg-gradient-to-br from-[#168BFF] to-[#A855F7] text-white shadow-[0_8px_35px_rgba(20,184,232,0.35)] transition-all duration-200 hover:scale-105 hover:shadow-[0_10px_45px_rgba(168,85,247,0.45)] ${className}`}
+        aria-label="Open chatbot"
       >
-        <Bot className="h-6 w-6 text-white" />
-        <span className="absolute inset-0 rounded-full bg-grad-hero blur-xl opacity-60 -z-10 animate-pulse-glow" />
+        <Bot
+          size={27}
+          strokeWidth={1.8}
+        />
       </button>
+
+      {/* =====================================================
+          CHAT WINDOW
+      ===================================================== */}
+
       {open && (
-        <div className="fixed bottom-24 right-6 z-40 w-[92vw] max-w-sm glass-strong rounded-3xl overflow-hidden animate-rise glow">
-          <div className="p-4 bg-grad-hero flex items-center gap-3 text-white">
-            <div className="h-9 w-9 rounded-xl bg-white/20 grid place-items-center"><Bot className="h-5 w-5" /></div>
-            <div>
-              <div className="font-semibold">Rays AI</div>
-              <div className="text-xs opacity-80">Always online</div>
+        <div className="fixed bottom-6 right-6 z-[100] flex h-[600px] w-[380px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-cyan-300/20 bg-[#020817] text-white shadow-[0_20px_70px_rgba(0,0,0,0.65)]">
+
+          {/* =================================================
+              HEADER
+          ================================================= */}
+
+          <div className="relative flex items-center justify-between overflow-hidden border-b border-cyan-300/10 bg-gradient-to-r from-[#061B3A] via-[#063B55] to-[#08152E] px-5 py-4">
+
+            <div className="pointer-events-none absolute -right-10 -top-16 h-32 w-32 rounded-full bg-cyan-400/20 blur-3xl" />
+
+            <div className="pointer-events-none absolute -left-10 -bottom-20 h-32 w-32 rounded-full bg-purple-500/15 blur-3xl" />
+
+            <div className="relative flex items-center gap-3">
+
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-300/20 bg-gradient-to-br from-cyan-400/20 to-blue-500/20 text-cyan-300 shadow-[0_0_20px_rgba(20,184,232,0.15)]">
+                <Bot
+                  size={21}
+                  strokeWidth={1.8}
+                />
+              </div>
+
+              <div>
+                <h2 className="text-sm font-semibold tracking-wide text-white">
+                  Rays AI
+                </h2>
+
+                <div className="mt-0.5 flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+
+                  <p className="text-[11px] text-cyan-100/60">
+                    Rays Pharmacy Assistant
+                  </p>
+                </div>
+              </div>
+
             </div>
-            <button onClick={() => setOpen(false)} className="ml-auto h-8 w-8 grid place-items-center rounded-lg hover:bg-white/10" aria-label="Close chat">
-              <X className="h-4 w-4" />
+
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="relative flex h-8 w-8 items-center justify-center rounded-lg text-cyan-100/50 transition hover:bg-white/10 hover:text-white"
+              aria-label="Close chatbot"
+            >
+              <X size={19} />
             </button>
+
           </div>
-          <div ref={scrollRef} className="p-4 h-72 overflow-y-auto space-y-3" aria-live="polite">
-            {messages.map((m) => (
-              <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${m.role === "user" ? "bg-grad-cool text-white" : "bg-white/10"}`}>{m.content}</div>
-              </div>
-            ))}
-            {sending && (
-              <div className="flex gap-1 items-center bg-white/10 w-fit px-3 py-2 rounded-2xl">
-                {[0, 1, 2].map((i) => (
-                  <span key={i} className="h-1.5 w-1.5 rounded-full bg-white typing-dot" style={{ animationDelay: `${i * 0.15}s` }} />
-                ))}
-              </div>
-            )}
-            {error && <div className="text-xs text-pink" role="alert">{error}</div>}
-          </div>
-          <div className="p-3 border-t border-white/10">
-            <div className="flex gap-2 mb-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {suggestions.map((s) => (
-                <button key={s} onClick={() => send(s)} className="shrink-0 text-xs px-3 py-1 rounded-full glass hover:bg-white/15">{s}</button>
+
+          {/* =================================================
+              MESSAGES
+          ================================================= */}
+
+          <div className="flex-1 overflow-y-auto bg-gradient-to-b from-[#020817] via-[#031326] to-[#020817] px-5 py-5">
+
+            <div className="space-y-5">
+
+              {messages.map((message) => (
+
+                <div
+                  key={message.id}
+                  className={`flex ${
+                    message.role === "user"
+                      ? "justify-end"
+                      : "justify-start"
+                  }`}
+                >
+
+                  {/* =================================================
+                      ASSISTANT MESSAGE
+                  ================================================= */}
+
+                  {message.role === "assistant" ? (
+
+                    <div className="flex max-w-[88%] gap-3">
+
+                      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-cyan-300/15 bg-gradient-to-br from-cyan-400/15 to-blue-500/15 text-cyan-300">
+                        <Bot
+                          size={15}
+                          strokeWidth={1.8}
+                        />
+                      </div>
+
+                      <div className="rounded-2xl rounded-tl-md border border-cyan-300/10 bg-white/[0.035] px-4 py-3 text-sm leading-6 text-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.15)]">
+                        {message.content}
+                      </div>
+
+                    </div>
+
+                  ) : (
+
+                    /* =================================================
+                       USER MESSAGE
+                    ================================================= */
+
+                    <div className="max-w-[82%] rounded-2xl rounded-tr-md bg-gradient-to-r from-[#168BFF] to-[#A855F7] px-4 py-3 text-sm leading-6 text-white shadow-[0_6px_25px_rgba(37,99,235,0.25)]">
+                      {message.content}
+                    </div>
+
+                  )}
+
+                </div>
+
               ))}
-            </div>
-            <div className="flex gap-2">
-              <input
-                value={txt}
-                onChange={(e) => setTxt(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && send(txt)}
-                placeholder="Ask anything…"
-                aria-label="Message Rays AI"
-                className="flex-1 bg-white/5 rounded-xl px-3 py-2 border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
-              />
-              <button onClick={() => send(txt)} disabled={sending} className="h-9 w-9 rounded-xl bg-grad-hero grid place-items-center glow disabled:opacity-60" aria-label="Send">
-                <Send className="h-4 w-4 text-white" />
-              </button>
+
+              {/* =================================================
+                  TYPING INDICATOR
+              ================================================= */}
+
+              {loading && (
+                <div className="flex max-w-[88%] gap-3">
+
+                  <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-cyan-300/15 bg-gradient-to-br from-cyan-400/15 to-blue-500/15 text-cyan-300">
+                    <Bot
+                      size={15}
+                      strokeWidth={1.8}
+                    />
+                  </div>
+
+                  <div className="rounded-2xl rounded-tl-md border border-cyan-300/10 bg-white/[0.035] px-4 py-3 text-sm leading-6 text-cyan-100/50">
+                    Typing...
+                  </div>
+
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
+
             </div>
           </div>
+
+          {/* =================================================
+              SUGGESTIONS
+          ================================================= */}
+
+          <div className="border-t border-cyan-300/10 bg-[#031124] px-4 py-3">
+
+            <div className="flex gap-2 overflow-x-auto pb-1">
+
+              {[
+                "Browse medicines",
+                "Upload prescription",
+                "Track my order",
+              ].map((suggestion) => (
+
+                <button
+                  key={suggestion}
+                  type="button"
+                  onClick={() =>
+                    handleSuggestion(suggestion)
+                  }
+                  className="whitespace-nowrap rounded-lg border border-cyan-300/15 bg-gradient-to-r from-[#082542] to-[#101D3D] px-3 py-2 text-[11px] text-cyan-100/75 transition hover:border-cyan-300/35 hover:bg-[#0B3150] hover:text-white hover:shadow-[0_0_15px_rgba(20,184,232,0.12)]"
+                >
+                  {suggestion}
+                </button>
+
+              ))}
+
+            </div>
+
+          </div>
+
+          {/* =================================================
+              INPUT
+          ================================================= */}
+
+          <div className="border-t border-cyan-300/10 bg-[#020D1D] p-4">
+
+            <div className="flex items-center gap-3">
+
+              <input
+                type="text"
+                value={input}
+                onChange={(event) =>
+                  setInput(event.target.value)
+                }
+                onKeyDown={handleKeyDown}
+                placeholder="Type your message..."
+                disabled={loading}
+                className="min-w-0 flex-1 rounded-xl border border-cyan-300/10 bg-[#071A30] px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 transition focus:border-cyan-400/40 focus:bg-[#09213A] focus:shadow-[0_0_20px_rgba(20,184,232,0.08)] disabled:opacity-50"
+              />
+
+              <button
+                type="button"
+                onClick={sendMessage}
+                disabled={
+                  loading ||
+                  !input.trim()
+                }
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#14B8E8] via-[#168BFF] to-[#A855F7] text-white shadow-[0_5px_20px_rgba(20,184,232,0.25)] transition hover:scale-105 hover:shadow-[0_6px_25px_rgba(168,85,247,0.35)] disabled:cursor-not-allowed disabled:opacity-30"
+                aria-label="Send message"
+              >
+                <Send
+                  size={18}
+                  strokeWidth={2}
+                />
+              </button>
+
+            </div>
+
+          </div>
+
         </div>
       )}
     </>
