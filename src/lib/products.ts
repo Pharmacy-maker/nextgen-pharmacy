@@ -32,8 +32,12 @@ export const byCategory = (name: string) =>
 export const findProduct = (id: string) => products.find((p) => p.id === id);
 console.log("PRODUCT IDS:", products.map((p) => p.id));
 export const searchProducts = (q: string) => {
+  console.log("SEARCH PRODUCTS COUNT:", products.length);
+
   const s = q.trim().toLowerCase();
-  if (!s) return [] as Product[];
+
+  if (!s) return [];
+
   return products.filter(
     (p) =>
       p.name.toLowerCase().includes(s) ||

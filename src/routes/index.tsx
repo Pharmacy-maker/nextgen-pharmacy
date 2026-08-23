@@ -202,6 +202,8 @@ function Categories() {
                   <Icon className="h-6 w-6 text-white" />
                 </div>
                 <div className="font-semibold group-hover:text-white transition-colors">{c.name}</div>
+
+                <div className="text-xs text-muted-foreground mt-1">{(c as any).count ?? 0} products</div>
                 <div className="text-xs text-muted-foreground group-hover:text-white/80 mt-1 flex items-center gap-1">
                   Explore <ArrowRight className="h-3 w-3" />
                 </div>

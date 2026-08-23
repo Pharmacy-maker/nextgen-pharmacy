@@ -11,9 +11,25 @@ export type AddressInput = Omit<Address, "id">;
 
 export const userService = {
   async list(): Promise<User[]> {
-    if (!USE_MOCK_API) return apiFetch<User[]>(ENDPOINTS.users.list);
-    return mockDelay(users);
-  },
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    name: row.full_name ?? "",
+    email: row.email ?? "",
+    phone: row.phone ?? "",
+    role: row.role === "admin" ? "admin" : "user",
+    status: row.is_active ? "active" : "inactive",
+    createdAt: row.created_at,
+  }));
+},
 
   async get(id: ID): Promise<User | null> {
     if (!USE_MOCK_API) return apiFetch<User>(ENDPOINTS.users.detail(id));
@@ -53,35 +69,31 @@ export const userService = {
   }
 
   return (data ?? []).map((row) => ({
-    id: row.id,
-    userId: row.user_id,
-    fullName: row.full_name,
-    phone: row.phone,
-    line1: row.address_line_1,
-    line2: row.address_line_2 ?? "",
-    city: row.city,
-    state: row.state,
-    postalCode: row.postal_code,
-    country: row.country,
-    isDefault: row.is_default,
-  }));
+  id: row.id,
+  userId: row.user_id,
+  label: row.full_name ?? "Home",
+  line1: row.address_line_1,
+  city: row.city,
+  state: row.state ?? "",
+  pincode: row.postal_code,
+  phone: row.phone,
+  isDefault: row.is_default,
+}));
 },
 
   async addAddress(userId: ID, input: Omit<AddressInput, "userId">): Promise<Address> {
   const { data, error } = await supabase
     .from("addresses")
     .insert({
-      user_id: userId,
-      full_name: input.fullName,
-      phone: input.phone,
-      address_line_1: input.line1,
-      address_line_2: input.line2 || null,
-      city: input.city,
-      state: input.state,
-      postal_code: input.postalCode,
-      country: input.country,
-      is_default: input.isDefault ?? false,
-    })
+  user_id: userId,
+  full_name: input.label,
+  phone: input.phone,
+  address_line_1: input.line1,
+  city: input.city,
+  state: input.state,
+  postal_code: input.pincode,
+  is_default: input.isDefault ?? false,
+})
     .select()
     .single();
 
@@ -90,18 +102,16 @@ export const userService = {
   }
 
   return {
-    id: data.id,
-    userId: data.user_id,
-    fullName: data.full_name,
-    phone: data.phone,
-    line1: data.address_line_1,
-    line2: data.address_line_2 ?? "",
-    city: data.city,
-    state: data.state,
-    postalCode: data.postal_code,
-    country: data.country,
-    isDefault: data.is_default,
-  };
+  id: data.id,
+  userId: data.user_id,
+  label: data.full_name ?? "Home",
+  line1: data.address_line_1,
+  city: data.city,
+  state: data.state ?? "",
+  pincode: data.postal_code,
+  phone: data.phone,
+  isDefault: data.is_default,
+};
 },
   async setDefaultAddress(userId: ID, addressId: ID): Promise<Address[]> {
   const { error: clearError } = await supabase

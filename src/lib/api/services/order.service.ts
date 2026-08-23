@@ -9,10 +9,48 @@ let orders: Order[] = [...mockOrders];
 
 export const orderService = {
   async list(params: { status?: OrderStatus } = {}): Promise<Order[]> {
-    if (!USE_MOCK_API) return apiFetch<Order[]>(ENDPOINTS.orders.list, { query: params });
-    return mockDelay(params.status ? orders.filter((o) => o.status === params.status) : orders);
-  },
+  if (!USE_MOCK_API) {
+    let query = supabase
+      .from("orders")
+      .select("*")
+      .order("placed_at", { ascending: false });
 
+    if (params.status) {
+      query = query.eq("status", params.status);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return (data ?? []).map((row) => ({
+      id: row.id,
+      reference: row.reference,
+      userId: row.user_id,
+      customerName: row.customer_name,
+      customerEmail: row.customer_email,
+      subtotal: Number(row.subtotal ?? 0),
+      discount: Number(row.discount ?? 0),
+      deliveryFee: Number(row.delivery_fee ?? 0),
+      total: Number(row.total ?? 0),
+      status: row.status,
+      paymentStatus: row.payment_status,
+      paymentMethod: row.payment_method,
+      shippingAddress: row.shipping_address,
+      placedAt: row.placed_at,
+      deliveredAt: row.delivered_at,
+      items: [],
+    }));
+  }
+
+  return mockDelay(
+    params.status
+      ? orders.filter((o) => o.status === params.status)
+      : orders
+  );
+},
   async listMine(userId: ID): Promise<Order[]> {
   if (!USE_MOCK_API) {
     const { data, error } = await supabase
@@ -98,4 +136,16 @@ export const orderService = {
     orders = orders.map((o) => (o.id === id ? { ...o, status } : o));
     return mockDelay(orders.find((o) => o.id === id)!, 300);
   },
+
+  async recent(limit = 10) {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+
+  return data ?? [];
+},
 };

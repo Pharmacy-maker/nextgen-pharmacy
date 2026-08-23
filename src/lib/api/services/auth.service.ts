@@ -68,22 +68,17 @@ export const authService = {
       throw new AuthError("FORBIDDEN", "Unable to create account.");
     }
 
-    await supabase.from("users").insert({
-      id: data.user.id,
-      full_name: payload.name,
-      email: payload.email,
-      phone: payload.phone,
-      role: "user",
-      is_active: true,
-    });
+    
 
     return {
-      id: data.user.id,
-      name: payload.name,
-      email: data.user.email ?? payload.email,
-      phone: payload.phone,
-      role: "user",
-    };
+  id: data.user.id,
+  name: payload.name,
+  email: data.user.email ?? payload.email,
+  phone: payload.phone,
+  role: "user",
+  status: "active",
+  createdAt: new Date().toISOString(),
+};
   },
 
   /** Authenticates a previously registered account. */
@@ -108,25 +103,18 @@ export const authService = {
       throw new AuthError("FORBIDDEN", "Unable to sign in.");
     }
 
-    await supabase.from("users").insert({
-      id: data.user.id,
-      full_name: payload.name,
-      email: payload.email,
-      phone: payload.phone,
-      role: "user",
-      is_active: true,
-    });
-
-    const user: User = {
-      id: data.user.id,
-      name: data.user.user_metadata?.name ?? "",
-      email: data.user.email ?? payload.email,
-      phone: data.user.user_metadata?.phone ?? "",
-      role:
-        data.user.user_metadata?.role === "admin"
-          ? "admin"
-          : "user",
-    };
+   const user: User = {
+  id: data.user.id,
+  name: data.user.user_metadata?.name ?? "",
+  email: data.user.email ?? payload.email,
+  phone: data.user.user_metadata?.phone ?? "",
+  role:
+    data.user.user_metadata?.role === "admin"
+      ? "admin"
+      : "user",
+  status: "active",
+  createdAt: new Date().toISOString(),
+};
 
     const session: AuthSession = {
       token: data.session.access_token,
@@ -205,8 +193,8 @@ export const authService = {
     } = await supabase
       .from("users")
       .select(
-        "id, full_name, email, phone, role, is_active",
-      )
+  "id, full_name, email, phone, role, is_active, created_at",
+)
       .eq("id", data.user.id)
       .single();
 
@@ -215,21 +203,19 @@ export const authService = {
     }
 
     return {
-      id: profile.id,
-      name: profile.full_name ?? "",
-      email:
-        profile.email ??
-        data.user.email ??
-        "",
-      phone: profile.phone ?? "",
-
-      // Only "admin" is treated as admin.
-      // Every other profile is treated as a normal user.
-      role:
-        profile.role === "admin"
-          ? "admin"
-          : "user",
-    };
+  id: profile.id,
+  name: profile.full_name ?? "",
+  email: profile.email ?? data.user.email ?? "",
+  phone: profile.phone ?? "",
+  role:
+    profile.role === "admin"
+      ? "admin"
+      : "user",
+  status: profile.is_active ? "active" : "inactive",
+  createdAt:
+  profile.created_at ??
+  new Date().toISOString(),
+};
   },
 
   /** Logs the user out. */

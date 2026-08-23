@@ -67,10 +67,40 @@ function ProductsPage() {
     queryFn: () => productService.list(),
   });
 
+  console.log("PRODUCTS PAGE COUNT:", data?.length);
+
+console.log("PRODUCTS PAGE COUNT:", data?.length);
+
+const firstWithImage = data?.find((p) => p.image);
+
+console.log("FIRST PRODUCT WITH IMAGE:", firstWithImage);
+
+console.log("IMAGE URL:", firstWithImage?.image);
+
+console.log("localQ =", localQ);
+console.log("products =", data?.length);
+
+console.log(
+  "ajaduo exists?",
+  data?.find((p) =>
+    p.name.toLowerCase().includes("ajaduo")
+  )
+);
+
   const filtered = useMemo(
     () => applyFilters(data ?? [], { q: localQ, tag, category, sort }),
     [data, localQ, tag, category, sort],
   );
+
+  console.log("SEARCH TERM:", localQ);
+console.log("PRODUCT COUNT:", data?.length);
+console.log(
+  "AJADUO EXISTS:",
+  data?.find(p =>
+    p.name.toLowerCase().includes("ajaduo")
+  )
+);
+console.log("FILTERED COUNT:", filtered.length);
 
   useEffect(() => setVisible(PAGE_SIZE), [localQ, tag, category, sort]);
 
@@ -87,9 +117,18 @@ function ProductsPage() {
             <input
               value={localQ}
               onChange={(e) => {
-                setLocalQ(e.target.value);
-                navigate({ search: (prev: { q: string; tag: string; category: string }) => ({ ...prev, q: e.target.value }), replace: true });
-              }}
+  console.log("INPUT:", e.target.value);
+
+  setLocalQ(e.target.value);
+
+  navigate({
+    search: (prev) => ({
+      ...prev,
+      q: e.target.value,
+    }),
+    replace: true,
+  });
+}}
               placeholder="Search medicines, brands, categories…"
               aria-label="Search products"
               className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"

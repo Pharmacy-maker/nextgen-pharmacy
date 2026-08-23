@@ -1,7 +1,6 @@
 import { apiFetch } from "../client";
 import { ENDPOINTS, USE_MOCK_API } from "../config";
 import { supabase } from "../../supabase";
-import { mockCategories } from "../mock/db";
 import { products as mockProducts } from "../../products";
 
 import type {
@@ -12,7 +11,6 @@ import type {
 } from "../../../types/models";
 
 let catalog: Product[] = [...mockProducts];
-let categoryList: Category[] = [...mockCategories];
 
 export type ProductQuery = {
   search?: string;
@@ -73,6 +71,27 @@ function applyQuery(
 }
 
 function mapSupabaseProduct(row: any): Product {
+  console.log("ROW KEYS:", Object.keys(row));
+  console.log("ROW SAMPLE:", row);
+
+  if (
+  row.name?.includes("Alsita") ||
+  row.name?.includes("Ajaduo") ||
+  row.name?.includes("Afoglip") ||
+  row.name?.includes("Atraxin")
+) {
+  console.log("IMAGE DEBUG:", {
+    name: row.name,
+    image: row.image,
+    img: row.img,
+  });
+}
+if (row.image) {
+  console.log("REAL IMAGE:", {
+    name: row.name,
+    image: row.image,
+  });
+}
   return {
     id: String(row.id),
 
@@ -99,9 +118,7 @@ function mapSupabaseProduct(row: any): Product {
 
     grad: row.grad ?? "var(--grad-cool)",
 
-    image:
-      row.image ||
-      "/images/medicine-placeholder.png",
+    image: row.image ?? null,
 
     description: row.description ?? "",
 
@@ -156,10 +173,14 @@ export const productService = {
       const { data, error } = await supabase
         .from("products")
         .select("*");
+
+        console.log("RAW FIRST ROW:", data?.[0]);
+console.log("RAW IMAGE FIELD:", data?.[0]?.image);
+
         console.log(
-  "LAST PRODUCT:",
-  data?.[data.length - 1]
-);
+          "LAST PRODUCT:",
+          data?.[data.length - 1]
+        );
 
 console.log(
   "MEFTAL NAME SEARCH:",
@@ -205,9 +226,13 @@ console.log(
       "b3f91875-1796-400c-9c32-908e3f141d88"
   )
 );
-      const products = (data ?? []).map(
-        mapSupabaseProduct,
-      );
+      console.log("RAW DATA LENGTH:", data?.length);
+console.log("RAW DATA FIRST:", data?.[0]);
+
+const products = (data ?? []).map(mapSupabaseProduct);
+
+console.log("MAPPED LENGTH:", products.length);
+console.log("FIRST PRODUCT:", products[0]);
 
       console.log(
         "========== SUPABASE DEBUG ==========",
@@ -229,9 +254,14 @@ console.log(
         data?.[0],
       );
       console.log(
-        "Mapped Product:",
-        products[0],
-      );
+  "Mapped Product:",
+  {
+    id: products[0]?.id,
+    name: products[0]?.name,
+    image: products[0]?.image,
+    
+  }
+);
       console.log(
         "===================================",
       );
@@ -369,52 +399,45 @@ console.log(
   },
 
   async categories(): Promise<Category[]> {
-    return categoryList;
-  },
+  const products = await this.list();
 
-  async createCategory(
-    input: Omit<Category, "id">,
-  ): Promise<Category> {
-    const category: Category = {
-      ...input,
-      id: `c-${Date.now()}`,
-    };
+  const map = new Map<string, Category>();
 
-    categoryList = [
-      category,
-      ...categoryList,
-    ];
+  products.forEach((p) => {
+    const category = p.category?.trim();
 
-    return category;
-  },
+    if (!category) return;
 
-  async updateCategory(
-    id: ID,
-    input: Partial<Category>,
-  ): Promise<Category> {
-    categoryList = categoryList.map(
-      (c) =>
-        c.id === id
-          ? { ...c, ...input }
-          : c,
-    );
+    const key = category.toLowerCase();
 
-    const category = categoryList.find(
-      (c) => c.id === id,
-    );
-
-    if (!category) {
-      throw new Error("Category not found");
+    if (!map.has(key)) {
+      map.set(key, {
+        id: key,
+        name: category,
+        slug: key.replace(/\s+/g, "-"),
+        description: "",
+      });
     }
+  });
 
-    return category;
-  },
+  return Array.from(map.values());
+},
+ 
+async createCategory() {
+  throw new Error(
+    "Categories are generated from products"
+  );
+},
 
-  async removeCategory(
-    id: ID,
-  ): Promise<void> {
-    categoryList = categoryList.filter(
-      (c) => c.id !== id,
-    );
-  },
-};
+async updateCategory() {
+  throw new Error(
+    "Categories are generated from products"
+  );
+},
+
+async removeCategory() {
+  throw new Error(
+    "Categories are generated from products"
+  );
+}
+} 
