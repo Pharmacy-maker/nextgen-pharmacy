@@ -1,40 +1,83 @@
-import { apiFetch, mockDelay } from "../client";
-import { ENDPOINTS, USE_MOCK_API } from "../config";
-import { mockNotifications, mockRoles, mockSiteSettings } from "../mock/db";
-import type { NotificationSetting, RolePermission, SiteSettings } from "../../../types/models";
 
-let site: SiteSettings = { ...mockSiteSettings };
-let notifications: NotificationSetting[] = mockNotifications.map((n) => ({ ...n }));
+import { supabase } from "../../supabase";
+import type { NotificationSetting, RolePermission, SiteSettings } from "../../../types/models";
 
 export const settingsService = {
   async getSite(): Promise<SiteSettings> {
-    if (!USE_MOCK_API) return apiFetch<SiteSettings>(ENDPOINTS.settings.site);
-    return mockDelay(site);
-  },
+  const { data, error } = await supabase
+    .from("site_settings")
+    .select("*")
+    .maybeSingle();
+    console.log("SITE", data);
 
-  async updateSite(input: Partial<SiteSettings>): Promise<SiteSettings> {
-    if (!USE_MOCK_API) return apiFetch<SiteSettings>(ENDPOINTS.settings.site, { method: "PUT", body: input });
-    site = { ...site, ...input };
-    return mockDelay(site, 400);
-  },
+  if (error) throw error;
 
-  async roles(): Promise<RolePermission[]> {
-    if (!USE_MOCK_API) return apiFetch<RolePermission[]>(ENDPOINTS.settings.roles);
-    return mockDelay(mockRoles);
-  },
+  return {
+    siteName: data?.pharmacy_name ?? "",
+    supportEmail: data?.email ?? "",
+    supportPhone: data?.phone ?? "",
+    deliveryFee: 0,
+    freeDeliveryAbove: 0,
+    maintenanceMode: false,
+  };
+},
+
+  async updateSite(input: Partial<SiteSettings>)  {
+  const { data, error } = await supabase
+    .from("site_settings")
+    .update(input)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data;
+},
 
   async notifications(): Promise<NotificationSetting[]> {
-    if (!USE_MOCK_API) return apiFetch<NotificationSetting[]>(ENDPOINTS.settings.notifications);
-    return mockDelay(notifications);
-  },
+  const { data, error } = await supabase
+    .from("notification_settings")
+    .select("*");
+  console.log("NOTIFICATIONS RAW", data);
+  console.log("NOTIFICATIONS ERROR", error);
 
-  async updateNotification(id: string, enabled: boolean): Promise<NotificationSetting> {
-    if (!USE_MOCK_API)
-      return apiFetch<NotificationSetting>(ENDPOINTS.settings.notification(id), {
-        method: "PATCH",
-        body: { enabled },
-      });
-    notifications = notifications.map((n) => (n.id === id ? { ...n, enabled } : n));
-    return mockDelay(notifications.find((n) => n.id === id)!, 200);
-  },
+
+  if (error) throw error;
+
+  return (data ?? []).map((item) => ({
+    ...item,
+    label: item.name,
+  }));
+},
+
+  async updateNotification(
+  id: string,
+  enabled: boolean
+) {
+  const { data, error } = await supabase
+    .from("notification_settings")
+    .update({ enabled })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data;
+},
+
+async roles(): Promise<RolePermission[]> {
+  const { data, error } = await supabase
+    .from("roles")
+    .select("*");
+  console.log("ROLES RAW", data);
+  console.log("ROLES ERROR", error);
+
+  if (error) throw error;
+
+  return (data ?? []).map((role) => ({
+    ...role,
+    label: role.name,
+  }));
+},
 };

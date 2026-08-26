@@ -9,7 +9,8 @@ import {
 import heroPharmacy from "../assets/hero-pharmacy.jpg.asset.json";
 import { Section } from "../components/site/Section";
 import { ProductCard } from "../components/site/ProductCard";
-import { products } from "../lib/products";
+import { useQuery } from "@tanstack/react-query";
+import { productService } from "../lib/api/services/product.service";
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -189,7 +190,7 @@ const categories = [
 function Categories() {
   return (
     <Section id="categories" eyebrow="Shop by need" title="Featured Categories" subtitle="From daily essentials to specialised care — beautifully organised.">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-3 gap-6">
         {categories.map((c) => {
           const Icon = c.icon;
           return (
@@ -217,7 +218,19 @@ function Categories() {
 }
 
 /* -------------------- CAROUSELS -------------------- */
-function Carousel({ title, eyebrow, tag }: { title: string; eyebrow: string; tag?: string }) {
+import type { Product } from "../types/models";
+
+function Carousel({
+  products,
+  title,
+  eyebrow,
+  tag,
+}: {
+  products: Product[];
+  title: string;
+  eyebrow: string;
+  tag?: string;
+}) {
   const scRef = useRef<HTMLDivElement>(null);
   const scroll = (dir: number) => scRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
   const list = tag ? products.filter((p) => p.tags?.includes(tag)) : products;
@@ -241,7 +254,11 @@ function Carousel({ title, eyebrow, tag }: { title: string; eyebrow: string; tag
   );
 }
 
-function BestSellers() {
+function BestSellers({
+  products,
+}: {
+  products: Product[];
+}) {
   const best = products.filter((p) => p.tags?.includes("best")).slice(0, 4);
   return (
     <Section eyebrow="Loved by millions" title="Best Sellers" subtitle="The most purchased medicines this month.">
@@ -253,7 +270,11 @@ function BestSellers() {
 }
 
 /* -------------------- PRESCRIPTION TEASER -------------------- */
-function PrescriptionUploadTeaser() {
+function PrescriptionUploadTeaser({
+  products,
+}: {
+  products: Product[];
+}) {
   const navigate = useNavigate();
   return (
     <Section eyebrow="AI Vision" title="Upload Your | Prescription |" subtitle="Drop a photo — our AI extracts medicines, dosages, and finds the best price in seconds.">
@@ -385,6 +406,18 @@ function Stats() {
 
 /* -------------------- LANDING -------------------- */
 function Landing() {
+  const { data: products = [] } = useQuery({
+  queryKey: ["products"],
+  queryFn: () => productService.list(),
+});
+
+console.log(
+  "HOME PRODUCTS",
+  products.slice(0, 5).map((p) => ({
+    id: p.id,
+    name: p.name,
+  }))
+);
   return (
     <div className="relative min-h-screen overflow-x-hidden">
       <div className="fixed inset-0 -z-10 pointer-events-none">
@@ -402,12 +435,25 @@ function Landing() {
         <div className="h-8" />
         <Stats />
         <Categories />
-        <Carousel title="New Launches" eyebrow="Fresh on Rays Pharmacy" tag="new" />
-        <Carousel title="Trending Now" eyebrow="What's hot" tag="trending" />
-        <BestSellers />
-        <PrescriptionUploadTeaser />
+        <Carousel
+  products={products}
+  title="New Launches"
+  eyebrow="Fresh on Rays Pharmacy"
+  tag="new"
+/>
+
+<Carousel
+  products={products}
+  title="Trending Now"
+  eyebrow="What's hot"
+  tag="trending"
+/>
+        
+        <BestSellers products={products} />
+        <PrescriptionUploadTeaser products={products} />
         <CheckoutTeaser />
       </main>
     </div>
   );
+  
 }

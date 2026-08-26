@@ -5,6 +5,7 @@ import { AsyncBoundary, EmptyState } from "../components/site/AsyncState";
 import { ProductCard } from "../components/site/ProductCard";
 import { productService } from "../lib/api";
 import { useWishlist } from "../lib/store";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/wishlist")({
   component: WishlistPage,
@@ -18,15 +19,56 @@ export const Route = createFileRoute("/wishlist")({
   }),
 });
 
+
 function WishlistPage() {
   const { ids, count, clear } = useWishlist();
+  console.log("WISHLIST IDS TYPE", ids);
+console.log("FIRST ID", ids[0]);
+console.log("FIRST ID TYPE", typeof ids[0]);
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["products"],
     queryFn: () => productService.list(),
   });
 
-  const saved = (data ?? []).filter((p) => ids.includes(p.id));
+  console.log("WISHLIST IDS", ids);
 
+console.log(
+  "FIRST 20 PRODUCT IDS",
+  (data ?? []).slice(0, 20).map((p) => p.id)
+);
+
+console.log(
+  "MATCHES",
+  (data ?? []).filter((p) => ids.includes(p.id))
+);
+
+ids.forEach((id) => {
+  const found = (data ?? []).find((p) => p.id === id);
+
+  console.log("LOOKUP", id, found ? "FOUND" : "NOT FOUND");
+});
+ids.forEach((id) => {
+  console.log(
+    id,
+    (data ?? []).some((p) => String(p.id) === String(id))
+  );
+});
+
+
+console.log(
+  "SAVED",
+  (data ?? []).filter((p) => ids.includes(p.id))
+);
+console.log("DATA LENGTH", data?.length);
+console.log("FIRST PRODUCT", data?.[0]);
+  const saved = (data ?? []).filter((p) => ids.includes(p.id));
+  const validIds = saved.map((p) => p.id);
+
+useEffect(() => {
+  if (validIds.length !== ids.length) {
+    // remove stale IDs automatically
+  }
+}, [saved]);
   return (
     <PageShell>
       <Section
@@ -69,4 +111,6 @@ function WishlistPage() {
       </Section>
     </PageShell>
   );
+
+  
 }

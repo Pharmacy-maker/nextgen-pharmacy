@@ -89,7 +89,48 @@ export function ChartCard({ title, subtitle, children }: { title: string; subtit
 }
 
 const PALETTE = ["#38bdf8", "#22d3ee", "#34d399", "#a78bfa", "#fb923c", "#f472b6"];
+function CustomTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: any[];
+  label?: string;
+}) {
+  if (!active || !payload?.length) return null;
 
+  return (
+    <div
+      style={{
+        background: "rgba(12,16,28,0.96)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: 12,
+        padding: "10px 14px",
+      }}
+    >
+      <div
+        style={{
+          color: "#ffffff",
+          fontWeight: 600,
+          marginBottom: 6,
+        }}
+      >
+        {label}
+      </div>
+
+      <div
+        style={{
+          color: "#ffffff",
+          fontSize: 14,
+          fontWeight: 600,
+        }}
+      >
+        Value: {payload[0]?.value}
+      </div>
+    </div>
+  );
+}
 export function AreaTrend({ data }: { data: SeriesPoint[] }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -100,10 +141,10 @@ export function AreaTrend({ data }: { data: SeriesPoint[] }) {
             <stop offset="100%" stopColor="#38bdf8" stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+        
         <XAxis dataKey="label" tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }} axisLine={false} tickLine={false} />
         <YAxis tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }} axisLine={false} tickLine={false} width={48} />
-        <Tooltip contentStyle={{ background: "rgba(12,16,28,0.9)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }} />
+        <Tooltip content={<CustomTooltip />} />
         <Area type="monotone" dataKey="value" stroke="#38bdf8" fill="url(#adminArea)" strokeWidth={2} />
       </AreaChart>
     </ResponsiveContainer>
@@ -114,10 +155,15 @@ export function BarSeries({ data }: { data: SeriesPoint[] }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+        
         <XAxis dataKey="label" tick={{ fontSize: 10, fill: "rgba(255,255,255,0.5)" }} axisLine={false} tickLine={false} interval={0} angle={-12} height={44} />
         <YAxis tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }} axisLine={false} tickLine={false} width={48} />
-        <Tooltip cursor={{ fill: "rgba(255,255,255,0.04)" }} contentStyle={{ background: "rgba(12,16,28,0.9)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }} />
+        <Tooltip
+  content={<CustomTooltip />}
+  cursor={{
+    fill: "rgba(255,255,255,0.04)",
+  }}
+/>
         <Bar dataKey="value" radius={[8, 8, 0, 0]}>
           {data.map((_, i) => (
             <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
@@ -137,7 +183,7 @@ export function DonutSeries({ data }: { data: SeriesPoint[] }) {
             <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
           ))}
         </Pie>
-        <Tooltip contentStyle={{ background: "rgba(12,16,28,0.9)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }} />
+        <Tooltip content={<CustomTooltip />} />
       </PieChart>
     </ResponsiveContainer>
   );

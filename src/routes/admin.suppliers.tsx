@@ -25,7 +25,7 @@ function AdminSuppliers() {
     onSuccess: () => { toast.success("Supplier deleted"); invalidate(); },
     onError: (e: Error) => toast.error(e.message),
   });
-  const purchases = useQuery({ queryKey: ["admin", "purchases"], queryFn: () => supplierService.purchases() });
+  
 
   return (
     <div>
@@ -78,24 +78,6 @@ function AdminSuppliers() {
                     onDelete={() => remove.mutate(s.id)}
                   />
                 </td>
-              </tr>
-            ))}
-          </DataTable>
-        )}
-      </AsyncBoundary>
-
-      <h2 className="font-semibold mt-8 mb-3">Purchase records</h2>
-      <AsyncBoundary isLoading={purchases.isLoading} error={purchases.error} data={purchases.data} onRetry={() => purchases.refetch()}>
-        {(list) => (
-          <DataTable headers={["Reference", "Supplier", "Items", "Amount", "Status", "Date"]}>
-            {list.map((p) => (
-              <tr key={p.id} className="hover:bg-white/5">
-                <td className="px-4 py-3 font-medium">{p.reference}</td>
-                <td className="px-4 py-3">{p.supplierName}</td>
-                <td className="px-4 py-3 tabular-nums">{p.items}</td>
-                <td className="px-4 py-3 tabular-nums">{inr(p.amount)}</td>
-                <td className="px-4 py-3"><StatusBadge label={p.status} tone={p.status === "received" ? "green" : p.status === "cancelled" ? "red" : "amber"} /></td>
-                <td className="px-4 py-3 text-muted-foreground">{p.date}</td>
               </tr>
             ))}
           </DataTable>

@@ -87,9 +87,39 @@ export const orderService = {
 },
 
   async get(id: ID): Promise<Order | null> {
-    if (!USE_MOCK_API) return apiFetch<Order>(ENDPOINTS.orders.detail(id));
-    return mockDelay(orders.find((o) => o.id === id) ?? null);
-  },
+  if (USE_MOCK_API) {
+    return mockDelay(
+      orders.find((o) => o.id === id) ?? null
+    );
+  }
+
+  const { data, error } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) return null;
+
+  return {
+    id: data.id,
+    reference: data.reference,
+    userId: data.user_id,
+    customerName: data.customer_name,
+    customerEmail: data.customer_email,
+    subtotal: Number(data.subtotal ?? 0),
+    discount: Number(data.discount ?? 0),
+    deliveryFee: Number(data.delivery_fee ?? 0),
+    total: Number(data.total ?? 0),
+    status: data.status,
+    paymentStatus: data.payment_status,
+    paymentMethod: data.payment_method,
+    shippingAddress: data.shipping_address,
+    placedAt: data.placed_at,
+    deliveredAt: data.delivered_at,
+    items: [],
+  };
+},
 
   async create(input: CreateOrderInput): Promise<Order> {
     if (!USE_MOCK_API) return apiFetch<Order>(ENDPOINTS.orders.create, { method: "POST", body: input });

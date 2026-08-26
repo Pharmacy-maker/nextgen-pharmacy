@@ -6,13 +6,15 @@ import { useAuth, useCart, useWishlist } from "../../lib/store";
 import { ProductImage } from "./ProductImage";
 
 export function ProductCard({ p, compact = false }: { p: Product; compact?: boolean }) {
+  
   const { add } = useCart();
   const { toggle, has } = useWishlist();
   const { user, ready } = useAuth();
   const navigate = useNavigate();
   const price = discountedPrice(p);
   const wished = has(p.id);
-
+  console.log("CARD", p);
+  console.log("CARD ID:", p.id);
   const buyNow = () => {
     add(p.id, 1);
     if (ready && !user) {
@@ -86,6 +88,7 @@ export function ProductCard({ p, compact = false }: { p: Product; compact?: bool
               className="h-9 w-9 rounded-xl glass grid place-items-center hover:bg-white/15"
               aria-label={`Add ${p.name} to cart`}
             >
+              
               <Plus className="h-4 w-4" />
             </button>
             <button

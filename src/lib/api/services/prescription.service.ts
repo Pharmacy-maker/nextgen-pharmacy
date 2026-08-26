@@ -145,14 +145,34 @@ matches.push({
 
 export const prescriptionService = {
   async list(): Promise<Prescription[]> {
-    if (!USE_MOCK_API) {
-      return apiFetch<Prescription[]>(
-        ENDPOINTS.prescriptions.list
-      );
+  if (!USE_MOCK_API) {
+    const { data, error } = await supabase
+      .from("prescriptions")
+      .select("*")
+      .order("uploaded_at", {
+        ascending: false,
+      });
+
+    if (error) {
+      throw new Error(error.message);
     }
 
-    return mockDelay(prescriptions);
-  },
+    return (data ?? []).map((row) => ({
+      id: row.id,
+      userId: row.user_id,
+      customerName: row.customer_name,
+      fileName: row.file_name,
+      fileType: row.file_type,
+      fileSize: row.file_size,
+      status: row.status,
+      note: row.note,
+      reviewedBy: row.reviewed_by,
+      uploadedAt: row.uploaded_at,
+    }));
+  }
+
+  return mockDelay(prescriptions);
+},
 
   async listMine(
     userId: ID

@@ -14,16 +14,13 @@ export const analyticsService = {
     supabase.from("prescriptions").select("*"),
     supabase.from("users").select("*"),
   ]);
+  
 
   const products = productsResult.data ?? [];
   const orders = ordersResult.data ?? [];
-  console.log(
-  "ORDER STATUS:",
-  orders.map((o) => o.status)
-);
   const prescriptions = prescriptionsResult.data ?? [];
   const users = usersResult.data ?? [];
-
+  const LOW_STOCK_THRESHOLD = 50;
   const stats: AdminStats = {
     totalRevenue: orders.reduce(
       (sum, o) => sum + Number(o.total ?? 0),
@@ -36,10 +33,14 @@ export const analyticsService = {
 
     totalProducts: products.length,
 
-    lowStock: products.filter(
-      (p) => Number(p.stock ?? 0) <= 10
-    ).length,
+  
 
+lowStock: products.filter(
+  (p) => {
+    const stock = Number(p.stock ?? 0);
+    return stock > 0 && stock <= LOW_STOCK_THRESHOLD;
+  }
+).length,
     outOfStock: products.filter(
       (p) => Number(p.stock ?? 0) === 0
     ).length,
@@ -61,26 +62,23 @@ export const analyticsService = {
 
   async bundle(): Promise<AnalyticsBundle> {
     const [
-      productsResult,
-      ordersResult,
-      orderItemsResult,
-    ] = await Promise.all([
-      supabase.from("products").select("*"),
-      supabase.from("orders").select("*"),
-      supabase.from("order_items").select("*"),
-    ]);
+  productsResult,
+  ordersResult,
+  orderItemsResult,
+  usersResult,
+] = await Promise.all([
+  supabase.from("products").select("*"),
+  supabase.from("orders").select("*"),
+  supabase.from("order_items").select("*"),
+  supabase.from("users").select("*"),
+]);
 
     const products = productsResult.data ?? [];
-    console.log("FIRST PRODUCT:", products[0]);
-console.log(
-  "STOCK SAMPLE:",
-  products.slice(0, 5).map((p) => ({
-    name: p.name,
-    stock: p.stock,
-  }))
-);
+    
     const orders = ordersResult.data ?? [];
     const orderItems = orderItemsResult.data ?? [];
+    
+    const users = usersResult.data ?? [];
 
     // Sales trend
     const monthlyOrders = new Map<string, number>();
@@ -107,19 +105,32 @@ console.log(
       );
     });
 
-    const salesTrend = Array.from(
-      monthlyOrders.entries()
-    ).map(([label, value]) => ({
-      label,
-      value,
-    }));
+    const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
-    const revenueTrend = Array.from(
-      monthlyRevenue.entries()
-    ).map(([label, value]) => ({
-      label,
-      value,
-    }));
+const salesTrend = MONTHS.map((month) => ({
+  label: month,
+  value: monthlyOrders.get(month) || 0,
+}));
+
+const revenueTrend = MONTHS.map((month) => ({
+  label: month,
+  value: Math.round(
+    monthlyRevenue.get(month) || 0
+  ),
+}));
 
     // Top products
     const productSales = new Map<
@@ -151,25 +162,90 @@ console.log(
       productSales.set(name, existing);
     });
 
-    const topProducts = Array.from(
-  productSales.entries()
-)
-  .map(([label, data]) => ({
-    label,
-    value: data.quantity,
-  }))
-  .sort(
-    (a, b) => b.value - a.value
-  )
-  .slice(0, 5);
+  const topProducts = [...productSales.entries()]
+  .sort((a, b) => b[1].quantity - a[1].quantity)
+  .slice(0, 5)
+  .map(([name, stats]) => ({
+    label: name,
+    value: stats.quantity,
+  }));
+  // CATEGORY SALES
+const categoryMap = new Map<string, number>();
 
-   return {
+products.forEach((p) => {
+  const category = p.category || "Other";
+
+  categoryMap.set(
+    category,
+    (categoryMap.get(category) || 0) + Number(p.stock || 0)
+  );
+});
+const categorySales = Array.from(
+  categoryMap.entries()
+)
+  .map(([label, value]) => ({
+    label,
+    value,
+  }))
+  .sort((a, b) => b.value - a.value);
+// CUSTOMER GROWTH
+const customerMap = new Map<string, number>();
+
+users.forEach((u) => {
+  if (!u.created_at) return;
+
+  const month = new Date(u.created_at)
+    .toLocaleString("default", {
+      month: "short",
+    });
+
+  customerMap.set(
+    month,
+    (customerMap.get(month) || 0) + 1
+  );
+});
+
+let runningCustomers = 0;
+
+const customerGrowth = MONTHS.map((month) => {
+  runningCustomers += customerMap.get(month) || 0;
+
+  return {
+    label: month,
+    value: runningCustomers,
+  };
+});
+
+// INVENTORY REPORT
+let inStock = 0;
+let lowStock = 0;
+let outOfStock = 0;
+
+products.forEach((product) => {
+  const stock = Number(product.stock || 0);
+
+  if (stock <= 0) {
+    outOfStock++;
+  } else if (stock <= 20) {
+    lowStock++;
+  } else {
+    inStock++;
+  }
+});
+
+const inventoryReport = [
+  { label: "In Stock", value: inStock },
+  { label: "Low Stock", value: lowStock },
+  { label: "Out Of Stock", value: outOfStock },
+];
+
+return {
   salesTrend,
   revenueTrend,
   topProducts,
-  categorySales: [],
-  customerGrowth: [],
-  inventoryReport: [],
+  categorySales,
+  customerGrowth,
+  inventoryReport,
 };
-  },
-};
+},
+}

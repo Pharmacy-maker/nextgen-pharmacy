@@ -25,16 +25,37 @@ function AdminAnalytics() {
       </AsyncBoundary>
 
       <AsyncBoundary isLoading={analytics.isLoading} error={analytics.error} data={analytics.data} onRetry={() => analytics.refetch()}>
-        {(a) => (
-          <div className="grid lg:grid-cols-2 gap-4">
-            <ChartCard title="Sales trends" subtitle="Orders per month"><AreaTrend data={a.salesTrend} /></ChartCard>
-            <ChartCard title="Revenue" subtitle="Monthly revenue (₹)"><AreaTrend data={a.revenueTrend} /></ChartCard>
-            <ChartCard title="Most purchased products" subtitle="Units sold"><BarSeries data={a.topProducts} /></ChartCard>
-            <ChartCard title="Category-wise sales" subtitle="Units by category"><BarSeries data={a.categorySales} /></ChartCard>
-            <ChartCard title="Customer growth" subtitle="Registered customers"><AreaTrend data={a.customerGrowth} /></ChartCard>
-            <ChartCard title="Inventory report" subtitle="Stock health"><DonutSeries data={a.inventoryReport} /></ChartCard>
-          </div>
-        )}
+        {(a) => {
+  console.log("ANALYTICS DATA:", a);
+
+  return (
+    <div className="grid lg:grid-cols-2 gap-4">
+      <ChartCard title="Sales trends" subtitle="Orders per month">
+        <AreaTrend data={a.salesTrend} />
+      </ChartCard>
+
+      <ChartCard title="Revenue" subtitle="Monthly revenue (₹)">
+        <AreaTrend data={a.revenueTrend} />
+      </ChartCard>
+
+      <ChartCard title="Most purchased products" subtitle="Units sold">
+        <BarSeries data={a.topProducts} />
+      </ChartCard>
+
+      <ChartCard title="Category-wise sales" subtitle="Units by category">
+        <BarSeries data={a.categorySales} />
+      </ChartCard>
+
+      <ChartCard title="Customer growth" subtitle="Registered customers">
+        <AreaTrend data={a.customerGrowth} />
+      </ChartCard>
+
+      <ChartCard title="Inventory report" subtitle="Stock health">
+        <DonutSeries data={a.inventoryReport} />
+      </ChartCard>
+    </div>
+  );
+}}
       </AsyncBoundary>
     </div>
   );

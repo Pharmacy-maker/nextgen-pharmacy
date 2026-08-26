@@ -8,6 +8,7 @@ import { PageShell, Section } from "../components/site/Section";
 import { ProductCard } from "../components/site/ProductCard";
 import { AsyncBoundary } from "../components/site/AsyncState";
 import { productService } from "../lib/api";
+import { supabase } from "../lib/supabase";
 import type { Product } from "../types/models";
 
 const searchSchema = z.object({
@@ -63,44 +64,31 @@ function ProductsPage() {
   const [visible, setVisible] = useState(PAGE_SIZE);
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["products"],
-    queryFn: () => productService.list(),
-  });
+  queryKey: ["products"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*");
 
-  console.log("PRODUCTS PAGE COUNT:", data?.length);
+    if (error) throw error;
+    
 
-console.log("PRODUCTS PAGE COUNT:", data?.length);
 
+    return data ?? [];
+    
+  },
+});
+  
 const firstWithImage = data?.find((p) => p.image);
 
-console.log("FIRST PRODUCT WITH IMAGE:", firstWithImage);
 
-console.log("IMAGE URL:", firstWithImage?.image);
-
-console.log("localQ =", localQ);
-console.log("products =", data?.length);
-
-console.log(
-  "ajaduo exists?",
-  data?.find((p) =>
-    p.name.toLowerCase().includes("ajaduo")
-  )
-);
 
   const filtered = useMemo(
     () => applyFilters(data ?? [], { q: localQ, tag, category, sort }),
     [data, localQ, tag, category, sort],
   );
 
-  console.log("SEARCH TERM:", localQ);
-console.log("PRODUCT COUNT:", data?.length);
-console.log(
-  "AJADUO EXISTS:",
-  data?.find(p =>
-    p.name.toLowerCase().includes("ajaduo")
-  )
-);
-console.log("FILTERED COUNT:", filtered.length);
+  
 
   useEffect(() => setVisible(PAGE_SIZE), [localQ, tag, category, sort]);
 
@@ -117,7 +105,7 @@ console.log("FILTERED COUNT:", filtered.length);
             <input
               value={localQ}
               onChange={(e) => {
-  console.log("INPUT:", e.target.value);
+  
 
   setLocalQ(e.target.value);
 

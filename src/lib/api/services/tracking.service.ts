@@ -1,5 +1,6 @@
 import { apiFetch, mockDelay } from "../client";
 import { ENDPOINTS, USE_MOCK_API } from "../config";
+const USE_MOCK_TRACKING = true;
 import { orderService } from "./order.service";
 import type { ID, Order, OrderTracking, TrackingStage } from "../../../types/models";
 
@@ -103,17 +104,17 @@ function buildTracking(order: Order): OrderTracking {
 export const trackingService = {
   /** Tracking for a single order. `userId` scopes access to the owner. */
   async forOrder(orderId: ID, userId?: ID): Promise<OrderTracking | null> {
-    if (!USE_MOCK_API) return apiFetch<OrderTracking>(ENDPOINTS.tracking.detail(orderId));
-    const order = await orderService.get(orderId);
-    if (!order) return null;
-    if (userId && order.userId !== userId) return null;
-    return mockDelay(buildTracking(order), 250);
-  },
+  const order = await orderService.get(orderId);
 
+  if (!order) return null;
+  if (userId && order.userId !== userId) return null;
+
+  return mockDelay(buildTracking(order), 250);
+},
+   
   /** All tracking records for the signed-in customer's own orders. */
   async listMine(userId: ID): Promise<OrderTracking[]> {
-    if (!USE_MOCK_API) return apiFetch<OrderTracking[]>(ENDPOINTS.tracking.mine);
-    const orders = await orderService.listMine(userId);
-    return mockDelay(orders.map(buildTracking), 250);
-  },
+  const orders = await orderService.listMine(userId);
+  return mockDelay(orders.map(buildTracking), 250);
+},
 };

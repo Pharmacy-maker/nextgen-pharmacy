@@ -77,7 +77,7 @@ function CategoriesPage() {
           loadingLabel="Loading categories…"
         >
           {(categories) => (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-3 gap-6">
               {categories.map((c, i) => {
                 const s = styleFor(c.name, i);
                 const Icon = s.icon;

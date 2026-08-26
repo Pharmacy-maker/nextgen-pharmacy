@@ -4,6 +4,8 @@ import { Bell, Heart, Menu, Pill, Search, ShoppingCart, User, X, LogOut } from "
 import { useAuth, useCart, useWishlist } from "../../lib/store";
 import { searchProducts, discountedPrice } from "../../lib/products";
 import { ProductImage } from "./ProductImage";
+import { productService } from "../../lib/api";
+import { supabase } from "../../lib/supabase";
 
 const NAV = [
   { label: "Home", to: "/" },
@@ -16,6 +18,8 @@ const NAV = [
 ] as const;
 
 export function Header() {
+ 
+
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -23,8 +27,11 @@ export function Header() {
   const [userMenu, setUserMenu] = useState(false);
   const navigate = useNavigate();
   const { count } = useCart();
-  console.log("HEADER CART COUNT:", count);
   const { count: wishCount } = useWishlist();
+  const { ids } = useWishlist();
+
+console.log("WISHLIST IDS:", ids);
+console.log("WISHLIST COUNT:", wishCount);
   const { user, logout } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const searchRef = useRef<HTMLDivElement>(null);
@@ -50,7 +57,64 @@ export function Header() {
     setShowResults(false);
   }, [pathname]);
 
-  const results = useMemo(() => searchProducts(query).slice(0, 6), [query]);
+  const [results, setResults] = useState<any[]>([]);
+
+useEffect(() => {
+  
+
+  const loadResults = async () => {
+    
+
+if (!query.trim()) {
+  
+  setResults([]);
+  return;
+}
+
+
+
+
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
+    
+  const { data, error } = await supabase
+  .from("products")
+  .select("id,name,category,manufacturer,price,image")
+  .ilike("name", `%${query}%`)
+  .limit(6);
+
+if (error) {
+  console.error("SUPABASE ERROR");
+  console.error(error);
+  console.error(JSON.stringify(error, null, 2));
+}
+
+
+  const products = data ?? [];
+    
+
+const filtered = products.filter((p) => {
+  const name = (p.name ?? "").toLowerCase();
+  const category = (p.category ?? "").toLowerCase();
+  const manufacturer = (p.manufacturer ?? "").toLowerCase();
+  const q = query.toLowerCase();
+
+  return (
+    name.includes(q) ||
+    category.includes(q) ||
+    manufacturer.includes(q)
+  );
+});
+
+
+setResults(filtered.slice(0, 6));
+    
+  };
+
+  loadResults();
+}, [query]);
 
   const submitSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -109,7 +173,9 @@ export function Header() {
                       No results for “{query}”
                     </div>
                   ) : (
-                    results.map((p) => (
+                    results.map((p) => {
+  
+                   return (
                       <Link
                         key={p.id}
                         to="/product/$id"
@@ -123,8 +189,10 @@ export function Header() {
                         </div>
                         <div className="text-sm font-semibold">₹{discountedPrice(p)}</div>
                       </Link>
-                    ))
-                  )}
+  );
+})
+                  )
+                  }
                 </div>
               )}
             </div>
@@ -141,7 +209,12 @@ export function Header() {
               )}
             </IconBtn>
             <div className="relative" ref={userRef}>
-              <IconBtn onClick={() => (user ? setUserMenu((v) => !v) : navigate({ to: "/login" }))} label="Account">
+              <IconBtn onClick={() => (user ? setUserMenu((v) => !v) : navigate({
+  to: "/login",
+  search: {
+    redirect: "/",
+  },
+}))} label="Account">
                 <User className="h-4 w-4" />
               </IconBtn>
               {user && userMenu && (

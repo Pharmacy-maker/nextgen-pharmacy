@@ -30,9 +30,9 @@ export const byTag = (tag: string) => products.filter((p) => p.tags?.includes(ta
 export const byCategory = (name: string) =>
   products.filter((p) => p.category.toLowerCase() === name.toLowerCase());
 export const findProduct = (id: string) => products.find((p) => p.id === id);
-console.log("PRODUCT IDS:", products.map((p) => p.id));
+
 export const searchProducts = (q: string) => {
-  console.log("SEARCH PRODUCTS COUNT:", products.length);
+  
 
   const s = q.trim().toLowerCase();
 

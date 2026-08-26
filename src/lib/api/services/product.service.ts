@@ -71,20 +71,14 @@ function applyQuery(
 }
 
 function mapSupabaseProduct(row: any): Product {
-  console.log("ROW KEYS:", Object.keys(row));
-  console.log("ROW SAMPLE:", row);
-
+  
   if (
   row.name?.includes("Alsita") ||
   row.name?.includes("Ajaduo") ||
   row.name?.includes("Afoglip") ||
   row.name?.includes("Atraxin")
 ) {
-  console.log("IMAGE DEBUG:", {
-    name: row.name,
-    image: row.image,
-    img: row.img,
-  });
+  ;
 }
 if (row.image) {
   console.log("REAL IMAGE:", {
@@ -160,20 +154,32 @@ if (row.image) {
 
 export const productService = {
   async list(
-    query: ProductQuery = {},
-  ): Promise<Product[]> {console.log(
+  query: ProductQuery = {},
+): Promise<Product[]> {
+  console.log(
     "USE_MOCK_API INSIDE LIST:",
     USE_MOCK_API
   );
-   console.log(
-  "USE_MOCK_API INSIDE LIST:",
-  USE_MOCK_API
-);
-  if (!USE_MOCK_API) {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*");
 
+  if (!USE_MOCK_API)  {
+    const { count } = await supabase
+  .from("products")
+  .select("*", { count: "exact", head: true });
+
+console.log("TOTAL PRODUCTS IN DB:", count);
+      const { data, error} = await supabase
+  .from("products")
+  .select("*", { count: "exact" });
+
+console.log("ROWS RETURNED:", data?.length);
+
+  
+        console.log(
+  "FIRST 50 NAMES:",
+  data?.slice(0, 50).map((p) => p.name)
+);
+console.log("SUPABASE DATA LENGTH:", data?.length);
+console.log("SUPABASE ERROR:", error);
         console.log("RAW FIRST ROW:", data?.[0]);
 console.log("RAW IMAGE FIELD:", data?.[0]?.image);
 
@@ -230,6 +236,19 @@ console.log(
 console.log("RAW DATA FIRST:", data?.[0]);
 
 const products = (data ?? []).map(mapSupabaseProduct);
+console.log(
+  "HAS MEGATAS:",
+  products.some(p =>
+    p.name.toLowerCase().includes("megatas")
+  )
+);
+
+console.log(
+  "MEGATAS PRODUCT:",
+  products.find(p =>
+    p.name.toLowerCase().includes("megatas")
+  )
+);
 
 console.log("MAPPED LENGTH:", products.length);
 console.log("FIRST PRODUCT:", products[0]);
@@ -253,6 +272,7 @@ console.log("FIRST PRODUCT:", products[0]);
         "Raw Supabase Row:",
         data?.[0],
       );
+      console.log("USE_MOCK_API:", USE_MOCK_API);
       console.log(
   "Mapped Product:",
   {
@@ -266,15 +286,23 @@ console.log("FIRST PRODUCT:", products[0]);
         "===================================",
       );
 
-      return applyQuery(products, query);
+      const result = applyQuery(products, query);
+
+console.log(
+  "FIRST 10 IDS RETURNED TO UI:",
+  result.slice(0, 10).map((p) => p.id)
+);
+
+return result;
     }
 
     return applyQuery(catalog, query);
   },
-
+ 
   async get(
     id: ID,
   ): Promise<Product | null> {
+    console.log("GET REQUEST ID:", id);
     if (!USE_MOCK_API) {
       const { data, error } = await supabase
         .from("products")

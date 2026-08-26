@@ -1,15 +1,30 @@
 import { apiFetch, mockDelay } from "../client";
 import { ENDPOINTS, USE_MOCK_API } from "../config";
 import { mockPurchases, mockSuppliers } from "../mock/db";
+import { supabase } from "../../supabase";
 import type { ID, PurchaseRecord, Supplier } from "../../../types/models";
 
 let suppliers: Supplier[] = [...mockSuppliers];
 
 export const supplierService = {
+  
   async list(): Promise<Supplier[]> {
-    if (!USE_MOCK_API) return apiFetch<Supplier[]>(ENDPOINTS.suppliers.list);
-    return mockDelay(suppliers);
-  },
+  if (!USE_MOCK_API) {
+    const { data, error } = await supabase
+      .from("suppliers")
+      .select("*");
+
+    console.log("SUPPLIERS:", data?.length);
+console.log("SUPPLIER ERROR:", error);
+console.log("FIRST SUPPLIER:", data?.[0]);
+
+    if (error) throw error;
+
+    return data ?? [];
+  }
+
+  return mockDelay(suppliers);
+},
 
   async update(id: ID, input: Partial<Supplier>): Promise<Supplier> {
     if (!USE_MOCK_API)
@@ -28,7 +43,6 @@ export const supplierService = {
   },
 
   async purchases(): Promise<PurchaseRecord[]> {
-    if (!USE_MOCK_API) return apiFetch<PurchaseRecord[]>(ENDPOINTS.suppliers.purchases);
-    return mockDelay(mockPurchases);
-  },
+  return [];
+},
 };

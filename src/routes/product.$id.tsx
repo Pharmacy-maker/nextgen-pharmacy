@@ -58,7 +58,7 @@ function ProductDetailPage() {
 function Detail({ p, related }: { p: Product; related: Product[] }) {
   const d = getProductDetails(p);
   const stock = stockStatus(p.stock);
-  const price = discountedPrice(p);
+  const price = p.price;
   const { add } = useCart();
   const { toggle, has } = useWishlist();
   const { user, ready } = useAuth();
@@ -150,7 +150,10 @@ function Detail({ p, related }: { p: Product; related: Product[] }) {
               </button>
             </div>
             <button
-              onClick={() => add(p.id, qty)}
+              onClick={() => {
+  console.log("ADD CLICKED", p.id, qty);
+  add(p.id, qty);
+}}
               disabled={p.stock <= 0}
               className="h-10 px-5 rounded-xl glass text-sm font-semibold hover:bg-white/15 disabled:opacity-50"
             >
