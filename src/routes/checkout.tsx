@@ -47,6 +47,8 @@ function CheckoutPage() {
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
   const [discount, setDiscount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [prescriptionFile, setPrescriptionFile] = useState<File | null>(null);
+  const [prescriptionError, setPrescriptionError] = useState("");
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [showNewAddress, setShowNewAddress] = useState(false);
   const [saveAddress, setSaveAddress] = useState(true);
@@ -141,6 +143,12 @@ function CheckoutPage() {
     e.preventDefault();
     if (count === 0 || submitting) return;
     setTouched({ name: true, email: true, phone: true, address: true, city: true, pincode: true });
+    if (!prescriptionFile) {
+  setPrescriptionError(
+    "Prescription upload is required"
+  );
+  return;
+}
     if (!validate(form) || !user) return;
     setSubmitting(true);
     try {
@@ -167,14 +175,17 @@ function CheckoutPage() {
       }
       try {
         localStorage.setItem(
-          "rays:pending-order",
-          JSON.stringify({
-            shippingAddress: `${form.address}, ${form.city} ${form.pincode}`,
-            customerName: form.name,
-            email: form.email,
-            phone: form.phone,
-          }),
-        );
+  "rays:pending-order",
+  JSON.stringify({
+    shippingAddress: `${form.address}, ${form.city} ${form.pincode}`,
+    customerName: form.name,
+    email: form.email,
+    phone: form.phone,
+
+    prescriptionName:
+      prescriptionFile?.name ?? "",
+  }),
+);
       } catch {
         /* storage unavailable — order is still created with a fallback address */
       }
@@ -359,6 +370,34 @@ function CheckoutPage() {
                   ))}
                 </div>
               </div>
+              <div className="glass rounded-3xl p-6">
+  <div className="font-semibold mb-3">
+    Prescription Upload *
+  </div>
+
+  <input
+    type="file"
+    accept=".jpg,.jpeg,.png,.pdf"
+    onChange={(e) => {
+      const file = e.target.files?.[0] ?? null;
+      setPrescriptionFile(file);
+      setPrescriptionError("");
+    }}
+    className="block w-full text-sm"
+  />
+
+  {prescriptionFile && (
+    <p className="mt-2 text-emerald text-sm">
+      ✓ {prescriptionFile.name}
+    </p>
+  )}
+
+  {prescriptionError && (
+    <p className="mt-2 text-red-500 text-sm">
+      {prescriptionError}
+    </p>
+  )}
+</div>
               <div className="glass rounded-3xl p-6">
                 <div className="font-semibold mb-3">Payment method</div>
                 <div className="grid grid-cols-2 gap-3">

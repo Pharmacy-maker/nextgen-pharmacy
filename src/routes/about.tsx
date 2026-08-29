@@ -28,7 +28,7 @@ function AboutPage() {
           <div className="glass rounded-3xl p-6 md:p-8">
             <p className="text-muted-foreground leading-relaxed">
               Rays Pharmacy started with a simple mission: make healthcare feel effortless. From AI-powered prescription
-              scanning to same-day delivery in 320+ cities, we're rebuilding the pharmacy experience for the digital age
+              scanning to same-day delivery in 10+ cities, we're rebuilding the pharmacy experience for the digital age
               — without ever compromising on trust.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">

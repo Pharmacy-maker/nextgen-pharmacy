@@ -4,7 +4,7 @@ import {
   Upload, Sparkles, Brain, Baby, Dog, Zap, Shield, Sun, Droplet, Leaf, Activity, Smile, Flower2,
   HeartPulse, ChevronRight, ChevronLeft, Truck, CheckCircle2,
   ArrowRight,
-  CreditCard, Wallet, Banknote,
+  CreditCard, Wallet, Banknote,Pill
 } from "lucide-react";
 import heroPharmacy from "../assets/hero-pharmacy.jpg.asset.json";
 import { Section } from "../components/site/Section";
@@ -12,13 +12,14 @@ import { ProductCard } from "../components/site/ProductCard";
 import { useQuery } from "@tanstack/react-query";
 import { productService } from "../lib/api/services/product.service";
 
+
 export const Route = createFileRoute("/")({
   component: Landing,
   head: () => ({
     meta: [
-      { title: "Rays Pharmacy — Your Future Pharmacy Starts Here" },
-      { name: "description", content: "AI-powered medicine discovery, trusted healthcare products, and seamless online pharmacy experience." },
-      { property: "og:title", content: "Rays Pharmacy — Your Future Pharmacy" },
+      { title: "Rays Pharmacy — Your Trusted Pharmacy" },
+      { name: "description", content: " trusted healthcare products, and seamless online pharmacy experience." },
+      { property: "og:title", content: "Rays Pharmacy — Your Trusted Pharmacy" },
       { property: "og:description", content: "Premium AI-powered pharmacy platform with instant prescription scanning." },
     ],
   }),
@@ -133,13 +134,10 @@ function HeroDashboard() {
         </div>
 
         <h1 className="font-display font-bold leading-[1.02] tracking-[-0.03em] text-5xl md:text-6xl lg:text-7xl animate-rise" style={{ animationDelay: "0.1s" }}>
-          Your Future<br />Pharmacy<br /><span className="text-grad-cool">Starts Here.</span>
+          Your trusted<br /><span className="text-grad-cool">Pharmacy.</span>
         </h1>
 
-        <p className="mt-5 text-base md:text-lg text-white/75 max-w-lg animate-rise" style={{ animationDelay: "0.2s" }}>
-          AI-powered medicine discovery, trusted healthcare products, and a seamless online pharmacy experience.
-        </p>
-
+      
         <div className="mt-8 flex flex-wrap gap-3 animate-rise" style={{ animationDelay: "0.3s" }}>
           <Link to="/products" className="group relative inline-flex items-center gap-2 rounded-2xl px-6 py-3 font-semibold text-white bg-grad-hero glow overflow-hidden transition-transform duration-300 hover:-translate-y-0.5 active:translate-y-0">
             <span className="absolute inset-0 rounded-2xl bg-grad-hero blur-xl opacity-60 -z-10 group-hover:opacity-95 transition" />
@@ -170,26 +168,17 @@ function HeroDashboard() {
 
 /* -------------------- CATEGORIES -------------------- */
 const categories = [
-  { name: "Diabetes", icon: Droplet, from: "var(--cyan)", to: "var(--electric)" },
-  { name: "Cardiac", icon: HeartPulse, from: "var(--pink)", to: "var(--purple)" },
-  { name: "Stomach", icon: Activity, from: "var(--orange)", to: "var(--pink)" },
-  { name: "Cancer Care", icon: Shield, from: "var(--purple)", to: "var(--electric)" },
-  { name: "Pain Relief", icon: Zap, from: "var(--orange)", to: "var(--neon)" },
-  { name: "Kidney", icon: Droplet, from: "var(--emerald)", to: "var(--cyan)" },
-  { name: "Dental", icon: Smile, from: "var(--cyan)", to: "var(--emerald)" },
-  { name: "Sexual Wellness", icon: Flower2, from: "var(--pink)", to: "var(--orange)" },
-  { name: "Women Care", icon: Flower2, from: "var(--purple)", to: "var(--pink)" },
-  { name: "Baby Care", icon: Baby, from: "var(--cyan)", to: "var(--purple)" },
-  { name: "Pet Care", icon: Dog, from: "var(--orange)", to: "var(--emerald)" },
-  { name: "Energy", icon: Zap, from: "var(--neon)", to: "var(--orange)" },
-  { name: "Immunity", icon: Shield, from: "var(--emerald)", to: "var(--neon)" },
-  { name: "Skin Care", icon: Sun, from: "var(--pink)", to: "var(--orange)" },
-  { name: "Vitamins", icon: Leaf, from: "var(--emerald)", to: "var(--cyan)" },
+  { name: "COUGH & COLD", icon: Pill, from: "var(--cyan)", to: "var(--electric)" },
+  { name: "DIGESTIVE CARE", icon: Activity, from: "var(--pink)", to: "var(--purple)" },
+  { name: "VITAMINS", icon: Leaf, from: "var(--emerald)", to: "var(--cyan)" },
+  { name: "GENERAL MEDICINE", icon: Shield, from: "var(--orange)", to: "var(--pink)" },
+  { name: "PAIN RELIEF", icon: Zap, from: "var(--orange)", to: "var(--neon)" },
+  { name: "SKIN CARE", icon: Sun, from: "var(--pink)", to: "var(--orange)" },
 ];
 
 function Categories() {
   return (
-    <Section id="categories" eyebrow="Shop by need" title="Featured Categories" subtitle="From daily essentials to specialised care — beautifully organised.">
+    <Section id="categories" eyebrow="Shop by need" title="Medicine Categories" subtitle="From daily essentials to specialised care — beautifully organised.">
       <div className="grid grid-cols-3 gap-6">
         {categories.map((c) => {
           const Icon = c.icon;
@@ -204,7 +193,7 @@ function Categories() {
                 </div>
                 <div className="font-semibold group-hover:text-white transition-colors">{c.name}</div>
 
-                <div className="text-xs text-muted-foreground mt-1">{(c as any).count ?? 0} products</div>
+                
                 <div className="text-xs text-muted-foreground group-hover:text-white/80 mt-1 flex items-center gap-1">
                   Explore <ArrowRight className="h-3 w-3" />
                 </div>
@@ -389,10 +378,10 @@ function Stats() {
     <section className="px-4 -mt-6">
       <div className="mx-auto max-w-7xl grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { l: "Medicines", v: 42000, s: "+" },
-          { l: "Cities served", v: 320, s: "+" },
-          { l: "Happy customers", v: 2000000, s: "+" },
-          { l: "Avg. rating", v: 49, s: "/50" },
+          { l: "Medicines", v: 500, s: "+" },
+          { l: "Cities served", v: 10, s: "+" },
+          { l: "Happy customers", v: 1000, s: "+" },
+          { l: "Avg. rating", v: 4, s: "/5" },
         ].map((k) => (
           <div key={k.l} className="glass rounded-2xl p-5 text-center hover-lift">
             <div className="text-2xl md:text-3xl font-bold text-grad-hero"><Counter to={k.v} suffix={k.s} /></div>

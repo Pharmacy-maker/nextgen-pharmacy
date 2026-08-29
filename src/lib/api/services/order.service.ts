@@ -52,16 +52,20 @@ export const orderService = {
   );
 },
   async listMine(userId: ID): Promise<Order[]> {
+    console.log("LIST MINE USER", userId);
+    console.log("MATCHING ORDERS", orders.filter((o) => o.userId === userId));
   if (!USE_MOCK_API) {
     const { data, error } = await supabase
       .from("orders")
       .select("*")
       .eq("user_id", userId)
       .order("placed_at", { ascending: false });
+      console.log("SUPABASE ORDERS", data);
 
     if (error) {
       throw new Error(error.message);
     }
+    
 
     return (data ?? []).map((row) => ({
       id: row.id,
@@ -122,8 +126,41 @@ export const orderService = {
 },
 
   async create(input: CreateOrderInput): Promise<Order> {
-    if (!USE_MOCK_API) return apiFetch<Order>(ENDPOINTS.orders.create, { method: "POST", body: input });
-    const id = `o-${Date.now()}`;
+  if (!USE_MOCK_API) {
+    const subtotal = 0;
+    const deliveryFee = 40;
+
+    const { data, error } = await supabase
+      .from("orders")
+      .insert({
+        reference: `RP-${Math.floor(10000 + Math.random() * 89999)}`,
+        user_id: input.userId,
+        customer_name: "You",
+        customer_email: "",
+        subtotal,
+        discount: 0,
+        delivery_fee: deliveryFee,
+        total: subtotal + deliveryFee,
+        status: "pending",
+        payment_status:
+          input.paymentMethod === "cod" ? "unpaid" : "paid",
+        payment_method: input.paymentMethod,
+        shipping_address: input.shippingAddress,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error(error);
+      throw error;
+    }
+
+    console.log("SUPABASE ORDER CREATED", data);
+
+    return data as Order;
+  }
+
+  const id = `o-${Date.now()}`;
     const items = input.items.map((it, i) => {
       const p = products.find((x) => x.id === it.productId);
       const unitPrice = p ? Math.round(p.price * (1 - p.discount / 100)) : 0;
@@ -157,6 +194,8 @@ export const orderService = {
       placedAt: new Date().toISOString().slice(0, 10),
     };
     orders = [order, ...orders];
+    console.log("ORDER CREATED", order);
+console.log("ALL ORDERS", orders);
     return mockDelay(order, 500);
   },
 
