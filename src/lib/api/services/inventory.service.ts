@@ -7,39 +7,70 @@ import type { ID, InventoryBatch, InventoryMovement } from "../../../types/model
 /** Mutable overlay so admin edits persist for the session against mock data. */
 let batches: InventoryBatch[] = [...mockBatches];
 
+export interface InventoryItem {
+  id: string;
+  name: string;
+  stock: number;
+  mfg: string | null;
+  exp: string | null;
+  category: string | null;
+  price: number | null;
+}
+
 export const inventoryService = {
   async batches() {
   const { data, error } = await supabase
-  .from("inventory_batches")
-  .select(`
-    *,
-    products(*)
-  `);
-
-  
+    .from("products")
+    .select(`
+      id,
+      name,
+      stock,
+      mfg,
+      exp
+    `)
+    .order("name");
 
   if (error) throw error;
 
   return (data ?? []).map((row: any) => ({
-  id: row.id,
-  productId: row.product_id,
-  productName: row.products?.name ?? "",
-  batchNumber: row.batch_number,
-  quantity: row.quantity,
-  reorderLevel: row.reorder_level,
-  mfg: row.mfg,
-  exp: row.exp,
-  location: row.location,
-}));
+    id: row.id,
+    productId: row.id,
+    productName: row.name,
+    batchNumber: "N/A",
+    quantity: row.stock ?? 0,
+    reorderLevel: 10,
+    mfg: row.mfg,
+    exp: row.exp,
+    location: "Main Store",
+  }));
 },
-  
 
   async updateBatch(id: ID, input: Partial<InventoryBatch>): Promise<InventoryBatch> {
-    if (!USE_MOCK_API)
-      return apiFetch<InventoryBatch>(ENDPOINTS.inventory.batch(id), { method: "PATCH", body: input });
-    batches = batches.map((b) => (b.id === id ? { ...b, ...input } : b));
-    return mockDelay(batches.find((b) => b.id === id)!, 300);
-  },
+  const { data, error } = await supabase
+    .from("products")
+    .update({
+      stock: input.quantity,
+      mfg: input.mfg,
+      exp: input.exp,
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return {
+    id: data.id,
+    productId: data.id,
+    productName: data.name,
+    batchNumber: "N/A",
+    quantity: data.stock ?? 0,
+    reorderLevel: input.reorderLevel ?? 10,
+    mfg: data.mfg,
+    exp: data.exp,
+    location: "Main Store",
+  };
+},
 
   async removeBatch(id: ID): Promise<void> {
     if (!USE_MOCK_API) {

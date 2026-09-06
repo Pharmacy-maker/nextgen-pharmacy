@@ -15,6 +15,8 @@ import { getProductDetails, stockStatus } from "../lib/product-details";
 import { discountedPrice } from "../lib/products";
 import { useAuth, useCart, useWishlist } from "../lib/store";
 import type { Product } from "../types/models";
+import { reviewService } from "../lib/api/services/review.service";
+import { MessageSquare } from "lucide-react";
 
 export const Route = createFileRoute("/product/$id")({
   component: ProductDetailPage,
@@ -32,15 +34,37 @@ export const Route = createFileRoute("/product/$id")({
 
 function ProductDetailPage() {
   const { id } = Route.useParams();
-  const product = useQuery({ queryKey: ["product", id], queryFn: () => productService.get(id) });
-  const all = useQuery({ queryKey: ["products"], queryFn: () => productService.list() });
+  
+  const product = useQuery({
+    queryKey: ["product", id],
+    queryFn: () => productService.get(id),
+  });
+
+  const all = useQuery({
+    queryKey: ["products"],
+    queryFn: () => productService.list(),
+  });
+
+  const reviews = useQuery({
+    queryKey: ["reviews", id],
+    queryFn: () => reviewService.list(id),
+  });
+
+  console.log("REVIEWS", reviews.data);
+ console.log("REVIEWS ERROR", reviews.error);
 
   return (
     <PageShell>
       <div className="mx-auto max-w-7xl px-4 pb-16">
-        <Link to="/products" search={{ q: "", tag: "", category: "" }} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-5">
-          <ArrowLeft className="h-4 w-4" /> Back to products
+        <Link
+          to="/products"
+          search={{ q: "", tag: "", category: "" }}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-5"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to products
         </Link>
+
         <AsyncBoundary
           isLoading={product.isLoading}
           error={product.error}
@@ -48,14 +72,74 @@ function ProductDetailPage() {
           onRetry={() => product.refetch()}
           loadingLabel="Loading product…"
         >
-          {(p) => <Detail p={p} related={(all.data ?? []).filter((x) => x.category === p.category && x.id !== p.id).slice(0, 4)} />}
+          {(p) => (
+            <>
+              <pre className="mt-8 text-xs">
+                {JSON.stringify(reviews.data, null, 2)}
+              </pre>
+
+              <Detail
+                p={p}
+                related={(all.data ?? [])
+                  .filter(
+                    (x) => x.category === p.category && x.id !== p.id
+                  )
+                  .slice(0, 4)}
+                  reviews={reviews.data ?? []}
+              />
+            </>
+          )}
         </AsyncBoundary>
       </div>
     </PageShell>
   );
 }
 
-function Detail({ p, related }: { p: Product; related: Product[] }) {
+function Detail({
+  p,
+  related,
+  reviews,
+}: {
+  p: Product;
+  related: Product[];
+  reviews: any[];
+}) {
+   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [reviewText, setReviewText] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const submitReview = async () => {
+  try {
+    if (!customerName.trim()) {
+      toast.error("Please enter your name");
+      return;
+    }
+
+    if (!reviewText.trim()) {
+      toast.error("Please enter your review");
+      return;
+    }
+
+    await reviewService.create({
+      productId: p.id,
+      customerName,
+      rating,
+      review: reviewText,
+    });
+
+    toast.success("Review submitted successfully");
+
+    setCustomerName("");
+    setReviewText("");
+    setRating(5);
+    setShowReviewForm(false);
+
+    window.location.reload();
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to submit review");
+  }
+};
   const d = getProductDetails(p);
   const stock = stockStatus(p.stock);
   const price = p.price;
@@ -228,6 +312,69 @@ function Detail({ p, related }: { p: Product; related: Product[] }) {
             </Link>
           )}
         </Panel>
+         <Panel title="Customer Reviews" icon={MessageSquare}>
+  <button
+  className="mb-4 rounded-lg bg-cyan px-4 py-2 text-black font-semibold"
+  onClick={() => setShowReviewForm(!showReviewForm)}
+>
+  Write a Review
+</button>
+{showReviewForm && (
+  <div className="mb-4 space-y-3">
+    <input
+  value={customerName}
+  onChange={(e) => setCustomerName(e.target.value)}
+  placeholder="Your name"
+  className="w-full rounded-lg border border-white/10 bg-transparent p-2"
+/>
+
+    <select
+      value={rating}
+      onChange={(e) => setRating(Number(e.target.value))}
+      className="w-full rounded-lg border border-white/10 bg-transparent p-2"
+    >
+      <option value={5}>5 Stars</option>
+      <option value={4}>4 Stars</option>
+      <option value={3}>3 Stars</option>
+      <option value={2}>2 Stars</option>
+      <option value={1}>1 Star</option>
+    </select>
+
+    <textarea
+      value={reviewText}
+      onChange={(e) => setReviewText(e.target.value)}
+      placeholder="Write your review..."
+      className="w-full rounded-lg border border-white/10 bg-transparent p-2"
+      rows={4}
+    />
+
+   <button
+  onClick={submitReview}
+  className="rounded-lg bg-green-500 px-4 py-2 text-black font-semibold"
+>
+  Submit Review
+</button>
+  </div>
+)}
+
+  {reviews.length ? (
+    <div className="space-y-3">
+      {reviews.map((r: any) => (
+        <div key={r.id} className="rounded-xl border border-white/10 p-3">
+          <div className="font-semibold">{r.customer_name}</div>
+          <div className="text-yellow-400">
+            {"★".repeat(r.rating)}
+          </div>
+          <p className="text-sm text-muted-foreground">{r.review}</p>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p className="text-sm text-muted-foreground">
+      No reviews yet.
+    </p>
+  )}
+</Panel>
       </div>
 
       {related.length > 0 && (
@@ -249,6 +396,7 @@ function Meta({ icon: I, label, value }: { icon: typeof Building2; label: string
         <I className="h-3.5 w-3.5 shrink-0" /> {label}
       </dt>
       <dd className="text-sm font-medium truncate">{value}</dd>
+      
     </div>
   );
 }

@@ -475,47 +475,84 @@ if (error) {
       (p) => p.id !== id,
     );
   },
+async categories(): Promise<Category[]> {
+  const { data, error } = await supabase
+    .from("categories")
+    .select("*")
+    .order("name");
 
-  async categories(): Promise<Category[]> {
-  const products = await this.list();
+  if (error) throw error;
 
-  const map = new Map<string, Category>();
-
-  products.forEach((p) => {
-    const category = p.category?.trim();
-
-    if (!category) return;
-
-    const key = category.toLowerCase();
-
-    if (!map.has(key)) {
-      map.set(key, {
-        id: key,
-        name: category,
-        slug: key.replace(/\s+/g, "-"),
-        description: "",
-      });
-    }
-  });
-
-  return Array.from(map.values());
+  return (data ?? []).map((c) => ({
+    id: c.id,
+    name: c.name,
+   // categories()
+slug: c.slug,
+    description: c.description ?? "",
+  }));
 },
  
-async createCategory() {
-  throw new Error(
-    "Categories are generated from products"
-  );
-},
+async createCategory(input: {
+  name: string;
+  slug: string;
+  description?: string;
+}) {
+  const { data, error } = await supabase
+    .from("categories")
+    .insert({
+  name: input.name,
+  slug: input.slug,
+  description: input.description ?? "",
+})
+    .select("*")
+    .single();
+     
+  if (error) throw error;
 
-async updateCategory() {
-  throw new Error(
-    "Categories are generated from products"
-  );
+  return {
+    id: data.id,
+    name: data.name,
+    slug: data.slug,
+    description: data.description ?? "",
+  };
 },
+async updateCategory(
+  id: string,
+  updates: {
+    name?: string;
+    slug?: string;
+    description?: string;
+  }
+) {
+  
+  const { data, error } = await supabase
+    .from("categories")
+    .update({
+      name: updates.name,
+      slug: updates.slug,
+      description: updates.description,
+    })
+    .eq("id", id)
+    .select()
+    .single();
 
-async removeCategory() {
-  throw new Error(
-    "Categories are generated from products"
-  );
+  if (error) throw error;
+
+  return {
+    id: data.id,
+    name: data.name,
+    slug: data.slug,
+    description: data.description ?? "",
+  };
+},
+async removeCategory(id: string) {
+  const { error } = await supabase
+    .from("categories")
+    .delete()
+    .eq("id", id);
+
+  if (error) throw error;
+
+  return true;
 }
-} 
+}

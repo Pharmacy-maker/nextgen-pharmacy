@@ -197,7 +197,7 @@ export function RowActions({
   disabled,
 }: {
   onEdit: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   label: string;
   disabled?: boolean;
 }) {
@@ -213,18 +213,26 @@ export function RowActions({
       >
         <Pencil className="h-3.5 w-3.5" /> Edit
       </button>
-      <button
-        type="button"
-        onClick={() => {
-          if (typeof window === "undefined" || window.confirm(`Delete ${label}? This cannot be undone.`)) onDelete();
-        }}
-        disabled={disabled}
-        aria-label={`Delete ${label}`}
-        title="Delete"
-        className="inline-flex items-center gap-1 rounded-lg border border-pink/30 bg-pink/10 px-2.5 py-1.5 text-xs font-semibold text-pink hover:bg-pink/20 transition disabled:opacity-50"
-      >
-        <Trash2 className="h-3.5 w-3.5" /> Delete
-      </button>
+     {onDelete && (
+  <button
+    type="button"
+    onClick={() => {
+      if (
+        typeof window === "undefined" ||
+        window.confirm(`Delete ${label}? This cannot be undone.`)
+      ) {
+        onDelete();
+      }
+    }}
+    disabled={disabled}
+    aria-label={`Delete ${label}`}
+    title="Delete"
+    className="inline-flex items-center gap-1 rounded-lg border border-pink/30 bg-pink/10 px-2.5 py-1.5 text-xs font-semibold text-pink transition hover:border-pink/50 hover:bg-pink/20 disabled:cursor-not-allowed disabled:opacity-60"
+  >
+    <Trash2 className="h-3.5 w-3.5" />
+    Delete
+  </button>
+)}
     </div>
   );
 }

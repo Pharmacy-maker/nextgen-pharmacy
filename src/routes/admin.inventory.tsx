@@ -11,7 +11,14 @@ export const Route = createFileRoute("/admin/inventory")({ component: AdminInven
 
 function AdminInventory() {
   const qc = useQueryClient();
-  const batches = useQuery({ queryKey: ["admin", "batches"], queryFn: () => inventoryService.batches() });
+  const batches = useQuery({
+  queryKey: ["admin", "batches"],
+  queryFn: async () => {
+    const data = await inventoryService.batches();
+    console.log("BATCHES DATA:", data);
+    return data;
+  }
+});
   const [editing, setEditing] = useState<InventoryBatch | null>(null);
   const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "batches"] });
 
@@ -26,7 +33,7 @@ function AdminInventory() {
     onSuccess: () => { toast.success("Batch deleted"); invalidate(); },
     onError: (e: Error) => toast.error(e.message),
   });
-  const movements = useQuery({ queryKey: ["admin", "movements"], queryFn: () => inventoryService.movements() });
+  
 
   return (
     <div>
@@ -72,10 +79,8 @@ function AdminInventory() {
                 </td>
                 <td className="px-4 py-3">
                   <RowActions
-                    label={`batch ${b.batchNumber}`}
-                    disabled={remove.isPending}
-                    onEdit={() => setEditing(b)}
-                    onDelete={() => remove.mutate(b.id)}
+                  label={`batch ${b.batchNumber}`}
+                  onEdit={() => setEditing(b)}
                   />
                 </td>
               </tr>
@@ -83,24 +88,7 @@ function AdminInventory() {
           </DataTable>
         )}
       </AsyncBoundary>
-
-      <h2 className="font-semibold mt-8 mb-3">Inventory history</h2>
-      <AsyncBoundary isLoading={movements.isLoading} error={movements.error} data={movements.data} onRetry={() => movements.refetch()}>
-        {(list) => (
-          <DataTable headers={["Date", "Product", "Batch", "Type", "Quantity", "Note"]}>
-            {list.map((m) => (
-              <tr key={m.id} className="hover:bg-white/5">
-                <td className="px-4 py-3 text-muted-foreground">{m.createdAt}</td>
-                <td className="px-4 py-3 font-medium">{m.productName}</td>
-                <td className="px-4 py-3 text-muted-foreground">{m.batchNumber}</td>
-                <td className="px-4 py-3"><StatusBadge label={m.type} tone={m.type === "in" ? "green" : m.type === "expired" ? "red" : "blue"} /></td>
-                <td className="px-4 py-3 tabular-nums">{m.quantity}</td>
-                <td className="px-4 py-3 text-muted-foreground">{m.note}</td>
-              </tr>
-            ))}
-          </DataTable>
-        )}
-      </AsyncBoundary>
+    
     </div>
   );
 }
