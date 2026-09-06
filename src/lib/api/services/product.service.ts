@@ -71,7 +71,13 @@ function applyQuery(
 }
 
 function mapSupabaseProduct(row: any): Product {
-  
+  const fromDbDate = (date?: string) => {
+  if (!date) return "";
+
+  const [year, month, day] = date.split("-");
+
+  return `${day}/${month}/${year}`;
+};
   if (
   row.name?.includes("Alsita") ||
   row.name?.includes("Ajaduo") ||
@@ -99,8 +105,8 @@ if (row.image) {
 
     manufacturer: row.manufacturer ?? "—",
 
-    mfg: row.mfg ?? "",
-    exp: row.exp ?? "",
+    mfg: fromDbDate(row.mfg),
+exp: fromDbDate(row.exp),
 
     stock: Number(row.stock ?? 0),
 
@@ -287,6 +293,7 @@ console.log("FIRST PRODUCT:", products[0]);
       );
 
       const result = applyQuery(products, query);
+      console.log("IMAGE SENT TO UI:", result[0]?.image);
 
 console.log(
   "FIRST 10 IDS RETURNED TO UI:",
@@ -338,11 +345,23 @@ return result;
     input: ProductInput,
   ): Promise<Product> {
     if (!USE_MOCK_API) {
-      const { data, error } = await supabase
-        .from("products")
-        .insert(input)
-        .select("*")
-        .single();
+      const toDbDate = (date: string) => {
+  const [day, month, year] = date.split("/");
+
+  return `${year}-${month}-${day}`;
+};
+
+const payload = {
+  ...input,
+  mfg: toDbDate(input.mfg),
+  exp: toDbDate(input.exp),
+};
+
+const { data, error } = await supabase
+  .from("products")
+  .insert(payload)
+  .select("*")
+  .single();
 
       if (error) {
         console.error(
@@ -372,13 +391,36 @@ return result;
     input: Partial<Product>,
   ): Promise<Product> {
     if (!USE_MOCK_API) {
-      const { data, error } = await supabase
-        .from("products")
-        .update(input)
-        .eq("id", id)
-        .select("*")
-        .single();
+      const {
+  prescriptionRequired,
+  rating,
+  reviews,
+  description,
+  dosage,
+  composition,
+  warnings,
+  sideEffects,
+  categoryId,
+  supplierId,
+  ...payload
+} = input as any;
 
+if (payload.mfg) {
+  const [d, m, y] = payload.mfg.split("/");
+  payload.mfg = `${y}-${m}-${d}`;
+}
+
+if (payload.exp) {
+  const [d, m, y] = payload.exp.split("/");
+  payload.exp = `${y}-${m}-${d}`;
+}
+
+const { data, error } = await supabase
+  .from("products")
+  .update(payload)
+  .eq("id", id)
+  .select("*");
+console.log("UPDATE RESULT:", { id, payload, data, error });
       if (error) {
         console.error(
           "Supabase update error:",
@@ -387,7 +429,11 @@ return result;
         throw error;
       }
 
-      return mapSupabaseProduct(data);
+      if (!data || data.length === 0) {
+  throw new Error("Product update returned no rows");
+}
+
+return mapSupabaseProduct(data[0]);
     }
 
     catalog = catalog.map((p) =>
@@ -409,14 +455,18 @@ return result;
 
   async remove(id: ID): Promise<void> {
     if (!USE_MOCK_API) {
-      const { error } = await supabase
-        .from("products")
-        .delete()
-        .eq("id", id);
+     const { data, error } = await supabase
+  .from("products")
+  .delete()
+  .eq("id", id)
+  .select("*");
 
-      if (error) {
-        throw error;
-      }
+
+
+if (error) {
+  console.error("DELETE ERROR:", error);
+  throw error;
+}
 
       return;
     }

@@ -19,10 +19,27 @@ function AdminUsers() {
     onError: (e: Error) => toast.error(e.message),
   });
   const remove = useMutation({
-    mutationFn: (id: string) => userService.remove(id),
-    onSuccess: () => { toast.success("User deleted"); qc.invalidateQueries({ queryKey: ["admin", "users"] }); },
-    onError: (e: Error) => toast.error(e.message),
-  });
+  mutationFn: async (id: string) => {
+    console.log("Deleting ID:", id);
+    await userService.remove(id);
+    console.log("Delete finished");
+  },
+  onSuccess: async () => {
+    console.log("Invalidating users query");
+
+    await qc.invalidateQueries({
+      queryKey: ["admin", "users"],
+    });
+
+    toast.success("User deleted");
+  },
+  
+  onError: (e: Error) => {
+    console.error("Mutation error:", e);
+    toast.error(e.message);
+  },
+  
+});
   const update = useMutation({
     mutationFn: ({ id, status }: { id: string; status: UserStatus }) => userService.updateStatus(id, status),
     onSuccess: () => { toast.success("User status updated"); qc.invalidateQueries({ queryKey: ["admin", "users"] }); },
@@ -82,7 +99,11 @@ function AdminUsers() {
                       label={u.name}
                       disabled={remove.isPending}
                       onEdit={() => setEditing(u)}
-                      onDelete={() => remove.mutate(u.id)}
+                      onDelete={() => {
+  console.log("USER OBJECT:", u);
+  console.log("USER ID:", u.id);
+  remove.mutate(u.id);
+}}
                     />
                   </div>
                 </td>

@@ -9,6 +9,9 @@ let orders: Order[] = [...mockOrders];
 
 export const orderService = {
   async list(params: { status?: OrderStatus } = {}): Promise<Order[]> {
+    console.log("ORDER LIST CALLED");
+  console.log("USE_MOCK_API", USE_MOCK_API);
+
   if (!USE_MOCK_API) {
     let query = supabase
       .from("orders")
@@ -18,9 +21,10 @@ export const orderService = {
     if (params.status) {
       query = query.eq("status", params.status);
     }
-
+    console.log("QUERY STATUS FILTER", params.status);
     const { data, error } = await query;
-
+    console.log("SUPABASE ORDERS RAW", data);
+    console.log("SUPABASE ORDERS ERROR", error); 
     if (error) {
       throw new Error(error.message);
     }
@@ -52,6 +56,7 @@ export const orderService = {
   );
 },
   async listMine(userId: ID): Promise<Order[]> {
+    console.log("LIST MINE CALLED", userId);
     console.log("LIST MINE USER", userId);
     console.log("MATCHING ORDERS", orders.filter((o) => o.userId === userId));
   if (!USE_MOCK_API) {
@@ -156,6 +161,30 @@ export const orderService = {
     }
 
     console.log("SUPABASE ORDER CREATED", data);
+    const orderItems = input.items.map((it) => {
+  const p = products.find((x) => x.id === it.productId);
+  const unitPrice = p
+    ? Math.round(p.price * (1 - p.discount / 100))
+    : 0;
+
+  return {
+    order_id: data.id,
+    product_id: it.productId,
+    product_name: p?.name ?? it.productId,
+    quantity: it.quantity,
+    unit_price: unitPrice,
+    total: unitPrice * it.quantity,
+  };
+});
+
+const { error: itemsError } = await supabase
+  .from("order_items")
+  .insert(orderItems);
+
+if (itemsError) {
+  console.error("ORDER ITEMS INSERT ERROR", itemsError);
+  throw itemsError;
+}
 
     return data as Order;
   }
@@ -200,11 +229,48 @@ console.log("ALL ORDERS", orders);
   },
 
   async updateStatus(id: ID, status: OrderStatus): Promise<Order> {
-    if (!USE_MOCK_API)
-      return apiFetch<Order>(ENDPOINTS.orders.updateStatus(id), { method: "PATCH", body: { status } });
-    orders = orders.map((o) => (o.id === id ? { ...o, status } : o));
-    return mockDelay(orders.find((o) => o.id === id)!, 300);
-  },
+  if (!USE_MOCK_API) {
+    const { data, error } = await supabase
+      .from("orders")
+      .update({ status })
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error("ORDER STATUS UPDATE ERROR", error);
+      throw new Error(error.message);
+    }
+
+    return {
+      id: data.id,
+      reference: data.reference,
+      userId: data.user_id,
+      customerName: data.customer_name,
+      customerEmail: data.customer_email,
+      subtotal: Number(data.subtotal ?? 0),
+      discount: Number(data.discount ?? 0),
+      deliveryFee: Number(data.delivery_fee ?? 0),
+      total: Number(data.total ?? 0),
+      status: data.status,
+      paymentStatus: data.payment_status,
+      paymentMethod: data.payment_method,
+      shippingAddress: data.shipping_address,
+      placedAt: data.placed_at,
+      deliveredAt: data.delivered_at,
+      items: [],
+    };
+  }
+
+  orders = orders.map((o) =>
+    o.id === id ? { ...o, status } : o
+  );
+
+  return mockDelay(
+    orders.find((o) => o.id === id)!,
+    300
+  );
+},
 
   async recent(limit = 10) {
   const { data, error } = await supabase

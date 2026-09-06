@@ -15,6 +15,12 @@ export const userService = {
     .from("users")
     .select("*")
     .order("created_at", { ascending: false });
+  const rows = data ?? [];
+
+console.log(
+  "USER IDS FROM SUPABASE:",
+  rows.map((r) => r.id)
+);
 
   if (error) {
     throw new Error(error.message);
@@ -36,27 +42,87 @@ export const userService = {
     return mockDelay(users.find((u) => u.id === id) ?? null);
   },
 
-  async updateStatus(id: ID, status: UserStatus): Promise<User> {
-    if (!USE_MOCK_API) return apiFetch<User>(ENDPOINTS.users.detail(id), { method: "PATCH", body: { status } });
-    users = users.map((u) => (u.id === id ? { ...u, status } : u));
-    return mockDelay(users.find((u) => u.id === id)!, 300);
-  },
+  async updateStatus(
+  id: ID,
+  status: UserStatus
+): Promise<User> {
+  const { data, error } = await supabase
+    .from("users")
+    .update({
+      is_active: status === "active",
+    })
+    .eq("id", id)
+    .select()
+    .single();
 
-  async update(id: ID, input: Partial<Pick<User, "name" | "email" | "phone" | "role" | "status">>): Promise<User> {
-    if (!USE_MOCK_API) return apiFetch<User>(ENDPOINTS.users.detail(id), { method: "PATCH", body: input });
-    users = users.map((u) => (u.id === id ? { ...u, ...input } : u));
-    return mockDelay(users.find((u) => u.id === id)!, 300);
-  },
+  if (error) {
+    throw new Error(error.message);
+  }
 
-  async remove(id: ID): Promise<void> {
-    if (!USE_MOCK_API) {
-      await apiFetch<void>(ENDPOINTS.users.detail(id), { method: "DELETE" });
-      return;
+  return {
+    id: data.id,
+    name: data.full_name ?? "",
+    email: data.email ?? "",
+    phone: data.phone ?? "",
+    role: data.role === "admin" ? "admin" : "user",
+    status: data.is_active ? "active" : "inactive",
+    createdAt: data.created_at,
+  };
+},
+
+async update(
+  id: ID,
+  input: Partial<
+    Pick<User, "name" | "email" | "phone" | "role" | "status">
+  >
+): Promise<User> {
+  const { data, error } = await supabase
+    .from("users")
+    .update({
+      full_name: input.name,
+      email: input.email,
+      phone: input.phone,
+      role: input.role,
+      is_active:
+        input.status !== undefined
+          ? input.status === "active"
+          : undefined,
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    id: data.id,
+    name: data.full_name ?? "",
+    email: data.email ?? "",
+    phone: data.phone ?? "",
+    role: data.role === "admin" ? "admin" : "user",
+    status: data.is_active ? "active" : "inactive",
+    createdAt: data.created_at,
+  };
+},
+
+ async remove(id: ID): Promise<void> {
+  const { data, error } = await supabase.functions.invoke(
+    "delete-user",
+    {
+      body: {
+        userId: id,
+      },
     }
-    users = users.filter((u) => u.id !== id);
-    await mockDelay(null, 250);
-  },
+  );
 
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  console.log("Delete response:", data);
+},
   async addresses(userId: ID): Promise<Address[]> {
   const { data, error } = await supabase
     .from("addresses")
