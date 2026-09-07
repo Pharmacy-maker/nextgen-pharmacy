@@ -149,13 +149,7 @@ export interface PurchaseRecord {
 export type OrderStatus = "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
 export type PaymentStatus = "paid" | "unpaid" | "refunded" | "failed";
 export type PaymentMethod =
-  | "card"
-  | "credit_card"
-  | "debit_card"
-  | "upi"
-  | "netbanking"
-  | "wallet"
-  | "cod";
+  "card" | "credit_card" | "debit_card" | "upi" | "netbanking" | "wallet" | "cod";
 
 export type PaymentState = "processing" | "success" | "failed" | "pending";
 
@@ -240,11 +234,7 @@ export interface Prescription {
  * service is connected.
  */
 export type PrescriptionScanStatus =
-  | "queued"
-  | "processing"
-  | "completed"
-  | "failed"
-  | "unavailable";
+  "queued" | "processing" | "completed" | "failed" | "unavailable";
 
 export interface ExtractedMedicine {
   name: string;
@@ -257,12 +247,33 @@ export interface ExtractedMedicine {
   confidence?: number;
 }
 
-
 export interface MatchedProduct {
   id: string;
   name: string;
-  quantity?: number;
+  category: string;
+  supplier: string;
+  manufacturer: string;
+  mfg: string;
+  exp: string;
+  stock: number;
+  rating: number;
+  reviews: number;
+  price: number;
+  discount: number;
+  grad: string;
+  image: string;
+  description: string;
+  form?: string;
+  packSize?: string;
+  composition: string[];
   dosage?: string;
+  usage?: string;
+  warnings: string[];
+  sideEffects: string[];
+  storage?: string;
+  prescriptionRequired: boolean;
+  tags: string[];
+  quantity?: number;
   instructions?: string;
 }
 
@@ -304,7 +315,6 @@ export interface ChatConversation {
   messages: ChatMessage[];
   updatedAt: ISODate;
 }
-
 
 /* ---------------- Analytics ---------------- */
 
@@ -368,7 +378,8 @@ export interface Paginated<T> {
 
 /* -------------------- DELIVERY TRACKING -------------------- */
 
-export type TrackingStage = "confirmed" | "packed" | "dispatched" | "out_for_delivery" | "delivered";
+export type TrackingStage =
+  "confirmed" | "packed" | "dispatched" | "out_for_delivery" | "delivered";
 
 export interface Rider {
   id: ID;

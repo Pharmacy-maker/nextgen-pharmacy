@@ -13,7 +13,11 @@ export const Route = createFileRoute("/delivery")({
   head: () => ({
     meta: [
       { title: "Track Your Orders — Rays Pharmacy" },
-      { name: "description", content: "View your Rays Pharmacy orders and follow live delivery tracking from hub to doorstep." },
+      {
+        name: "description",
+        content:
+          "View your Rays Pharmacy orders and follow live delivery tracking from hub to doorstep.",
+      },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Track Your Orders — Rays Pharmacy" },
       { property: "og:description", content: "Live updates on your Rays Pharmacy deliveries." },
@@ -48,8 +52,14 @@ function DeliveryPage() {
   if (!ready) {
     return (
       <PageShell>
-        <Section eyebrow="Your deliveries" title="Track | Order |" subtitle="Follow every step, from hub to doorstep.">
-          <div className="glass rounded-3xl p-10 text-center text-sm text-muted-foreground">Loading your orders…</div>
+        <Section
+          eyebrow="Your deliveries"
+          title="Track | Order |"
+          subtitle="Follow every step, from hub to doorstep."
+        >
+          <div className="glass rounded-3xl p-10 text-center text-sm text-muted-foreground">
+            Loading your orders…
+          </div>
         </Section>
       </PageShell>
     );
@@ -58,12 +68,19 @@ function DeliveryPage() {
   if (!user) {
     return (
       <PageShell>
-        <Section eyebrow="Your deliveries" title="Track | Order |" subtitle="Sign in to follow your orders in real time.">
+        <Section
+          eyebrow="Your deliveries"
+          title="Track | Order |"
+          subtitle="Sign in to follow your orders in real time."
+        >
           <EmptyState
             title="Sign in to track your orders"
             hint="Delivery tracking is available for your own orders only."
             action={
-              <Link to="/login" className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow">
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow"
+              >
                 <LogIn className="h-4 w-4" /> Sign in
               </Link>
             }
@@ -75,7 +92,11 @@ function DeliveryPage() {
 
   return (
     <PageShell>
-      <Section eyebrow="Your deliveries" title="Track | Order |" subtitle="Follow every step, from hub to doorstep.">
+      <Section
+        eyebrow="Your deliveries"
+        title="Track | Order |"
+        subtitle="Follow every step, from hub to doorstep."
+      >
         <AsyncBoundary
           isLoading={orders.isLoading}
           error={orders.error}
@@ -87,7 +108,10 @@ function DeliveryPage() {
               title="You haven't placed any orders yet"
               hint="Browse our products and place your first order."
               action={
-                <Link to="/products" className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow">
+                <Link
+                  to="/products"
+                  className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow"
+                >
                   Shop Now
                 </Link>
               }
@@ -97,9 +121,16 @@ function DeliveryPage() {
           {(list) => (
             <div className="grid lg:grid-cols-3 gap-5">
               <div className="lg:col-span-1 space-y-3">
-                <div className="text-xs uppercase tracking-widest text-muted-foreground px-1">My orders</div>
+                <div className="text-xs uppercase tracking-widest text-muted-foreground px-1">
+                  My orders
+                </div>
                 {list.map((o) => (
-                  <OrderRow key={o.id} order={o} active={o.id === selected} onSelect={() => setSelected(o.id)} />
+                  <OrderRow
+                    key={o.id}
+                    order={o}
+                    active={o.id === selected}
+                    onSelect={() => setSelected(o.id)}
+                  />
                 ))}
               </div>
               <div className="lg:col-span-2">
@@ -113,7 +144,15 @@ function DeliveryPage() {
   );
 }
 
-function OrderRow({ order, active, onSelect }: { order: Order; active: boolean; onSelect: () => void }) {
+function OrderRow({
+  order,
+  active,
+  onSelect,
+}: {
+  order: Order;
+  active: boolean;
+  onSelect: () => void;
+}) {
   return (
     <button
       type="button"
@@ -124,7 +163,9 @@ function OrderRow({ order, active, onSelect }: { order: Order; active: boolean; 
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="font-semibold truncate">#{order.reference}</div>
-          <div className="text-xs text-muted-foreground">{order.placedAt} • {order.items.length} item(s)</div>
+          <div className="text-xs text-muted-foreground">
+            {order.placedAt} • {order.items.length} item(s)
+          </div>
         </div>
         <span className="text-xs font-semibold capitalize text-neon shrink-0">{order.status}</span>
       </div>
@@ -146,7 +187,9 @@ function TrackingPanel({ orderId, userId }: { orderId: string; userId: string })
       data={tracking.data ?? undefined}
       onRetry={() => tracking.refetch()}
       loadingLabel="Loading tracking…"
-      empty={<EmptyState title="Tracking unavailable" hint="We couldn't find tracking for this order." />}
+      empty={
+        <EmptyState title="Tracking unavailable" hint="We couldn't find tracking for this order." />
+      }
     >
       {(t) => <TrackingView tracking={t} />}
     </AsyncBoundary>
@@ -164,7 +207,9 @@ function TrackingView({ tracking: t }: { tracking: OrderTracking }) {
             const Icon = STAGE_ICON[s.stage];
             return (
               <div key={s.stage} className="flex gap-3 items-start">
-                <div className={`h-9 w-9 rounded-xl grid place-items-center shrink-0 ${s.done ? "bg-grad-neon text-black" : "bg-white/5 text-muted-foreground"} ${s.active ? "animate-pulse-glow" : ""}`}>
+                <div
+                  className={`h-9 w-9 rounded-xl grid place-items-center shrink-0 ${s.done ? "bg-grad-neon text-black" : "bg-white/5 text-muted-foreground"} ${s.active ? "animate-pulse-glow" : ""}`}
+                >
                   <Icon className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
@@ -176,7 +221,8 @@ function TrackingView({ tracking: t }: { tracking: OrderTracking }) {
           })}
         </div>
         <div className="mt-6 pt-4 border-t border-white/10 flex items-center gap-2 text-sm">
-          <Clock className="h-4 w-4 text-neon" /> ETA <span className="font-semibold">{t.etaLabel}</span>
+          <Clock className="h-4 w-4 text-neon" /> ETA{" "}
+          <span className="font-semibold">{t.etaLabel}</span>
         </div>
         <div className="mt-2 text-xs text-muted-foreground">Delivering to {t.destination}</div>
       </div>
@@ -189,8 +235,20 @@ function TrackingView({ tracking: t }: { tracking: OrderTracking }) {
             </pattern>
           </defs>
           <rect width="600" height="400" fill="url(#grid)" />
-          <path d="M40 340 Q 180 260 260 240 T 480 100" stroke="oklch(0.9 0.24 130)" strokeWidth="3" fill="none" strokeDasharray="6 6">
-            <animate attributeName="stroke-dashoffset" from="0" to="-24" dur="1.2s" repeatCount="indefinite" />
+          <path
+            d="M40 340 Q 180 260 260 240 T 480 100"
+            stroke="oklch(0.9 0.24 130)"
+            strokeWidth="3"
+            fill="none"
+            strokeDasharray="6 6"
+          >
+            <animate
+              attributeName="stroke-dashoffset"
+              from="0"
+              to="-24"
+              dur="1.2s"
+              repeatCount="indefinite"
+            />
           </path>
           <circle cx="40" cy="340" r="8" fill="oklch(0.72 0.24 350)" />
           <circle cx="480" cy="100" r="10" fill="oklch(0.9 0.24 130)">
@@ -200,7 +258,12 @@ function TrackingView({ tracking: t }: { tracking: OrderTracking }) {
             <circle r="14" fill="oklch(0.68 0.22 260)" />
             <circle r="22" fill="none" stroke="oklch(0.68 0.22 260)" strokeOpacity="0.5">
               <animate attributeName="r" values="22;42;22" dur="2s" repeatCount="indefinite" />
-              <animate attributeName="stroke-opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite" />
+              <animate
+                attributeName="stroke-opacity"
+                values="0.6;0;0.6"
+                dur="2s"
+                repeatCount="indefinite"
+              />
             </circle>
           </g>
         </svg>
@@ -211,8 +274,13 @@ function TrackingView({ tracking: t }: { tracking: OrderTracking }) {
             </div>
             <div>
               <div className="text-xs text-muted-foreground">Rider</div>
-              <div className="font-semibold">{t.rider.name} • {t.rider.rating} ★</div>
-              <a href={`tel:${t.rider.phone.replace(/\s/g, "")}`} className="mt-0.5 inline-flex items-center gap-1 text-xs text-cyan hover:underline">
+              <div className="font-semibold">
+                {t.rider.name} • {t.rider.rating} ★
+              </div>
+              <a
+                href={`tel:${t.rider.phone.replace(/\s/g, "")}`}
+                className="mt-0.5 inline-flex items-center gap-1 text-xs text-cyan hover:underline"
+              >
                 <Phone className="h-3 w-3" /> {t.rider.phone}
               </a>
             </div>

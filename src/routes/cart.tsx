@@ -5,15 +5,20 @@ import { PageShell, Section } from "../components/site/Section";
 import { useAuth, useCart } from "../lib/store";
 import { ProductImage } from "../components/site/ProductImage";
 
-
 export const Route = createFileRoute("/cart")({
   component: CartPage,
   head: () => ({
     meta: [
       { title: "Your Cart — Rays Pharmacy" },
-      { name: "description", content: "Review your medicines, adjust quantities and proceed to checkout." },
+      {
+        name: "description",
+        content: "Review your medicines, adjust quantities and proceed to checkout.",
+      },
       { property: "og:title", content: "Your Cart — Rays Pharmacy" },
-      { property: "og:description", content: "Review your medicines and continue to secure checkout." },
+      {
+        property: "og:description",
+        content: "Review your medicines and continue to secure checkout.",
+      },
     ],
   }),
 });
@@ -34,16 +39,24 @@ function CartPage() {
     navigate({ to: "/checkout" });
   };
 
-
   return (
     <PageShell>
-      <Section eyebrow="Shopping" title="Your | Cart |" subtitle="Adjust quantities, remove items, or continue shopping.">
+      <Section
+        eyebrow="Shopping"
+        title="Your | Cart |"
+        subtitle="Adjust quantities, remove items, or continue shopping."
+      >
         {count === 0 ? (
           <div className="glass rounded-3xl p-10 text-center">
             <ShoppingBag className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
             <div className="text-lg font-semibold">Your cart is empty</div>
-            <p className="text-sm text-muted-foreground mt-1">Browse the catalogue and add medicines to get started.</p>
-            <Link to="/products" className="inline-block mt-5 rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow">
+            <p className="text-sm text-muted-foreground mt-1">
+              Browse the catalogue and add medicines to get started.
+            </p>
+            <Link
+              to="/products"
+              className="inline-block mt-5 rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow"
+            >
               Explore Products
             </Link>
           </div>
@@ -52,10 +65,17 @@ function CartPage() {
             <div className="lg:col-span-2 space-y-3">
               {detailed.map(({ product, qty, line }) => (
                 <div key={product.id} className="glass rounded-2xl p-4 flex items-center gap-4">
-                  <ProductImage src={product.image} seed={product.id} alt={product.name} className="h-20 w-20 rounded-xl object-cover" />
+                  <ProductImage
+                    src={product.image}
+                    seed={product.id}
+                    alt={product.name}
+                    className="h-20 w-20 rounded-xl object-cover"
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="font-semibold truncate">{product.name}</div>
-                    <div className="text-xs text-muted-foreground">{product.category} • {product.manufacturer}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {product.category} • {product.manufacturer}
+                    </div>
                     <div className="flex items-center gap-3 mt-2">
                       <div className="inline-flex items-center rounded-lg border border-white/10 overflow-hidden">
                         <button
@@ -65,7 +85,9 @@ function CartPage() {
                         >
                           <Minus className="h-3.5 w-3.5" />
                         </button>
-                        <span className="px-3 text-sm font-semibold min-w-8 text-center">{qty}</span>
+                        <span className="px-3 text-sm font-semibold min-w-8 text-center">
+                          {qty}
+                        </span>
                         <button
                           onClick={() => setQty(product.id, qty + 1)}
                           className="h-8 w-8 grid place-items-center hover:bg-white/10"
@@ -111,7 +133,10 @@ function CartPage() {
               >
                 Proceed to Checkout
               </button>
-              <Link to="/products" className="mt-2 block text-center text-xs text-muted-foreground hover:text-foreground">
+              <Link
+                to="/products"
+                className="mt-2 block text-center text-xs text-muted-foreground hover:text-foreground"
+              >
                 Continue shopping
               </Link>
             </div>

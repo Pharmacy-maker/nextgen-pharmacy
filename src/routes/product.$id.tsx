@@ -1,8 +1,20 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
-  AlertTriangle, ArrowLeft, BadgeCheck, Beaker, Building2, CalendarClock, ClipboardList,
-  Heart, Minus, Plus, ShieldAlert, Star, Thermometer, Truck,
+  AlertTriangle,
+  ArrowLeft,
+  BadgeCheck,
+  Beaker,
+  Building2,
+  CalendarClock,
+  ClipboardList,
+  Heart,
+  Minus,
+  Plus,
+  ShieldAlert,
+  Star,
+  Thermometer,
+  Truck,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -23,9 +35,16 @@ export const Route = createFileRoute("/product/$id")({
   head: () => ({
     meta: [
       { title: "Medicine details — Rays Pharmacy" },
-      { name: "description", content: "Composition, dosage, warnings, storage and availability for every medicine at Rays Pharmacy." },
+      {
+        name: "description",
+        content:
+          "Composition, dosage, warnings, storage and availability for every medicine at Rays Pharmacy.",
+      },
       { property: "og:title", content: "Medicine details — Rays Pharmacy" },
-      { property: "og:description", content: "Full product information: composition, dosage, usage, side effects and stock." },
+      {
+        property: "og:description",
+        content: "Full product information: composition, dosage, usage, side effects and stock.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -34,7 +53,7 @@ export const Route = createFileRoute("/product/$id")({
 
 function ProductDetailPage() {
   const { id } = Route.useParams();
-  
+
   const product = useQuery({
     queryKey: ["product", id],
     queryFn: () => productService.get(id),
@@ -51,7 +70,7 @@ function ProductDetailPage() {
   });
 
   console.log("REVIEWS", reviews.data);
- console.log("REVIEWS ERROR", reviews.error);
+  console.log("REVIEWS ERROR", reviews.error);
 
   return (
     <PageShell>
@@ -74,18 +93,14 @@ function ProductDetailPage() {
         >
           {(p) => (
             <>
-              <pre className="mt-8 text-xs">
-                {JSON.stringify(reviews.data, null, 2)}
-              </pre>
+              <pre className="mt-8 text-xs">{JSON.stringify(reviews.data, null, 2)}</pre>
 
               <Detail
                 p={p}
                 related={(all.data ?? [])
-                  .filter(
-                    (x) => x.category === p.category && x.id !== p.id
-                  )
+                  .filter((x) => x.category === p.category && x.id !== p.id)
                   .slice(0, 4)}
-                  reviews={reviews.data ?? []}
+                reviews={reviews.data ?? []}
               />
             </>
           )}
@@ -95,51 +110,43 @@ function ProductDetailPage() {
   );
 }
 
-function Detail({
-  p,
-  related,
-  reviews,
-}: {
-  p: Product;
-  related: Product[];
-  reviews: any[];
-}) {
-   const [showReviewForm, setShowReviewForm] = useState(false);
+function Detail({ p, related, reviews }: { p: Product; related: Product[]; reviews: any[] }) {
+  const [showReviewForm, setShowReviewForm] = useState(false);
   const [rating, setRating] = useState(5);
   const [reviewText, setReviewText] = useState("");
   const [customerName, setCustomerName] = useState("");
   const submitReview = async () => {
-  try {
-    if (!customerName.trim()) {
-      toast.error("Please enter your name");
-      return;
+    try {
+      if (!customerName.trim()) {
+        toast.error("Please enter your name");
+        return;
+      }
+
+      if (!reviewText.trim()) {
+        toast.error("Please enter your review");
+        return;
+      }
+
+      await reviewService.create({
+        productId: p.id,
+        customerName,
+        rating,
+        review: reviewText,
+      });
+
+      toast.success("Review submitted successfully");
+
+      setCustomerName("");
+      setReviewText("");
+      setRating(5);
+      setShowReviewForm(false);
+
+      window.location.reload();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to submit review");
     }
-
-    if (!reviewText.trim()) {
-      toast.error("Please enter your review");
-      return;
-    }
-
-    await reviewService.create({
-      productId: p.id,
-      customerName,
-      rating,
-      review: reviewText,
-    });
-
-    toast.success("Review submitted successfully");
-
-    setCustomerName("");
-    setReviewText("");
-    setRating(5);
-    setShowReviewForm(false);
-
-    window.location.reload();
-  } catch (error) {
-    console.error(error);
-    toast.error("Failed to submit review");
-  }
-};
+  };
   const d = getProductDetails(p);
   const stock = stockStatus(p.stock);
   const price = p.price;
@@ -190,7 +197,9 @@ function Detail({
 
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className="glass px-2.5 py-1 rounded-full text-[11px] font-semibold">{p.category}</span>
+            <span className="glass px-2.5 py-1 rounded-full text-[11px] font-semibold">
+              {p.category}
+            </span>
             <span className="glass px-2.5 py-1 rounded-full text-[11px]">{d.form}</span>
             {d.prescriptionRequired ? (
               <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-orange/15 text-orange border border-orange/30">
@@ -202,11 +211,14 @@ function Detail({
               </span>
             )}
           </div>
-          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">{p.name}</h1>
+          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">
+            {p.name}
+          </h1>
           <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1">
               <Star className="h-4 w-4 fill-neon text-neon" />
-              <span className="font-semibold text-foreground">{p.rating}</span> ({p.reviews} reviews)
+              <span className="font-semibold text-foreground">{p.rating}</span> ({p.reviews}{" "}
+              reviews)
             </span>
             <span className={`font-semibold ${toneClass}`}>{stock.label}</span>
             <span>{d.packSize}</span>
@@ -225,19 +237,27 @@ function Detail({
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <div className="glass rounded-xl flex items-center">
-              <button onClick={() => setQty((q) => Math.max(1, q - 1))} aria-label="Decrease quantity" className="h-10 w-10 grid place-items-center hover:bg-white/10 rounded-l-xl">
+              <button
+                onClick={() => setQty((q) => Math.max(1, q - 1))}
+                aria-label="Decrease quantity"
+                className="h-10 w-10 grid place-items-center hover:bg-white/10 rounded-l-xl"
+              >
                 <Minus className="h-4 w-4" />
               </button>
               <span className="w-10 text-center text-sm font-semibold tabular-nums">{qty}</span>
-              <button onClick={() => setQty((q) => q + 1)} aria-label="Increase quantity" className="h-10 w-10 grid place-items-center hover:bg-white/10 rounded-r-xl">
+              <button
+                onClick={() => setQty((q) => q + 1)}
+                aria-label="Increase quantity"
+                className="h-10 w-10 grid place-items-center hover:bg-white/10 rounded-r-xl"
+              >
                 <Plus className="h-4 w-4" />
               </button>
             </div>
             <button
               onClick={() => {
-  console.log("ADD CLICKED", p.id, qty);
-  add(p.id, qty);
-}}
+                console.log("ADD CLICKED", p.id, qty);
+                add(p.id, qty);
+              }}
               disabled={p.stock <= 0}
               className="h-10 px-5 rounded-xl glass text-sm font-semibold hover:bg-white/15 disabled:opacity-50"
             >
@@ -276,7 +296,9 @@ function Detail({
         </Panel>
         <Panel title="Composition / ingredients" icon={Beaker}>
           <ul className="text-sm text-muted-foreground space-y-1.5 list-disc pl-4">
-            {d.composition.map((c) => <li key={c}>{c}</li>)}
+            {d.composition.map((c) => (
+              <li key={c}>{c}</li>
+            ))}
           </ul>
         </Panel>
         <Panel title="Dosage information" icon={ClipboardList}>
@@ -287,13 +309,17 @@ function Detail({
         </Panel>
         <Panel title="Warnings & precautions" icon={ShieldAlert}>
           <ul className="text-sm text-muted-foreground space-y-1.5 list-disc pl-4">
-            {d.warnings.map((w) => <li key={w}>{w}</li>)}
+            {d.warnings.map((w) => (
+              <li key={w}>{w}</li>
+            ))}
           </ul>
         </Panel>
         <Panel title="Possible side effects" icon={AlertTriangle}>
           <div className="flex flex-wrap gap-2">
             {d.sideEffects.map((s) => (
-              <span key={s} className="glass px-3 py-1 rounded-full text-xs">{s}</span>
+              <span key={s} className="glass px-3 py-1 rounded-full text-xs">
+                {s}
+              </span>
             ))}
           </div>
         </Panel>
@@ -307,81 +333,82 @@ function Detail({
               : "No prescription needed. This product can be purchased over the counter."}
           </p>
           {d.prescriptionRequired && (
-            <Link to="/prescription" className="inline-block mt-3 rounded-xl px-4 py-2 bg-grad-hero text-white text-xs font-semibold glow">
+            <Link
+              to="/prescription"
+              className="inline-block mt-3 rounded-xl px-4 py-2 bg-grad-hero text-white text-xs font-semibold glow"
+            >
               Upload prescription
             </Link>
           )}
         </Panel>
-         <Panel title="Customer Reviews" icon={MessageSquare}>
-  <button
-  className="mb-4 rounded-lg bg-cyan px-4 py-2 text-black font-semibold"
-  onClick={() => setShowReviewForm(!showReviewForm)}
->
-  Write a Review
-</button>
-{showReviewForm && (
-  <div className="mb-4 space-y-3">
-    <input
-  value={customerName}
-  onChange={(e) => setCustomerName(e.target.value)}
-  placeholder="Your name"
-  className="w-full rounded-lg border border-white/10 bg-transparent p-2"
-/>
+        <Panel title="Customer Reviews" icon={MessageSquare}>
+          <button
+            className="mb-4 rounded-lg bg-cyan px-4 py-2 text-black font-semibold"
+            onClick={() => setShowReviewForm(!showReviewForm)}
+          >
+            Write a Review
+          </button>
+          {showReviewForm && (
+            <div className="mb-4 space-y-3">
+              <input
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="Your name"
+                className="w-full rounded-lg border border-white/10 bg-transparent p-2"
+              />
 
-    <select
-      value={rating}
-      onChange={(e) => setRating(Number(e.target.value))}
-      className="w-full rounded-lg border border-white/10 bg-transparent p-2"
-    >
-      <option value={5}>5 Stars</option>
-      <option value={4}>4 Stars</option>
-      <option value={3}>3 Stars</option>
-      <option value={2}>2 Stars</option>
-      <option value={1}>1 Star</option>
-    </select>
+              <select
+                value={rating}
+                onChange={(e) => setRating(Number(e.target.value))}
+                className="w-full rounded-lg border border-white/10 bg-transparent p-2"
+              >
+                <option value={5}>5 Stars</option>
+                <option value={4}>4 Stars</option>
+                <option value={3}>3 Stars</option>
+                <option value={2}>2 Stars</option>
+                <option value={1}>1 Star</option>
+              </select>
 
-    <textarea
-      value={reviewText}
-      onChange={(e) => setReviewText(e.target.value)}
-      placeholder="Write your review..."
-      className="w-full rounded-lg border border-white/10 bg-transparent p-2"
-      rows={4}
-    />
+              <textarea
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+                placeholder="Write your review..."
+                className="w-full rounded-lg border border-white/10 bg-transparent p-2"
+                rows={4}
+              />
 
-   <button
-  onClick={submitReview}
-  className="rounded-lg bg-green-500 px-4 py-2 text-black font-semibold"
->
-  Submit Review
-</button>
-  </div>
-)}
+              <button
+                onClick={submitReview}
+                className="rounded-lg bg-green-500 px-4 py-2 text-black font-semibold"
+              >
+                Submit Review
+              </button>
+            </div>
+          )}
 
-  {reviews.length ? (
-    <div className="space-y-3">
-      {reviews.map((r: any) => (
-        <div key={r.id} className="rounded-xl border border-white/10 p-3">
-          <div className="font-semibold">{r.customer_name}</div>
-          <div className="text-yellow-400">
-            {"★".repeat(r.rating)}
-          </div>
-          <p className="text-sm text-muted-foreground">{r.review}</p>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <p className="text-sm text-muted-foreground">
-      No reviews yet.
-    </p>
-  )}
-</Panel>
+          {reviews.length ? (
+            <div className="space-y-3">
+              {reviews.map((r: any) => (
+                <div key={r.id} className="rounded-xl border border-white/10 p-3">
+                  <div className="font-semibold">{r.customer_name}</div>
+                  <div className="text-yellow-400">{"★".repeat(r.rating)}</div>
+                  <p className="text-sm text-muted-foreground">{r.review}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No reviews yet.</p>
+          )}
+        </Panel>
       </div>
 
       {related.length > 0 && (
         <div className="mt-12">
           <h2 className="font-display text-xl font-bold mb-4">More in {p.category}</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-            {related.map((r) => <ProductCard key={r.id} p={r} />)}
+            {related.map((r) => (
+              <ProductCard key={r.id} p={r} />
+            ))}
           </div>
         </div>
       )}
@@ -396,12 +423,19 @@ function Meta({ icon: I, label, value }: { icon: typeof Building2; label: string
         <I className="h-3.5 w-3.5 shrink-0" /> {label}
       </dt>
       <dd className="text-sm font-medium truncate">{value}</dd>
-      
     </div>
   );
 }
 
-function Panel({ title, icon: I, children }: { title: string; icon?: typeof Building2; children: React.ReactNode }) {
+function Panel({
+  title,
+  icon: I,
+  children,
+}: {
+  title: string;
+  icon?: typeof Building2;
+  children: React.ReactNode;
+}) {
   return (
     <section className="glass rounded-2xl p-5">
       <h2 className="font-semibold mb-3 flex items-center gap-2">

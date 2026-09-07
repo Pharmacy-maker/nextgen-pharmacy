@@ -12,12 +12,7 @@ export const reviewService = {
     return data ?? [];
   },
 
-  async create(input: {
-    productId: string;
-    customerName: string;
-    rating: number;
-    review: string;
-  }) {
+  async create(input: { productId: string; customerName: string; rating: number; review: string }) {
     const { data, error } = await supabase
       .from("product_reviews")
       .insert({

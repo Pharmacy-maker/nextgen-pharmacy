@@ -12,9 +12,15 @@ export const Route = createFileRoute("/forgot-password")({
   head: () => ({
     meta: [
       { title: "Forgot Password — Rays Pharmacy" },
-      { name: "description", content: "Reset your Rays Pharmacy account password with a secure single-use link." },
+      {
+        name: "description",
+        content: "Reset your Rays Pharmacy account password with a secure single-use link.",
+      },
       { property: "og:title", content: "Forgot Password — Rays Pharmacy" },
-      { property: "og:description", content: "Request a secure password reset link for your Rays Pharmacy account." },
+      {
+        property: "og:description",
+        content: "Request a secure password reset link for your Rays Pharmacy account.",
+      },
     ],
   }),
 });
@@ -25,7 +31,6 @@ function ForgotPasswordPage() {
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
-  
 
   const error = useMemo(() => {
     const r = emailSchema.safeParse(email);
@@ -40,7 +45,7 @@ function ForgotPasswordPage() {
     try {
       const res = await authService.requestPasswordReset(email);
       setSent(true);
-      
+
       toast.success("If that email is registered, a reset link is on its way.");
     } catch (err) {
       toast.error((err as Error).message || "Could not send the reset link.");
@@ -51,7 +56,11 @@ function ForgotPasswordPage() {
 
   return (
     <PageShell>
-      <Section eyebrow="Account recovery" title="Forgot your | password |?" subtitle="We'll email a secure single-use link to reset it.">
+      <Section
+        eyebrow="Account recovery"
+        title="Forgot your | password |?"
+        subtitle="We'll email a secure single-use link to reset it."
+      >
         <div className="glass rounded-3xl p-6 md:p-8 max-w-md mx-auto">
           {sent ? (
             <div className="text-center">
@@ -60,11 +69,14 @@ function ForgotPasswordPage() {
               </div>
               <div className="text-lg font-semibold">Check your inbox</div>
               <p className="text-sm text-muted-foreground mt-2">
-                If an account exists for <span className="text-foreground">{email}</span>, you'll receive a reset link
-                valid for 30 minutes.
+                If an account exists for <span className="text-foreground">{email}</span>, you'll
+                receive a reset link valid for 30 minutes.
               </p>
-              
-              <Link to="/login" className="mt-3 block text-xs text-muted-foreground hover:text-foreground">
+
+              <Link
+                to="/login"
+                className="mt-3 block text-xs text-muted-foreground hover:text-foreground"
+              >
                 ← Back to login
               </Link>
             </div>
@@ -89,7 +101,10 @@ function ForgotPasswordPage() {
                 {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                 {submitting ? "Sending link…" : "Send reset link"}
               </button>
-              <Link to="/login" className="block text-center text-xs text-muted-foreground hover:text-foreground">
+              <Link
+                to="/login"
+                className="block text-center text-xs text-muted-foreground hover:text-foreground"
+              >
                 ← Back to login
               </Link>
             </form>

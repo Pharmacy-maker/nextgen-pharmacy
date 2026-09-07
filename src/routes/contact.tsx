@@ -11,9 +11,15 @@ export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
       { title: "Contact — Rays Pharmacy" },
-      { name: "description", content: "Get in touch with the Rays Pharmacy team for support, partnerships or press." },
+      {
+        name: "description",
+        content: "Get in touch with the Rays Pharmacy team for support, partnerships or press.",
+      },
       { property: "og:title", content: "Contact — Rays Pharmacy" },
-      { property: "og:description", content: "Send us a message — we usually reply within a few hours." },
+      {
+        property: "og:description",
+        content: "Send us a message — we usually reply within a few hours.",
+      },
     ],
   }),
 });
@@ -22,7 +28,12 @@ type Form = { name: string; email: string; phone: string; message: string };
 
 function ContactPage() {
   const [form, setForm] = useState<Form>({ name: "", email: "", phone: "", message: "" });
-  const [touched, setTouched] = useState<Record<keyof Form, boolean>>({ name: false, email: false, phone: false, message: false });
+  const [touched, setTouched] = useState<Record<keyof Form, boolean>>({
+    name: false,
+    email: false,
+    phone: false,
+    message: false,
+  });
   const [errors, setErrors] = useState<FieldErrors<Form>>({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -61,11 +72,20 @@ function ContactPage() {
     }
   };
 
-  const msgStatus = !touched.message && !form.message ? "" : errors.message ? "border-pink/70 focus:ring-pink/40" : "border-emerald/60 focus:ring-emerald/40";
+  const msgStatus =
+    !touched.message && !form.message
+      ? ""
+      : errors.message
+        ? "border-pink/70 focus:ring-pink/40"
+        : "border-emerald/60 focus:ring-emerald/40";
 
   return (
     <PageShell>
-      <Section eyebrow="Say hello" title="Contact | Us |" subtitle="Questions, feedback or partnerships — we'd love to hear from you.">
+      <Section
+        eyebrow="Say hello"
+        title="Contact | Us |"
+        subtitle="Questions, feedback or partnerships — we'd love to hear from you."
+      >
         <div className="grid lg:grid-cols-3 gap-5">
           <div className="lg:col-span-1 space-y-3">
             {[
@@ -87,7 +107,11 @@ function ContactPage() {
               );
             })}
           </div>
-          <form onSubmit={submit} className="lg:col-span-2 glass rounded-3xl p-6 space-y-3" noValidate>
+          <form
+            onSubmit={submit}
+            className="lg:col-span-2 glass rounded-3xl p-6 space-y-3"
+            noValidate
+          >
             <div className="grid sm:grid-cols-2 gap-3">
               <TextField
                 label="Full name"
@@ -131,7 +155,9 @@ function ContactPage() {
                 aria-invalid={touched.message && !!errors.message}
                 className={`w-full bg-white/5 rounded-xl px-3 py-2.5 border transition-colors focus:outline-none focus:ring-2 resize-none ${msgStatus || "border-white/10 focus:ring-primary/60"}`}
               />
-              <div className="text-[10px] text-muted-foreground mt-1 text-right">{form.message.length}/1000</div>
+              <div className="text-[10px] text-muted-foreground mt-1 text-right">
+                {form.message.length}/1000
+              </div>
             </Field>
             <button
               type="submit"

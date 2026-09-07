@@ -12,19 +12,24 @@ export const Route = createFileRoute("/wishlist")({
   head: () => ({
     meta: [
       { title: "Wishlist — Rays Pharmacy" },
-      { name: "description", content: "Your saved medicines and wellness products at Rays Pharmacy." },
+      {
+        name: "description",
+        content: "Your saved medicines and wellness products at Rays Pharmacy.",
+      },
       { property: "og:title", content: "Wishlist — Rays Pharmacy" },
-      { property: "og:description", content: "Everything you saved for later, ready to add to cart." },
+      {
+        property: "og:description",
+        content: "Everything you saved for later, ready to add to cart.",
+      },
     ],
   }),
 });
 
-
 function WishlistPage() {
   const { ids, count, clear } = useWishlist();
   console.log("WISHLIST IDS TYPE", ids);
-console.log("FIRST ID", ids[0]);
-console.log("FIRST ID TYPE", typeof ids[0]);
+  console.log("FIRST ID", ids[0]);
+  console.log("FIRST ID TYPE", typeof ids[0]);
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["products"],
     queryFn: () => productService.list(),
@@ -32,49 +37,52 @@ console.log("FIRST ID TYPE", typeof ids[0]);
 
   console.log("WISHLIST IDS", ids);
 
-console.log(
-  "FIRST 20 PRODUCT IDS",
-  (data ?? []).slice(0, 20).map((p) => p.id)
-);
-
-console.log(
-  "MATCHES",
-  (data ?? []).filter((p) => ids.includes(p.id))
-);
-
-ids.forEach((id) => {
-  const found = (data ?? []).find((p) => p.id === id);
-
-  console.log("LOOKUP", id, found ? "FOUND" : "NOT FOUND");
-});
-ids.forEach((id) => {
   console.log(
-    id,
-    (data ?? []).some((p) => String(p.id) === String(id))
+    "FIRST 20 PRODUCT IDS",
+    (data ?? []).slice(0, 20).map((p) => p.id),
   );
-});
 
+  console.log(
+    "MATCHES",
+    (data ?? []).filter((p) => ids.includes(p.id)),
+  );
 
-console.log(
-  "SAVED",
-  (data ?? []).filter((p) => ids.includes(p.id))
-);
-console.log("DATA LENGTH", data?.length);
-console.log("FIRST PRODUCT", data?.[0]);
+  ids.forEach((id) => {
+    const found = (data ?? []).find((p) => p.id === id);
+
+    console.log("LOOKUP", id, found ? "FOUND" : "NOT FOUND");
+  });
+  ids.forEach((id) => {
+    console.log(
+      id,
+      (data ?? []).some((p) => String(p.id) === String(id)),
+    );
+  });
+
+  console.log(
+    "SAVED",
+    (data ?? []).filter((p) => ids.includes(p.id)),
+  );
+  console.log("DATA LENGTH", data?.length);
+  console.log("FIRST PRODUCT", data?.[0]);
   const saved = (data ?? []).filter((p) => ids.includes(p.id));
   const validIds = saved.map((p) => p.id);
 
-useEffect(() => {
-  if (validIds.length !== ids.length) {
-    // remove stale IDs automatically
-  }
-}, [saved]);
+  useEffect(() => {
+    if (validIds.length !== ids.length) {
+      // remove stale IDs automatically
+    }
+  }, [saved]);
   return (
     <PageShell>
       <Section
         eyebrow="Saved for later"
         title="Your | Wishlist |"
-        subtitle={count > 0 ? `${count} item${count === 1 ? "" : "s"} saved.` : "Tap the heart on any product to save it here."}
+        subtitle={
+          count > 0
+            ? `${count} item${count === 1 ? "" : "s"} saved.`
+            : "Tap the heart on any product to save it here."
+        }
       >
         <AsyncBoundary
           isLoading={isLoading}
@@ -89,7 +97,11 @@ useEffect(() => {
                 title="Your wishlist is empty"
                 hint="Browse our products and tap the heart icon to save your favourites."
                 action={
-                  <Link to="/products" search={{ q: "", tag: "", category: "" }} className="inline-block mt-4 rounded-xl px-5 py-2.5 bg-grad-hero text-white text-sm font-semibold glow">
+                  <Link
+                    to="/products"
+                    search={{ q: "", tag: "", category: "" }}
+                    className="inline-block mt-4 rounded-xl px-5 py-2.5 bg-grad-hero text-white text-sm font-semibold glow"
+                  >
                     Shop now
                   </Link>
                 }
@@ -97,10 +109,15 @@ useEffect(() => {
             ) : (
               <>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-                  {saved.map((p) => <ProductCard key={p.id} p={p} />)}
+                  {saved.map((p) => (
+                    <ProductCard key={p.id} p={p} />
+                  ))}
                 </div>
                 <div className="mt-8 text-center">
-                  <button onClick={clear} className="glass px-5 py-2.5 rounded-2xl text-sm font-semibold hover:bg-white/15">
+                  <button
+                    onClick={clear}
+                    className="glass px-5 py-2.5 rounded-2xl text-sm font-semibold hover:bg-white/15"
+                  >
                     Clear wishlist
                   </button>
                 </div>
@@ -111,6 +128,4 @@ useEffect(() => {
       </Section>
     </PageShell>
   );
-
-  
 }

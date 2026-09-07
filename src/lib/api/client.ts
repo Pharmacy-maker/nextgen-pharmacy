@@ -108,7 +108,9 @@ export function mockDelay<T>(value: T, ms = 350): Promise<T> {
 
 function structuredCloneSafe<T>(value: T): T {
   try {
-    return typeof structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value));
+    return typeof structuredClone === "function"
+      ? structuredClone(value)
+      : JSON.parse(JSON.stringify(value));
   } catch {
     return value;
   }

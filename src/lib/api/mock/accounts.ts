@@ -61,7 +61,11 @@ function write(accounts: StoredAccount[]) {
  * Seeds the administrator account once. Credentials live here (server-side
  * equivalent: a seeded admin row), never in any component or UI string.
  */
-const ADMIN_SEED = { email: "admin@rayspharmacy.com", password: "Admin@123", name: "Administrator" };
+const ADMIN_SEED = {
+  email: "admin@rayspharmacy.com",
+  password: "Admin@123",
+  name: "Administrator",
+};
 
 let seeded: Promise<void> | null = null;
 export function ensureSeeded(): Promise<void> {

@@ -1,9 +1,5 @@
 import { useEffect, useState, type ImgHTMLAttributes } from "react";
-import {
-  FALLBACK_PRODUCT_IMAGE,
-  placeholderProductImage,
-  resolveImageUrl,
-} from "../../lib/images";
+import { FALLBACK_PRODUCT_IMAGE, placeholderProductImage, resolveImageUrl } from "../../lib/images";
 
 type ProductImageProps = {
   src?: string | null;
@@ -11,17 +7,8 @@ type ProductImageProps = {
   seed?: string | number;
 } & Omit<ImgHTMLAttributes<HTMLImageElement>, "src" | "alt">;
 
-export function ProductImage({
-  src,
-  alt,
-  seed,
-  loading = "lazy",
-  ...rest
-}: ProductImageProps) {
-  const fallback =
-    seed !== undefined
-      ? placeholderProductImage(seed)
-      : FALLBACK_PRODUCT_IMAGE;
+export function ProductImage({ src, alt, seed, loading = "lazy", ...rest }: ProductImageProps) {
+  const fallback = seed !== undefined ? placeholderProductImage(seed) : FALLBACK_PRODUCT_IMAGE;
 
   const resolved = resolveImageUrl(src, fallback);
 

@@ -19,7 +19,9 @@ export function ErrorState({ message, onRetry }: { message?: string; onRetry?: (
     <div className="glass rounded-3xl p-8 text-center" role="alert">
       <AlertTriangle className="h-8 w-8 mx-auto text-orange" />
       <div className="mt-3 font-semibold">Something went wrong</div>
-      <p className="mt-1 text-sm text-muted-foreground">{message ?? "We couldn't load this data."}</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {message ?? "We couldn't load this data."}
+      </p>
       {onRetry && (
         <button
           onClick={onRetry}
@@ -32,7 +34,15 @@ export function ErrorState({ message, onRetry }: { message?: string; onRetry?: (
   );
 }
 
-export function EmptyState({ title, hint, action }: { title: string; hint?: string; action?: ReactNode }) {
+export function EmptyState({
+  title,
+  hint,
+  action,
+}: {
+  title: string;
+  hint?: string;
+  action?: ReactNode;
+}) {
   return (
     <div className="glass rounded-3xl p-10 text-center">
       <Inbox className="h-8 w-8 mx-auto text-muted-foreground" />
@@ -63,7 +73,9 @@ export function AsyncBoundary<T>({
 }) {
   if (isLoading) return <LoadingState label={loadingLabel} />;
   if (error) return <ErrorState message={(error as Error)?.message} onRetry={onRetry} />;
-  if (data === undefined || data === null) return <>{empty ?? <EmptyState title="Nothing here yet" />}</>;
-  if (Array.isArray(data) && data.length === 0) return <>{empty ?? <EmptyState title="Nothing here yet" />}</>;
+  if (data === undefined || data === null)
+    return <>{empty ?? <EmptyState title="Nothing here yet" />}</>;
+  if (Array.isArray(data) && data.length === 0)
+    return <>{empty ?? <EmptyState title="Nothing here yet" />}</>;
   return <>{children(data)}</>;
 }

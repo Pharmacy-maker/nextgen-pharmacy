@@ -1,6 +1,6 @@
 # NextGen Pharmacy
 
-Project Title:  Rays Pharmacy – AI-Powered Smart Pharmacy Platform
+Project Title: Rays Pharmacy – AI-Powered Smart Pharmacy Platform
 
 You are an award-winning Senior Full Stack Developer, UI/UX Designer, Motion Designer, and Product Designer with over 10 years of experience building premium healthcare SaaS products. Your task is to design and build a production-quality pharmacy website that looks like a premium startup product rather than a college project.
 

@@ -1,9 +1,17 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { toast } from "sonner";
 import { discountedPrice, findProduct, type Product } from "./products";
 import { setToken } from "./api/client";
 import type { UserRole } from "../types/models";
-
+import { productService } from "./api/services/product.service";
 
 type CartItem = { id: string; qty: number };
 type CartCtx = {
@@ -18,7 +26,6 @@ type CartCtx = {
 };
 
 const CartContext = createContext<CartCtx | null>(null);
-import { productService } from "./api/services/product.service";
 
 function useLocal<T>(key: string, initial: T): [T, (v: T | ((p: T) => T)) => void] {
   const [v, setV] = useState<T>(initial);
@@ -49,53 +56,63 @@ function useLocal<T>(key: string, initial: T): [T, (v: T | ((p: T) => T)) => voi
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useLocal<CartItem[]>("rays:cart", []);
-  useEffect(() => {
-  
-}, [items]);
+  useEffect(() => {}, [items]);
   const [products, setProducts] = useState<Product[]>([]);
-  useEffect(() => {
-  productService.list()
-    .then((data) => {
-      
-setProducts(data);
-    })
-    .catch(console.error);
-}, []);
-
-useEffect(() => {
-  
-
-
-}, [products, items]);
+  const [productsLoaded, setProductsLoaded] = useState(false);
 
   useEffect(() => {
-  
+    productService
+      .list()
+      .then((data) => {
+        console.log("PRODUCTS LOADED IN CART STORE:", data.length);
+        setProducts(data);
+        setProductsLoaded(true);
+      })
+      .catch(console.error);
+  }, []);
 
-  if (items.length > 0) {
-    
-  }
-}, [items]);
-  const add = useCallback(
-  (id: string, qty = 1) => {
+  useEffect(() => {}, [products, items]);
 
-    console.log("ADD CALLED", id, qty);
+  useEffect(() => {
+    // When items are added to cart, ensure the products are loaded
+    if (items.length > 0 && productsLoaded) {
+      const missingProductIds = items
+        .map((item) => item.id)
+        .filter((id) => !products.some((p) => String(p.id) === String(id)));
 
-    setItems((prev) => {
-      const found = prev.find((i) => i.id === id);
-
-      if (found) {
-        return prev.map((i) =>
-          i.id === id
-            ? { ...i, qty: i.qty + qty }
-            : i
-        );
+      if (missingProductIds.length > 0) {
+        console.log("MISSING PRODUCT IDS IN CART:", missingProductIds);
+        // Fetch missing products
+        missingProductIds.forEach((id) => {
+          productService
+            .get(id)
+            .then((product) => {
+              if (product) {
+                setProducts((current) => [...current, product]);
+                console.log("Added missing product to cart store:", product.name);
+              }
+            })
+            .catch((err) => console.error("Failed to fetch missing product:", err));
+        });
       }
+    }
+  }, [items, productsLoaded, products]);
+  const add = useCallback(
+    (id: string, qty = 1) => {
+      console.log("ADD CALLED", id, qty);
 
-      return [...prev, { id, qty }];
-    });
-  },
-  [setItems],
-);
+      setItems((prev) => {
+        const found = prev.find((i) => i.id === id);
+
+        if (found) {
+          return prev.map((i) => (i.id === id ? { ...i, qty: i.qty + qty } : i));
+        }
+
+        return [...prev, { id, qty }];
+      });
+    },
+    [setItems],
+  );
 
   const remove = useCallback(
     (id: string) => {
@@ -108,7 +125,9 @@ useEffect(() => {
   const setQty = useCallback(
     (id: string, qty: number) => {
       setItems((prev) =>
-        qty <= 0 ? prev.filter((i) => i.id !== id) : prev.map((i) => (i.id === id ? { ...i, qty } : i)),
+        qty <= 0
+          ? prev.filter((i) => i.id !== id)
+          : prev.map((i) => (i.id === id ? { ...i, qty } : i)),
       );
     },
     [setItems],
@@ -117,50 +136,42 @@ useEffect(() => {
   const clear = useCallback(() => setItems([]), [setItems]);
 
   const detailed = useMemo(
-  () =>
-    items
-      .map((i) => {
-       
-const product = products.find((p) => {
-  const match = String(p.id) === String(i.id);
+    () =>
+      items
+        .map((i) => {
+          const product = products.find((p) => {
+            const match = String(p.id) === String(i.id);
 
-  if (match) {
-    console.log(
-      "MATCH FOUND:",
-      p.id,
-      i.id
-    );
-  }
+            if (match) {
+              console.log("MATCH FOUND:", p.id, i.id);
+            }
 
-  return match;
-});
+            return match;
+          });
 
-        
+          if (!product) {
+            console.log("PRODUCT NOT FOUND IN PRODUCTS ARRAY:", i.id);
+            // This can happen when prescription-matched products are added
+            // but not yet loaded in the products array. We'll skip them for now
+            // and they should appear once the products array is refreshed
+            return null;
+          }
 
-const exactMatch = products.find(
-  (p) => String(p.id) === String(i.id)
-);
+          return {
+            product,
+            qty: i.qty,
+            line: discountedPrice(product) * i.qty,
+          };
+        })
+        .filter(Boolean) as {
+        product: Product;
+        qty: number;
+        line: number;
+      }[],
+    [items, products],
+  );
 
-
-        if (!product) return null;
-
-        return {
-          product,
-          qty: i.qty,
-          line: discountedPrice(product) * i.qty,
-        };
-      })
-      .filter(Boolean) as {
-      product: Product;
-      qty: number;
-      line: number;
-    }[],
-  [items, products],
-);
-
-useEffect(() => {
-  
-}, [detailed]);
+  useEffect(() => {}, [detailed]);
 
   const count = detailed.reduce((s, d) => s + d.qty, 0);
   const subtotal = detailed.reduce((s, d) => s + d.line, 0);
@@ -179,7 +190,14 @@ export function useCart() {
 }
 
 /* -------------------- Wishlist -------------------- */
-type WishCtx = { ids: string[]; count: number; toggle: (id: string) => void; has: (id: string) => boolean; remove: (id: string) => void; clear: () => void };
+type WishCtx = {
+  ids: string[];
+  count: number;
+  toggle: (id: string) => void;
+  has: (id: string) => boolean;
+  remove: (id: string) => void;
+  clear: () => void;
+};
 const WishContext = createContext<WishCtx | null>(null);
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
@@ -212,7 +230,9 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   );
   const clear = useCallback(() => setIds([]), [setIds]);
   return (
-    <WishContext.Provider value={{ ids, count: ids.length, toggle, has, remove: removeItem, clear }}>
+    <WishContext.Provider
+      value={{ ids, count: ids.length, toggle, has, remove: removeItem, clear }}
+    >
       {children}
     </WishContext.Provider>
   );
@@ -274,4 +294,3 @@ export function useAuth() {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
-

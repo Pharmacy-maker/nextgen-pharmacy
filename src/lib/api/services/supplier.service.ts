@@ -7,67 +7,56 @@ import type { ID, PurchaseRecord, Supplier } from "../../../types/models";
 let suppliers: Supplier[] = [...mockSuppliers];
 
 export const supplierService = {
-  
   async list(): Promise<Supplier[]> {
-  if (!USE_MOCK_API) {
-    const { data, error } = await supabase
-      .from("suppliers")
-      .select("*");
+    if (!USE_MOCK_API) {
+      const { data, error } = await supabase.from("suppliers").select("*");
 
-    console.log("SUPPLIERS:", data?.length);
-console.log("SUPPLIER ERROR:", error);
-console.log("FIRST SUPPLIER:", data?.[0]);
+      console.log("SUPPLIERS:", data?.length);
+      console.log("SUPPLIER ERROR:", error);
+      console.log("FIRST SUPPLIER:", data?.[0]);
 
-    if (error) throw error;
+      if (error) throw error;
 
-    return data ?? [];
-  }
+      return data ?? [];
+    }
 
-  return mockDelay(suppliers);
-},
+    return mockDelay(suppliers);
+  },
 
-  async update(
-  id: ID,
-  input: Partial<Supplier>
-): Promise<Supplier> {
-  if (!USE_MOCK_API) {
-    const { data, error } = await supabase
-      .from("suppliers")
-      .update(input)
-      .eq("id", id)
-      .select()
-      .single();
+  async update(id: ID, input: Partial<Supplier>): Promise<Supplier> {
+    if (!USE_MOCK_API) {
+      const { data, error } = await supabase
+        .from("suppliers")
+        .update(input)
+        .eq("id", id)
+        .select()
+        .single();
 
-    console.log("SUPPLIER UPDATE", {
-      id,
-      input,
-      data,
-      error,
-    });
+      console.log("SUPPLIER UPDATE", {
+        id,
+        input,
+        data,
+        error,
+      });
 
-    if (error) throw error;
+      if (error) throw error;
 
-    return data;
-  }
+      return data;
+    }
 
-  suppliers = suppliers.map((s) =>
-    s.id === id ? { ...s, ...input } : s
-  );
+    suppliers = suppliers.map((s) => (s.id === id ? { ...s, ...input } : s));
 
-  return mockDelay(
-    suppliers.find((s) => s.id === id)!,
-    300
-  );
-},
+    return mockDelay(
+      suppliers.find((s) => s.id === id)!,
+      300,
+    );
+  },
 
   async remove(id: ID): Promise<void> {
     if (!USE_MOCK_API) {
-     const { error } = await supabase
-  .from("suppliers")
-  .delete()
-  .eq("id", id);
+      const { error } = await supabase.from("suppliers").delete().eq("id", id);
 
-if (error) throw error;
+      if (error) throw error;
       return;
     }
     suppliers = suppliers.filter((s) => s.id !== id);
@@ -75,6 +64,6 @@ if (error) throw error;
   },
 
   async purchases(): Promise<PurchaseRecord[]> {
-  return [];
-},
+    return [];
+  },
 };

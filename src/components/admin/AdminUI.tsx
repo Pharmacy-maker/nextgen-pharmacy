@@ -1,9 +1,30 @@
 import { useState, type ReactNode } from "react";
 import { Pencil, Trash2 } from "lucide-react";
-import { ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell } from "recharts";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 import type { SeriesPoint } from "../../types/models";
 
-export function AdminPageHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
+export function AdminPageHeader({
+  title,
+  subtitle,
+  action,
+}: {
+  title: string;
+  subtitle?: string;
+  action?: ReactNode;
+}) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
       <div>
@@ -30,7 +51,9 @@ export function StatCard({
 }) {
   return (
     <div className="glass rounded-2xl p-5 relative overflow-hidden">
-      <div className={`absolute -top-10 -right-10 h-28 w-28 rounded-full blur-2xl opacity-40 bg-grad-${tone}`} />
+      <div
+        className={`absolute -top-10 -right-10 h-28 w-28 rounded-full blur-2xl opacity-40 bg-grad-${tone}`}
+      />
       <div className="flex items-center justify-between">
         <div className="text-xs uppercase tracking-widest text-muted-foreground">{label}</div>
         {icon}
@@ -49,9 +72,17 @@ const TONES: Record<string, string> = {
   gray: "bg-white/10 text-muted-foreground border-white/15",
 };
 
-export function StatusBadge({ label, tone = "gray" }: { label: string; tone?: keyof typeof TONES }) {
+export function StatusBadge({
+  label,
+  tone = "gray",
+}: {
+  label: string;
+  tone?: keyof typeof TONES;
+}) {
   return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold capitalize ${TONES[tone]}`}>
+    <span
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold capitalize ${TONES[tone]}`}
+    >
       {label}
     </span>
   );
@@ -65,7 +96,9 @@ export function DataTable({ headers, children }: { headers: string[]; children: 
           <thead>
             <tr className="text-left text-xs uppercase tracking-widest text-muted-foreground border-b border-white/10">
               {headers.map((h) => (
-                <th key={h} className="px-4 py-3 font-medium whitespace-nowrap">{h}</th>
+                <th key={h} className="px-4 py-3 font-medium whitespace-nowrap">
+                  {h}
+                </th>
               ))}
             </tr>
           </thead>
@@ -76,7 +109,15 @@ export function DataTable({ headers, children }: { headers: string[]; children: 
   );
 }
 
-export function ChartCard({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
+export function ChartCard({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+}) {
   return (
     <div className="glass rounded-2xl p-5">
       <div className="mb-4">
@@ -141,11 +182,27 @@ export function AreaTrend({ data }: { data: SeriesPoint[] }) {
             <stop offset="100%" stopColor="#38bdf8" stopOpacity={0} />
           </linearGradient>
         </defs>
-        
-        <XAxis dataKey="label" tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }} axisLine={false} tickLine={false} width={48} />
+
+        <XAxis
+          dataKey="label"
+          tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }}
+          axisLine={false}
+          tickLine={false}
+        />
+        <YAxis
+          tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }}
+          axisLine={false}
+          tickLine={false}
+          width={48}
+        />
         <Tooltip content={<CustomTooltip />} />
-        <Area type="monotone" dataKey="value" stroke="#38bdf8" fill="url(#adminArea)" strokeWidth={2} />
+        <Area
+          type="monotone"
+          dataKey="value"
+          stroke="#38bdf8"
+          fill="url(#adminArea)"
+          strokeWidth={2}
+        />
       </AreaChart>
     </ResponsiveContainer>
   );
@@ -155,15 +212,27 @@ export function BarSeries({ data }: { data: SeriesPoint[] }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <BarChart data={data}>
-        
-        <XAxis dataKey="label" tick={{ fontSize: 10, fill: "rgba(255,255,255,0.5)" }} axisLine={false} tickLine={false} interval={0} angle={-12} height={44} />
-        <YAxis tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }} axisLine={false} tickLine={false} width={48} />
+        <XAxis
+          dataKey="label"
+          tick={{ fontSize: 10, fill: "rgba(255,255,255,0.5)" }}
+          axisLine={false}
+          tickLine={false}
+          interval={0}
+          angle={-12}
+          height={44}
+        />
+        <YAxis
+          tick={{ fontSize: 11, fill: "rgba(255,255,255,0.5)" }}
+          axisLine={false}
+          tickLine={false}
+          width={48}
+        />
         <Tooltip
-  content={<CustomTooltip />}
-  cursor={{
-    fill: "rgba(255,255,255,0.04)",
-  }}
-/>
+          content={<CustomTooltip />}
+          cursor={{
+            fill: "rgba(255,255,255,0.04)",
+          }}
+        />
         <Bar dataKey="value" radius={[8, 8, 0, 0]}>
           {data.map((_, i) => (
             <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
@@ -178,7 +247,14 @@ export function DonutSeries({ data }: { data: SeriesPoint[] }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <PieChart>
-        <Pie data={data} dataKey="value" nameKey="label" innerRadius={50} outerRadius={80} paddingAngle={3}>
+        <Pie
+          data={data}
+          dataKey="value"
+          nameKey="label"
+          innerRadius={50}
+          outerRadius={80}
+          paddingAngle={3}
+        >
           {data.map((_, i) => (
             <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
           ))}
@@ -213,26 +289,26 @@ export function RowActions({
       >
         <Pencil className="h-3.5 w-3.5" /> Edit
       </button>
-     {onDelete && (
-  <button
-    type="button"
-    onClick={() => {
-      if (
-        typeof window === "undefined" ||
-        window.confirm(`Delete ${label}? This cannot be undone.`)
-      ) {
-        onDelete();
-      }
-    }}
-    disabled={disabled}
-    aria-label={`Delete ${label}`}
-    title="Delete"
-    className="inline-flex items-center gap-1 rounded-lg border border-pink/30 bg-pink/10 px-2.5 py-1.5 text-xs font-semibold text-pink transition hover:border-pink/50 hover:bg-pink/20 disabled:cursor-not-allowed disabled:opacity-60"
-  >
-    <Trash2 className="h-3.5 w-3.5" />
-    Delete
-  </button>
-)}
+      {onDelete && (
+        <button
+          type="button"
+          onClick={() => {
+            if (
+              typeof window === "undefined" ||
+              window.confirm(`Delete ${label}? This cannot be undone.`)
+            ) {
+              onDelete();
+            }
+          }}
+          disabled={disabled}
+          aria-label={`Delete ${label}`}
+          title="Delete"
+          className="inline-flex items-center gap-1 rounded-lg border border-pink/30 bg-pink/10 px-2.5 py-1.5 text-xs font-semibold text-pink transition hover:border-pink/50 hover:bg-pink/20 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          Delete
+        </button>
+      )}
     </div>
   );
 }
@@ -315,7 +391,9 @@ export function EditPanel({
                 className="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
               >
                 {(f.options ?? []).map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
                 ))}
               </select>
             ) : (
@@ -323,7 +401,10 @@ export function EditPanel({
                 type={f.type === "number" ? "number" : "text"}
                 value={String(draft[f.key] ?? "")}
                 onChange={(e) =>
-                  setDraft({ ...draft, [f.key]: f.type === "number" ? Number(e.target.value) : e.target.value })
+                  setDraft({
+                    ...draft,
+                    [f.key]: f.type === "number" ? Number(e.target.value) : e.target.value,
+                  })
                 }
                 className="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
               />
@@ -332,10 +413,18 @@ export function EditPanel({
         ))}
       </div>
       <div className="mt-4 flex gap-2">
-        <button type="submit" disabled={saving} className="rounded-xl px-5 py-2.5 bg-grad-hero text-white text-sm font-semibold glow disabled:opacity-60">
+        <button
+          type="submit"
+          disabled={saving}
+          className="rounded-xl px-5 py-2.5 bg-grad-hero text-white text-sm font-semibold glow disabled:opacity-60"
+        >
           {saving ? "Saving…" : "Save changes"}
         </button>
-        <button type="button" onClick={onCancel} className="rounded-xl px-5 py-2.5 border border-white/10 text-sm font-semibold hover:bg-white/5">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-xl px-5 py-2.5 border border-white/10 text-sm font-semibold hover:bg-white/5"
+        >
           Cancel
         </button>
       </div>

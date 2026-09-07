@@ -8,12 +8,7 @@ import { AsyncBoundary, EmptyState } from "../components/site/AsyncState";
 import { DataTable, StatCard, StatusBadge, inr } from "../components/admin/AdminUI";
 import { ProductImage } from "../components/site/ProductImage";
 
-import {
-  orderService,
-  prescriptionService,
-  userService,
-  productService,
-} from "../lib/api";
+import { orderService, prescriptionService, userService, productService } from "../lib/api";
 
 import { useAuth, useCart, useWishlist } from "../lib/store";
 
@@ -22,9 +17,16 @@ export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
       { title: "My Dashboard — Rays Pharmacy" },
-      { name: "description", content: "Track your Rays Pharmacy orders, prescriptions, wishlist, addresses and profile in one place." },
+      {
+        name: "description",
+        content:
+          "Track your Rays Pharmacy orders, prescriptions, wishlist, addresses and profile in one place.",
+      },
       { property: "og:title", content: "My Dashboard — Rays Pharmacy" },
-      { property: "og:description", content: "Your orders, prescriptions, wishlist and saved addresses." },
+      {
+        property: "og:description",
+        content: "Your orders, prescriptions, wishlist and saved addresses.",
+      },
     ],
   }),
 });
@@ -67,8 +69,7 @@ function CustomerDashboard() {
     enabled: !!userId,
   });
 
-  const wishlist =
-    products.data?.filter((p: any) => ids.includes(p.id)) ?? [];
+  const wishlist = products.data?.filter((p: any) => ids.includes(p.id)) ?? [];
 
   console.log("WISHLIST IDS", ids);
   console.log("PRODUCTS", products.data);
@@ -147,13 +148,9 @@ function CustomerDashboard() {
                   className="h-28 w-full object-cover rounded-xl"
                 />
 
-                <div className="mt-3 font-semibold text-sm">
-                  {p.name}
-                </div>
+                <div className="mt-3 font-semibold text-sm">{p.name}</div>
 
-                <div className="text-xs text-muted-foreground">
-                  {p.category}
-                </div>
+                <div className="text-xs text-muted-foreground">{p.category}</div>
               </Link>
             ))}
           </div>

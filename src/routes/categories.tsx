@@ -1,7 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Activity, ArrowRight, Baby, Dog, Droplet, Flower2, HeartPulse, Leaf, Pill, Shield, Smile, Sun, Zap,
+  Activity,
+  ArrowRight,
+  Baby,
+  Dog,
+  Droplet,
+  Flower2,
+  HeartPulse,
+  Leaf,
+  Pill,
+  Shield,
+  Smile,
+  Sun,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 import { PageShell, Section } from "../components/site/Section";
@@ -13,9 +25,15 @@ export const Route = createFileRoute("/categories")({
   head: () => ({
     meta: [
       { title: "Categories — Rays Pharmacy" },
-      { name: "description", content: "Explore medicine categories: cardiac, diabetes, immunity, skin care and more." },
+      {
+        name: "description",
+        content: "Explore medicine categories: cardiac, diabetes, immunity, skin care and more.",
+      },
       { property: "og:title", content: "Categories — Rays Pharmacy" },
-      { property: "og:description", content: "Shop by category — from daily essentials to specialised care." },
+      {
+        property: "og:description",
+        content: "Shop by category — from daily essentials to specialised care.",
+      },
     ],
   }),
 });
@@ -99,7 +117,9 @@ function CategoriesPage() {
                       >
                         <Icon className="h-6 w-6 text-white" />
                       </div>
-                      <div className="font-semibold group-hover:text-white transition-colors">{c.name}</div>
+                      <div className="font-semibold group-hover:text-white transition-colors">
+                        {c.name}
+                      </div>
                       <div className="text-xs text-muted-foreground group-hover:text-white/80 mt-1 flex items-center gap-1">
                         Explore <ArrowRight className="h-3 w-3" />
                       </div>

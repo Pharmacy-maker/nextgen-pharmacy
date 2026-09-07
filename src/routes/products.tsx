@@ -26,9 +26,15 @@ export const Route = createFileRoute("/products")({
   head: () => ({
     meta: [
       { title: "Products — Rays Pharmacy" },
-      { name: "description", content: "Browse and search medicines, wellness and healthcare products." },
+      {
+        name: "description",
+        content: "Browse and search medicines, wellness and healthcare products.",
+      },
       { property: "og:title", content: "Products — Rays Pharmacy" },
-      { property: "og:description", content: "Browse and search our full catalogue of medicines and wellness products." },
+      {
+        property: "og:description",
+        content: "Browse and search our full catalogue of medicines and wellness products.",
+      },
     ],
   }),
 });
@@ -49,7 +55,8 @@ function applyFilters(
         p.manufacturer.toLowerCase().includes(s),
     );
   if (opts.tag) out = out.filter((p) => p.tags?.includes(opts.tag));
-  if (opts.category) out = out.filter((p) => p.category.toLowerCase() === opts.category.toLowerCase());
+  if (opts.category)
+    out = out.filter((p) => p.category.toLowerCase() === opts.category.toLowerCase());
   if (opts.sort === "priceAsc") out.sort((a, b) => a.price - b.price);
   if (opts.sort === "priceDesc") out.sort((a, b) => b.price - a.price);
   if (opts.sort === "rating") out.sort((a, b) => b.rating - a.rating);
@@ -64,31 +71,22 @@ function ProductsPage() {
   const [visible, setVisible] = useState(PAGE_SIZE);
 
   const { data, isLoading, error, refetch } = useQuery({
-  queryKey: ["products"],
-  queryFn: async () => {
-    const { data, error } = await supabase
-      .from("products")
-      .select("*");
+    queryKey: ["products"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("products").select("*");
 
-    if (error) throw error;
-    
+      if (error) throw error;
 
+      return data ?? [];
+    },
+  });
 
-    return data ?? [];
-    
-  },
-});
-  
-const firstWithImage = data?.find((p) => p.image);
-
-
+  const firstWithImage = data?.find((p) => p.image);
 
   const filtered = useMemo(
     () => applyFilters(data ?? [], { q: localQ, tag, category, sort }),
     [data, localQ, tag, category, sort],
   );
-
-  
 
   useEffect(() => setVisible(PAGE_SIZE), [localQ, tag, category, sort]);
 
@@ -105,18 +103,16 @@ const firstWithImage = data?.find((p) => p.image);
             <input
               value={localQ}
               onChange={(e) => {
-  
+                setLocalQ(e.target.value);
 
-  setLocalQ(e.target.value);
-
-  navigate({
-    search: (prev) => ({
-      ...prev,
-      q: e.target.value,
-    }),
-    replace: true,
-  });
-}}
+                navigate({
+                  search: (prev) => ({
+                    ...prev,
+                    q: e.target.value,
+                  }),
+                  replace: true,
+                });
+              }}
               placeholder="Search medicines, brands, categories…"
               aria-label="Search products"
               className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
@@ -141,7 +137,15 @@ const firstWithImage = data?.find((p) => p.image);
           <div className="flex flex-wrap gap-2 mb-4 text-xs">
             {tag && (
               <button
-                onClick={() => navigate({ search: (prev: { q: string; tag: string; category: string }) => ({ ...prev, tag: "" }), replace: true })}
+                onClick={() =>
+                  navigate({
+                    search: (prev: { q: string; tag: string; category: string }) => ({
+                      ...prev,
+                      tag: "",
+                    }),
+                    replace: true,
+                  })
+                }
                 className="glass px-3 py-1 rounded-full"
               >
                 Tag: {tag} ✕
@@ -149,7 +153,15 @@ const firstWithImage = data?.find((p) => p.image);
             )}
             {category && (
               <button
-                onClick={() => navigate({ search: (prev: { q: string; tag: string; category: string }) => ({ ...prev, category: "" }), replace: true })}
+                onClick={() =>
+                  navigate({
+                    search: (prev: { q: string; tag: string; category: string }) => ({
+                      ...prev,
+                      category: "",
+                    }),
+                    replace: true,
+                  })
+                }
                 className="glass px-3 py-1 rounded-full"
               >
                 Category: {category} ✕

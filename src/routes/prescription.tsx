@@ -2,11 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { AlertTriangle, Brain, CheckCircle2, Loader2, Sparkles, Upload, X } from "lucide-react";
 import { PageShell, Section } from "../components/site/Section";
-import {
-  PRESCRIPTION_MAX_BYTES,
-  PRESCRIPTION_MIME,
-  validatePrescription,
-} from "../lib/validation";
+import { PRESCRIPTION_MAX_BYTES, PRESCRIPTION_MIME, validatePrescription } from "../lib/validation";
 import { useAuth, useCart } from "../lib/store";
 import { prescriptionService } from "../lib/api";
 import type { PrescriptionScan } from "../types/models";
@@ -17,9 +13,15 @@ export const Route = createFileRoute("/prescription")({
   head: () => ({
     meta: [
       { title: "Upload Prescription — Rays Pharmacy" },
-      { name: "description", content: "Upload your prescription and let Rays AI extract medicines instantly." },
+      {
+        name: "description",
+        content: "Upload your prescription and let Rays AI extract medicines instantly.",
+      },
       { property: "og:title", content: "Upload Prescription — Rays Pharmacy" },
-      { property: "og:description", content: "AI-powered prescription scanning with instant medicine matching." },
+      {
+        property: "og:description",
+        content: "AI-powered prescription scanning with instant medicine matching.",
+      },
     ],
   }),
 });
@@ -77,23 +79,40 @@ function PrescriptionPage() {
   console.log("EXTRACTED:", extracted);
 
   const addAll = () => {
-  alert("BUTTON CLICKED");
+    console.log("ADD ALL CALLED");
+    console.log("MATCHED PRODUCTS COUNT:", matchedProducts.length);
+    console.log("MATCHED PRODUCTS:", matchedProducts);
 
-  console.log("MATCHED PRODUCTS COUNT:", matchedProducts.length);
-  console.log("MATCHED PRODUCTS:", matchedProducts);
+    if (matchedProducts.length === 0) {
+      toast.error("No products to add to cart");
+      return;
+    }
 
-  matchedProducts.forEach((p, index) => {
-    console.log("ITEM", index, p);
+    let addedCount = 0;
+    matchedProducts.forEach((p, index) => {
+      console.log("ITEM", index, p);
+      console.log("CALLING ADD FOR:", p.id);
 
-    console.log("CALLING ADD FOR:", p.id);
-    add(p.id, 1);
-  });
+      if (p.id) {
+        add(p.id, 1);
+        addedCount++;
+      } else {
+        console.error("Product missing ID:", p);
+      }
+    });
 
-  alert("FINISHED LOOP");
-};
+    console.log("FINISHED LOOP, ADDED:", addedCount);
+    if (addedCount > 0) {
+      toast.success(`Added ${addedCount} products to cart`);
+    }
+  };
   return (
     <PageShell>
-      <Section eyebrow="AI Vision" title="Upload Your | Prescription |" subtitle="Drop a photo — our AI extracts medicines, dosages, and finds the best price in seconds.">
+      <Section
+        eyebrow="AI Vision"
+        title="Upload Your | Prescription |"
+        subtitle="Drop a photo — our AI extracts medicines, dosages, and finds the best price in seconds."
+      >
         <div className="grid lg:grid-cols-2 gap-8 items-stretch">
           <div
             onDragOver={(e) => {
@@ -120,12 +139,15 @@ function PrescriptionPage() {
                 <div className="h-20 w-20 rounded-2xl bg-grad-hero grid place-items-center glow">
                   <Upload className="h-8 w-8 text-white" />
                 </div>
-                {busy && <div className="absolute inset-0 rounded-2xl border-2 border-neon animate-pulse-glow" />}
+                {busy && (
+                  <div className="absolute inset-0 rounded-2xl border-2 border-neon animate-pulse-glow" />
+                )}
               </div>
               <div>
                 <div className="font-semibold text-lg">Drop prescription here</div>
                 <div className="text-muted-foreground text-sm">
-                  or click to browse • JPG, JPEG, PNG or PDF • up to {Math.round(PRESCRIPTION_MAX_BYTES / 1024 / 1024)}MB
+                  or click to browse • JPG, JPEG, PNG or PDF • up to{" "}
+                  {Math.round(PRESCRIPTION_MAX_BYTES / 1024 / 1024)}MB
                 </div>
               </div>
               <button
@@ -153,18 +175,27 @@ function PrescriptionPage() {
                 </div>
               )}
               {error && (
-                <div className="w-full text-sm text-pink text-left flex items-start gap-2" role="alert">
+                <div
+                  className="w-full text-sm text-pink text-left flex items-start gap-2"
+                  role="alert"
+                >
                   <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" /> {error}
                 </div>
               )}
               {busy && (
-                <div className="w-full mt-2 flex items-center gap-2 text-sm text-muted-foreground" aria-live="polite">
+                <div
+                  className="w-full mt-2 flex items-center gap-2 text-sm text-muted-foreground"
+                  aria-live="polite"
+                >
                   <Loader2 className="h-4 w-4 animate-spin text-neon" />
                   {phase === "uploading" ? "Uploading prescription…" : "AI scanning…"}
                 </div>
               )}
               {phase === "done" && (
-                <div className="w-full mt-2 flex items-center gap-2 text-sm text-emerald" aria-live="polite">
+                <div
+                  className="w-full mt-2 flex items-center gap-2 text-sm text-emerald"
+                  aria-live="polite"
+                >
                   <CheckCircle2 className="h-4 w-4" /> Prescription uploaded successfully
                 </div>
               )}
@@ -176,7 +207,10 @@ function PrescriptionPage() {
               <Brain className="h-4 w-4 text-neon" /> AI extraction preview
             </div>
             {extracted.map((m, i) => (
-              <div key={`${m.name}-${i}`} className="flex items-center justify-between py-3 border-b border-white/10 last:border-0">
+              <div
+                key={`${m.name}-${i}`}
+                className="flex items-center justify-between py-3 border-b border-white/10 last:border-0"
+              >
                 <div>
                   <div className="font-semibold">{m.name}</div>
                   <div className="text-xs text-muted-foreground">
@@ -203,7 +237,6 @@ function PrescriptionPage() {
             >
               {extracted.length > 0 ? "Add all to cart" : "No medicines extracted yet"}
             </button>
-
           </div>
         </div>
       </Section>

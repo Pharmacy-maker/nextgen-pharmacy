@@ -7,7 +7,12 @@ export const nameSchema = z
   .max(60, "Name is too long")
   .regex(/^[A-Za-z][A-Za-z\s.'-]*$/, "Name may contain letters only");
 
-export const emailSchema = z.string().trim().toLowerCase().email("Enter a valid email address").max(255);
+export const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email("Enter a valid email address")
+  .max(255);
 
 export const phoneSchema = z
   .string()
@@ -23,7 +28,10 @@ export const passwordSchema = z
   .regex(/[^A-Za-z0-9]/, "Must include a special character");
 
 export const addressSchema = z.string().trim().min(5, "Address is required").max(200);
-export const pincodeSchema = z.string().trim().regex(/^\d{6}$/, "Pincode must be 6 digits");
+export const pincodeSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{6}$/, "Pincode must be 6 digits");
 export const citySchema = z.string().trim().min(2, "City is required").max(60);
 
 export const signupSchema = z

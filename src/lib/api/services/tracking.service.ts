@@ -14,12 +14,36 @@ import type { ID, Order, OrderTracking, TrackingStage } from "../../../types/mod
  */
 
 const RIDERS = [
-  { id: "r-1", name: "Rahul Verma", phone: "+91 98450 11221", rating: 4.9, vehicle: "Electric scooter" },
-  { id: "r-2", name: "Anjali Nair", phone: "+91 98450 33440", rating: 4.8, vehicle: "Bike • DL 4C 1188" },
-  { id: "r-3", name: "Imran Sheikh", phone: "+91 98450 77009", rating: 4.7, vehicle: "Bike • KA 05 AJ 2210" },
+  {
+    id: "r-1",
+    name: "Rahul Verma",
+    phone: "+91 98450 11221",
+    rating: 4.9,
+    vehicle: "Electric scooter",
+  },
+  {
+    id: "r-2",
+    name: "Anjali Nair",
+    phone: "+91 98450 33440",
+    rating: 4.8,
+    vehicle: "Bike • DL 4C 1188",
+  },
+  {
+    id: "r-3",
+    name: "Imran Sheikh",
+    phone: "+91 98450 77009",
+    rating: 4.7,
+    vehicle: "Bike • KA 05 AJ 2210",
+  },
 ];
 
-const STAGE_ORDER: TrackingStage[] = ["confirmed", "packed", "dispatched", "out_for_delivery", "delivered"];
+const STAGE_ORDER: TrackingStage[] = [
+  "confirmed",
+  "packed",
+  "dispatched",
+  "out_for_delivery",
+  "delivered",
+];
 
 const STAGE_LABEL: Record<TrackingStage, string> = {
   confirmed: "Order confirmed",
@@ -87,10 +111,7 @@ function buildTracking(order: Order): OrderTracking {
         : order.status === "cancelled"
           ? "Cancelled"
           : `${etaMinutes} min`,
-    rider:
-      order.status === "shipped" || order.status === "delivered"
-        ? rider
-        : null,
+    rider: order.status === "shipped" || order.status === "delivered" ? rider : null,
     destination: order.shippingAddress,
     coordinates: {
       hub: { lat: 12.9611 + (seed % 20) / 1000, lng: 77.6387 - (seed % 15) / 1000 },
@@ -104,17 +125,17 @@ function buildTracking(order: Order): OrderTracking {
 export const trackingService = {
   /** Tracking for a single order. `userId` scopes access to the owner. */
   async forOrder(orderId: ID, userId?: ID): Promise<OrderTracking | null> {
-  const order = await orderService.get(orderId);
+    const order = await orderService.get(orderId);
 
-  if (!order) return null;
-  if (userId && order.userId !== userId) return null;
+    if (!order) return null;
+    if (userId && order.userId !== userId) return null;
 
-  return mockDelay(buildTracking(order), 250);
-},
-   
+    return mockDelay(buildTracking(order), 250);
+  },
+
   /** All tracking records for the signed-in customer's own orders. */
   async listMine(userId: ID): Promise<OrderTracking[]> {
-  const orders = await orderService.listMine(userId);
-  return mockDelay(orders.map(buildTracking), 250);
-},
+    const orders = await orderService.listMine(userId);
+    return mockDelay(orders.map(buildTracking), 250);
+  },
 };

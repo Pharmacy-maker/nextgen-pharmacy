@@ -65,7 +65,8 @@ export function TextField({
 }: TextFieldProps) {
   const autoId = useId();
   const id = rest.id ?? autoId;
-  const status: Status = !touched && !value ? "idle" : error ? "invalid" : showValid ? "valid" : "idle";
+  const status: Status =
+    !touched && !value ? "idle" : error ? "invalid" : showValid ? "valid" : "idle";
   return (
     <Field label={label} error={touched ? error : undefined} hint={hint} htmlFor={id}>
       <input

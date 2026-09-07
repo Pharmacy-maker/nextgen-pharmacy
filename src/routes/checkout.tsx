@@ -11,20 +11,32 @@ import { TextField } from "../components/site/FormFields";
 import { UPI_APPS, type SupportedPaymentMethod, type UpiAppId } from "../lib/payments";
 import type { Address } from "../types/models";
 
-
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
   head: () => ({
     meta: [
       { title: "Checkout — Rays Pharmacy" },
-      { name: "description", content: "Enter delivery details and choose your payment method to complete your order." },
+      {
+        name: "description",
+        content: "Enter delivery details and choose your payment method to complete your order.",
+      },
       { property: "og:title", content: "Checkout — Rays Pharmacy" },
-      { property: "og:description", content: "Fast, secure checkout with multiple payment options." },
+      {
+        property: "og:description",
+        content: "Fast, secure checkout with multiple payment options.",
+      },
     ],
   }),
 });
 
-type Form = { name: string; email: string; phone: string; address: string; city: string; pincode: string };
+type Form = {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  pincode: string;
+};
 
 const formSchema = checkoutSchema.extend({ email: emailSchema });
 
@@ -37,7 +49,12 @@ function CheckoutPage() {
   const queryClient = useQueryClient();
   const [form, setForm] = useState<Form>(EMPTY_FORM);
   const [touched, setTouched] = useState<Record<keyof Form, boolean>>({
-    name: false, email: false, phone: false, address: false, city: false, pincode: false,
+    name: false,
+    email: false,
+    phone: false,
+    address: false,
+    city: false,
+    pincode: false,
   });
   const [errors, setErrors] = useState<FieldErrors<Form>>({});
   const [pay, setPay] = useState<SupportedPaymentMethod>("upi");
@@ -128,7 +145,6 @@ function CheckoutPage() {
 
   const isValid = useMemo(() => formSchema.safeParse(form).success, [form]);
 
-
   const applyCoupon = () => {
     if (coupon.trim().toUpperCase() === "RAYS10") {
       setDiscount(Math.round(subtotal * 0.1));
@@ -144,11 +160,9 @@ function CheckoutPage() {
     if (count === 0 || submitting) return;
     setTouched({ name: true, email: true, phone: true, address: true, city: true, pincode: true });
     if (!prescriptionFile) {
-  setPrescriptionError(
-    "Prescription upload is required"
-  );
-  return;
-}
+      setPrescriptionError("Prescription upload is required");
+      return;
+    }
     if (!validate(form) || !user) return;
     setSubmitting(true);
     try {
@@ -156,7 +170,8 @@ function CheckoutPage() {
       const isNew =
         !selectedAddressId ||
         !addresses.some(
-          (a) => a.id === selectedAddressId && a.line1 === form.address && a.pincode === form.pincode,
+          (a) =>
+            a.id === selectedAddressId && a.line1 === form.address && a.pincode === form.pincode,
         );
       if (isNew && saveAddress) {
         try {
@@ -175,21 +190,23 @@ function CheckoutPage() {
       }
       try {
         localStorage.setItem(
-  "rays:pending-order",
-  JSON.stringify({
-    shippingAddress: `${form.address}, ${form.city} ${form.pincode}`,
-    customerName: form.name,
-    email: form.email,
-    phone: form.phone,
+          "rays:pending-order",
+          JSON.stringify({
+            shippingAddress: `${form.address}, ${form.city} ${form.pincode}`,
+            customerName: form.name,
+            email: form.email,
+            phone: form.phone,
 
-    prescriptionName:
-      prescriptionFile?.name ?? "",
-  }),
-);
+            prescriptionName: prescriptionFile?.name ?? "",
+          }),
+        );
       } catch {
         /* storage unavailable — order is still created with a fallback address */
       }
-      navigate({ to: "/payment", search: { method: pay, total, slot: slots[slot], app: pay === "upi" ? upiApp : "" } });
+      navigate({
+        to: "/payment",
+        search: { method: pay, total, slot: slots[slot], app: pay === "upi" ? upiApp : "" },
+      });
     } finally {
       setSubmitting(false);
     }
@@ -198,11 +215,19 @@ function CheckoutPage() {
   if (!ready || !user) {
     return (
       <PageShell>
-        <Section eyebrow="Secure checkout" title="Sign | in |" subtitle="Please log in or create an account to continue with your purchase.">
+        <Section
+          eyebrow="Secure checkout"
+          title="Sign | in |"
+          subtitle="Please log in or create an account to continue with your purchase."
+        >
           <div className="glass rounded-3xl p-10 text-center">
             <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
             <div className="mt-4 text-sm text-muted-foreground">Taking you to the login page…</div>
-            <Link to="/login" search={{ redirect: "/checkout" }} className="inline-block mt-5 rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow">
+            <Link
+              to="/login"
+              search={{ redirect: "/checkout" }}
+              className="inline-block mt-5 rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow"
+            >
               Log in / Sign up
             </Link>
           </div>
@@ -211,14 +236,20 @@ function CheckoutPage() {
     );
   }
 
-
   return (
     <PageShell>
-      <Section eyebrow="Seamless checkout" title="Modern | Payments |" subtitle="Pay how you love — with a checkout that just feels right.">
+      <Section
+        eyebrow="Seamless checkout"
+        title="Modern | Payments |"
+        subtitle="Pay how you love — with a checkout that just feels right."
+      >
         {count === 0 ? (
           <div className="glass rounded-3xl p-10 text-center">
             <div className="text-lg font-semibold">Your cart is empty</div>
-            <Link to="/products" className="inline-block mt-4 rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow">
+            <Link
+              to="/products"
+              className="inline-block mt-4 rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow"
+            >
               Browse products
             </Link>
           </div>
@@ -238,12 +269,16 @@ function CheckoutPage() {
                           onClick={() => applyAddress(a)}
                           aria-pressed={active}
                           className={`text-left rounded-2xl p-4 border transition ${
-                            active ? "border-transparent bg-grad-cool text-white glow" : "border-white/10 glass hover:bg-white/10"
+                            active
+                              ? "border-transparent bg-grad-cool text-white glow"
+                              : "border-white/10 glass hover:bg-white/10"
                           }`}
                         >
                           <div className="flex items-center gap-2 text-sm font-semibold">
                             <MapPin className="h-4 w-4" /> {a.label}
-                            {a.isDefault && <span className="text-[10px] uppercase opacity-70">Default</span>}
+                            {a.isDefault && (
+                              <span className="text-[10px] uppercase opacity-70">Default</span>
+                            )}
                           </div>
                           <div className="text-xs mt-1 opacity-80">
                             {a.line1}, {a.city} {a.pincode}
@@ -260,7 +295,9 @@ function CheckoutPage() {
                       }}
                       aria-pressed={showNewAddress}
                       className={`text-left rounded-2xl p-4 border transition ${
-                        showNewAddress ? "border-transparent bg-grad-cool text-white glow" : "border-white/10 glass hover:bg-white/10"
+                        showNewAddress
+                          ? "border-transparent bg-grad-cool text-white glow"
+                          : "border-white/10 glass hover:bg-white/10"
                       }`}
                     >
                       <div className="flex items-center gap-2 text-sm font-semibold">
@@ -271,7 +308,8 @@ function CheckoutPage() {
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground mb-4">
-                    You don't have a saved delivery address yet — add one below and we'll keep it for future orders.
+                    You don't have a saved delivery address yet — add one below and we'll keep it
+                    for future orders.
                   </p>
                 )}
                 <div className="grid sm:grid-cols-2 gap-3">
@@ -362,7 +400,9 @@ function CheckoutPage() {
                       onClick={() => setSlot(i)}
                       aria-pressed={i === slot}
                       className={`px-4 py-2 rounded-xl text-sm border transition ${
-                        i === slot ? "bg-grad-hero text-white border-transparent glow" : "border-white/10 hover:bg-white/5"
+                        i === slot
+                          ? "bg-grad-hero text-white border-transparent glow"
+                          : "border-white/10 hover:bg-white/5"
                       }`}
                     >
                       {s}
@@ -371,33 +411,27 @@ function CheckoutPage() {
                 </div>
               </div>
               <div className="glass rounded-3xl p-6">
-  <div className="font-semibold mb-3">
-    Prescription Upload *
-  </div>
+                <div className="font-semibold mb-3">Prescription Upload *</div>
 
-  <input
-    type="file"
-    accept=".jpg,.jpeg,.png,.pdf"
-    onChange={(e) => {
-      const file = e.target.files?.[0] ?? null;
-      setPrescriptionFile(file);
-      setPrescriptionError("");
-    }}
-    className="block w-full text-sm"
-  />
+                <input
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.pdf"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] ?? null;
+                    setPrescriptionFile(file);
+                    setPrescriptionError("");
+                  }}
+                  className="block w-full text-sm"
+                />
 
-  {prescriptionFile && (
-    <p className="mt-2 text-emerald text-sm">
-      ✓ {prescriptionFile.name}
-    </p>
-  )}
+                {prescriptionFile && (
+                  <p className="mt-2 text-emerald text-sm">✓ {prescriptionFile.name}</p>
+                )}
 
-  {prescriptionError && (
-    <p className="mt-2 text-red-500 text-sm">
-      {prescriptionError}
-    </p>
-  )}
-</div>
+                {prescriptionError && (
+                  <p className="mt-2 text-red-500 text-sm">{prescriptionError}</p>
+                )}
+              </div>
               <div className="glass rounded-3xl p-6">
                 <div className="font-semibold mb-3">Payment method</div>
                 <div className="grid grid-cols-2 gap-3">
@@ -411,7 +445,9 @@ function CheckoutPage() {
                         onClick={() => setPay(o.k)}
                         aria-pressed={active}
                         className={`rounded-2xl p-4 border transition text-left ${
-                          active ? "border-transparent bg-grad-cool text-white glow" : "border-white/10 glass hover:bg-white/10"
+                          active
+                            ? "border-transparent bg-grad-cool text-white glow"
+                            : "border-white/10 glass hover:bg-white/10"
                         }`}
                       >
                         <Icon className="h-5 w-5 mb-2" />
@@ -422,7 +458,9 @@ function CheckoutPage() {
                 </div>
                 {pay === "upi" && (
                   <div className="mt-4">
-                    <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Pay using</div>
+                    <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
+                      Pay using
+                    </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {UPI_APPS.map((a) => {
                         const active = upiApp === a.id;
@@ -433,17 +471,23 @@ function CheckoutPage() {
                             onClick={() => setUpiApp(a.id)}
                             aria-pressed={active}
                             className={`rounded-xl px-3 py-2.5 text-xs font-semibold border transition flex items-center gap-2 ${
-                              active ? "border-transparent bg-white/15 glow" : "border-white/10 glass hover:bg-white/10"
+                              active
+                                ? "border-transparent bg-white/15 glow"
+                                : "border-white/10 glass hover:bg-white/10"
                             }`}
                           >
-                            <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: a.accent }} />
+                            <span
+                              className="h-2.5 w-2.5 rounded-full shrink-0"
+                              style={{ background: a.accent }}
+                            />
                             <span className="truncate">{a.label}</span>
                           </button>
                         );
                       })}
                     </div>
                     <p className="mt-2 text-[11px] text-muted-foreground">
-                      You'll approve the request in your UPI app. Payment is confirmed only after verification.
+                      You'll approve the request in your UPI app. Payment is confirmed only after
+                      verification.
                     </p>
                   </div>
                 )}
@@ -462,10 +506,19 @@ function CheckoutPage() {
                 ))}
               </div>
               <div className="mt-3 pt-3 border-t border-white/10 space-y-1 text-sm">
-                <div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal}</span></div>
-                <div className="flex justify-between"><span>Shipping</span><span>{shipping === 0 ? "Free" : `₹${shipping}`}</span></div>
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>₹{subtotal}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Shipping</span>
+                  <span>{shipping === 0 ? "Free" : `₹${shipping}`}</span>
+                </div>
                 {discount > 0 && (
-                  <div className="flex justify-between text-emerald"><span>Discount</span><span>-₹{discount}</span></div>
+                  <div className="flex justify-between text-emerald">
+                    <span>Discount</span>
+                    <span>-₹{discount}</span>
+                  </div>
                 )}
               </div>
               <div className="mt-3 pt-3 border-t border-white/10 flex justify-between">
@@ -480,12 +533,18 @@ function CheckoutPage() {
                   aria-label="Coupon code"
                   className="flex-1 bg-white/5 rounded-xl px-3 py-2 border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
                 />
-                <button type="button" onClick={applyCoupon} className="rounded-xl px-3 py-2 bg-white/10 text-sm font-semibold hover:bg-white/15">
+                <button
+                  type="button"
+                  onClick={applyCoupon}
+                  className="rounded-xl px-3 py-2 bg-white/10 text-sm font-semibold hover:bg-white/15"
+                >
                   Apply
                 </button>
               </div>
               {couponMsg && (
-                <div className={`mt-2 text-xs ${discount > 0 ? "text-emerald" : "text-pink"}`}>{couponMsg}</div>
+                <div className={`mt-2 text-xs ${discount > 0 ? "text-emerald" : "text-pink"}`}>
+                  {couponMsg}
+                </div>
               )}
               <button
                 type="submit"

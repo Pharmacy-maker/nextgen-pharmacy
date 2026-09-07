@@ -3,7 +3,7 @@ import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
-import { AlertTriangle, CheckCircle2, Clock, Loader2,} from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { PageShell, Section } from "../components/site/Section";
 import { useAuth, useCart } from "../lib/store";
@@ -43,7 +43,7 @@ function PaymentPage() {
   const [screen, setScreen] = useState<Screen>("idle");
   const [message, setMessage] = useState<string>("");
   const [paymentId, setPaymentId] = useState<string | null>(null);
-  
+
   const queryClient = useQueryClient();
   const cleared = useRef(false);
 
@@ -58,7 +58,10 @@ function PaymentPage() {
           let shippingAddress = "Saved address";
           try {
             const raw = localStorage.getItem("rays:pending-order");
-            if (raw) shippingAddress = (JSON.parse(raw) as { shippingAddress?: string }).shippingAddress ?? shippingAddress;
+            if (raw)
+              shippingAddress =
+                (JSON.parse(raw) as { shippingAddress?: string }).shippingAddress ??
+                shippingAddress;
           } catch {
             /* ignore malformed cache */
           }
@@ -76,16 +79,14 @@ function PaymentPage() {
   );
 
   const pay = async () => {
-  if (screen === "processing") return;
+    if (screen === "processing") return;
 
-  setScreen("processing");
+    setScreen("processing");
 
-  setTimeout(() => {
-    settle("success", "Payment successful");
-  }, 1500);
-};
-
-  
+    setTimeout(() => {
+      settle("success", "Payment successful");
+    }, 1500);
+  };
 
   useEffect(() => {
     if (total <= 0 && screen === "idle") setMessage("");
@@ -102,11 +103,17 @@ function PaymentPage() {
               </div>
               <div className="text-2xl font-bold">Order placed!</div>
               <p className="text-sm text-muted-foreground mt-2">
-                Thank you for shopping with Rays Pharmacy. Your order will arrive within {slot || "the selected slot"}.
+                Thank you for shopping with Rays Pharmacy. Your order will arrive within{" "}
+                {slot || "the selected slot"}.
               </p>
-              {paymentId && <div className="text-xs text-muted-foreground mt-2">Payment ID: {paymentId}</div>}
+              {paymentId && (
+                <div className="text-xs text-muted-foreground mt-2">Payment ID: {paymentId}</div>
+              )}
               <div className="flex justify-center gap-3 mt-6 flex-wrap">
-                <Link to="/delivery" className="rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow">
+                <Link
+                  to="/delivery"
+                  className="rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow"
+                >
                   Track order
                 </Link>
                 <Link to="/products" className="rounded-xl px-5 py-2.5 glass hover:bg-white/15">
@@ -123,10 +130,14 @@ function PaymentPage() {
               <p className="text-sm text-muted-foreground mt-2">
                 {message || "We're waiting for confirmation. Your order is reserved."}
               </p>
-              {paymentId && <div className="text-xs text-muted-foreground mt-2">Payment ID: {paymentId}</div>}
+              {paymentId && (
+                <div className="text-xs text-muted-foreground mt-2">Payment ID: {paymentId}</div>
+              )}
               <div className="flex justify-center gap-3 mt-6 flex-wrap">
-                
-                <Link to="/delivery" className="rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow">
+                <Link
+                  to="/delivery"
+                  className="rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow"
+                >
                   Track order
                 </Link>
               </div>
@@ -168,7 +179,11 @@ function PaymentPage() {
               <div className="text-3xl font-bold text-grad-hero">₹{total}</div>
               <div className="text-sm text-muted-foreground mt-2">Delivery slot: {slot || "—"}</div>
               {screen === "processing" && (
-                <div className="text-xs text-muted-foreground mt-3" role="status" aria-live="polite">
+                <div
+                  className="text-xs text-muted-foreground mt-3"
+                  role="status"
+                  aria-live="polite"
+                >
                   Securely contacting the payment gateway…
                 </div>
               )}

@@ -13,11 +13,7 @@ import {
 } from "../lib/validation";
 import { useAuth, type AuthUser } from "../lib/store";
 import { authService } from "../lib/api";
-import {
-  ConfirmPasswordField,
-  PasswordField,
-  TextField,
-} from "../components/site/FormFields";
+import { ConfirmPasswordField, PasswordField, TextField } from "../components/site/FormFields";
 
 export const Route = createFileRoute("/login")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -27,7 +23,11 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       { title: "Login — Rays Pharmacy" },
-      { name: "description", content: "Sign in or create your Rays Pharmacy account to track orders and save prescriptions." },
+      {
+        name: "description",
+        content:
+          "Sign in or create your Rays Pharmacy account to track orders and save prescriptions.",
+      },
       { property: "og:title", content: "Login — Rays Pharmacy" },
       { property: "og:description", content: "Sign in to your Rays Pharmacy account." },
     ],
@@ -50,7 +50,6 @@ function LoginPage() {
     navigate({ to: dest as "/dashboard" });
   };
 
-
   if (user) {
     return (
       <PageShell>
@@ -59,7 +58,10 @@ function LoginPage() {
             <div className="text-sm text-muted-foreground">{user.email}</div>
             <div className="flex flex-wrap justify-center gap-3 mt-6">
               {!isAdmin && redirect === "/checkout" && (
-                <Link to="/checkout" className="rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow">
+                <Link
+                  to="/checkout"
+                  className="rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow"
+                >
                   Continue to checkout
                 </Link>
               )}
@@ -118,10 +120,12 @@ function LoginPage() {
   );
 }
 
-
 function LoginFormEl({ onDone }: { onDone: (u: AuthUser) => void }) {
   const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
-  const [touched, setTouched] = useState<Record<keyof LoginForm, boolean>>({ email: false, password: false });
+  const [touched, setTouched] = useState<Record<keyof LoginForm, boolean>>({
+    email: false,
+    password: false,
+  });
   const [errors, setErrors] = useState<FieldErrors<LoginForm>>({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -197,7 +201,10 @@ function LoginFormEl({ onDone }: { onDone: (u: AuthUser) => void }) {
         {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
         {submitting ? "Signing in…" : "Sign in"}
       </button>
-      <Link to="/forgot-password" className="block text-center text-xs text-muted-foreground hover:text-foreground">
+      <Link
+        to="/forgot-password"
+        className="block text-center text-xs text-muted-foreground hover:text-foreground"
+      >
         Forgot your password?
       </Link>
     </form>
@@ -205,9 +212,19 @@ function LoginFormEl({ onDone }: { onDone: (u: AuthUser) => void }) {
 }
 
 function SignupFormEl({ onRegistered }: { onRegistered: () => void }) {
-  const [form, setForm] = useState<SignupForm>({ name: "", email: "", phone: "", password: "", confirm: "" });
+  const [form, setForm] = useState<SignupForm>({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirm: "",
+  });
   const [touched, setTouched] = useState<Record<keyof SignupForm, boolean>>({
-    name: false, email: false, phone: false, password: false, confirm: false,
+    name: false,
+    email: false,
+    phone: false,
+    password: false,
+    confirm: false,
   });
   const [errors, setErrors] = useState<FieldErrors<SignupForm>>({});
   const [submitting, setSubmitting] = useState(false);

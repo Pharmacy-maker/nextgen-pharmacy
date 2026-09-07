@@ -1,11 +1,6 @@
 import { apiFetch, mockDelay } from "../client";
 import { ENDPOINTS, USE_MOCK_API } from "../config";
-import type {
-  ID,
-  PaymentMethod,
-  PaymentOrder,
-  PaymentVerification,
-} from "../../../types/models";
+import type { ID, PaymentMethod, PaymentOrder, PaymentVerification } from "../../../types/models";
 
 /**
  * Payment service — frontend only.
@@ -34,7 +29,6 @@ function mockStatus(input: CreatePaymentOrderInput): PaymentOrder["status"] {
 export const paymentService = {
   /** Creates a payment intent/order on the gateway via our backend. */
   async createPaymentOrder(input: CreatePaymentOrderInput): Promise<PaymentOrder> {
-    
     if (!USE_MOCK_API) {
       return apiFetch<PaymentOrder>(ENDPOINTS.payments.create, { method: "POST", body: input });
     }

@@ -25,7 +25,11 @@ export function RoleGuard({ role, children }: { role: UserRole; children: ReactN
 
   if (!ready || !user || user.role !== role) {
     return (
-      <div className="min-h-screen grid place-items-center text-muted-foreground" role="status" aria-live="polite">
+      <div
+        className="min-h-screen grid place-items-center text-muted-foreground"
+        role="status"
+        aria-live="polite"
+      >
         <div className="flex items-center gap-2 text-sm">
           <Loader2 className="h-4 w-4 animate-spin" /> Checking your access…
         </div>

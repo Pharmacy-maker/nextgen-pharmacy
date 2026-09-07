@@ -18,8 +18,6 @@ const NAV = [
 ] as const;
 
 export function Header() {
- 
-
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -30,8 +28,8 @@ export function Header() {
   const { count: wishCount } = useWishlist();
   const { ids } = useWishlist();
 
-console.log("WISHLIST IDS:", ids);
-console.log("WISHLIST COUNT:", wishCount);
+  console.log("WISHLIST IDS:", ids);
+  console.log("WISHLIST COUNT:", wishCount);
   const { user, logout } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const searchRef = useRef<HTMLDivElement>(null);
@@ -59,62 +57,46 @@ console.log("WISHLIST COUNT:", wishCount);
 
   const [results, setResults] = useState<any[]>([]);
 
-useEffect(() => {
-  
+  useEffect(() => {
+    const loadResults = async () => {
+      if (!query.trim()) {
+        setResults([]);
+        return;
+      }
 
-  const loadResults = async () => {
-    
+      if (!query.trim()) {
+        setResults([]);
+        return;
+      }
 
-if (!query.trim()) {
-  
-  setResults([]);
-  return;
-}
+      const { data, error } = await supabase
+        .from("products")
+        .select("id,name,category,manufacturer,price,image")
+        .ilike("name", `%${query}%`)
+        .limit(6);
 
+      if (error) {
+        console.error("SUPABASE ERROR");
+        console.error(error);
+        console.error(JSON.stringify(error, null, 2));
+      }
 
+      const products = data ?? [];
 
+      const filtered = products.filter((p) => {
+        const name = (p.name ?? "").toLowerCase();
+        const category = (p.category ?? "").toLowerCase();
+        const manufacturer = (p.manufacturer ?? "").toLowerCase();
+        const q = query.toLowerCase();
 
-    if (!query.trim()) {
-      setResults([]);
-      return;
-    }
-    
-  const { data, error } = await supabase
-  .from("products")
-  .select("id,name,category,manufacturer,price,image")
-  .ilike("name", `%${query}%`)
-  .limit(6);
+        return name.includes(q) || category.includes(q) || manufacturer.includes(q);
+      });
 
-if (error) {
-  console.error("SUPABASE ERROR");
-  console.error(error);
-  console.error(JSON.stringify(error, null, 2));
-}
+      setResults(filtered.slice(0, 6));
+    };
 
-
-  const products = data ?? [];
-    
-
-const filtered = products.filter((p) => {
-  const name = (p.name ?? "").toLowerCase();
-  const category = (p.category ?? "").toLowerCase();
-  const manufacturer = (p.manufacturer ?? "").toLowerCase();
-  const q = query.toLowerCase();
-
-  return (
-    name.includes(q) ||
-    category.includes(q) ||
-    manufacturer.includes(q)
-  );
-});
-
-
-setResults(filtered.slice(0, 6));
-    
-  };
-
-  loadResults();
-}, [query]);
+    loadResults();
+  }, [query]);
 
   const submitSearch = (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -124,18 +106,18 @@ setResults(filtered.slice(0, 6));
   };
 
   return (
-    <header className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled ? "py-2" : "py-4"}`}>
+    <header
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled ? "py-2" : "py-4"}`}
+    >
       <div className="mx-auto max-w-7xl px-4">
-        <div className={`glass-strong rounded-2xl px-4 md:px-6 py-3 flex items-center gap-4 ${scrolled ? "glow" : ""}`}>
+        <div
+          className={`glass-strong rounded-2xl px-4 md:px-6 py-3 flex items-center gap-4 ${scrolled ? "glow" : ""}`}
+        >
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-xl">
-              <img
-                src="/logo.png"
-                alt="Rays Pharmacy"
-                className="h-full w-full object-contain"
-              />
-           </div>
-           <span className="font-brand text-lg">Rays Pharmacy</span>
+              <img src="/logo.png" alt="Rays Pharmacy" className="h-full w-full object-contain" />
+            </div>
+            <span className="font-brand text-lg">Rays Pharmacy</span>
           </Link>
           <nav className="hidden lg:flex items-center gap-1 mx-2">
             {NAV.map((n) => (
@@ -143,8 +125,13 @@ setResults(filtered.slice(0, 6));
                 key={n.to}
                 to={n.to}
                 activeOptions={{ exact: n.to === "/" }}
-                activeProps={{ className: "px-3 py-1.5 text-sm rounded-lg bg-white/10 text-foreground" }}
-                inactiveProps={{ className: "px-3 py-1.5 text-sm rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors" }}
+                activeProps={{
+                  className: "px-3 py-1.5 text-sm rounded-lg bg-white/10 text-foreground",
+                }}
+                inactiveProps={{
+                  className:
+                    "px-3 py-1.5 text-sm rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors",
+                }}
               >
                 {n.label}
               </Link>
@@ -174,25 +161,28 @@ setResults(filtered.slice(0, 6));
                     </div>
                   ) : (
                     results.map((p) => {
-  
-                   return (
-                      <Link
-                        key={p.id}
-                        to="/product/$id"
-                        params={{ id: p.id }}
-                        className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/10"
-                      >
-                        <ProductImage src={p.image} seed={p.id} alt={p.name} className="h-10 w-10 rounded-lg object-cover" />
-                        <div className="min-w-0 flex-1">
-                          <div className="text-sm font-medium truncate">{p.name}</div>
-                          <div className="text-xs text-muted-foreground">{p.category}</div>
-                        </div>
-                        <div className="text-sm font-semibold">₹{discountedPrice(p)}</div>
-                      </Link>
-  );
-})
-                  )
-                  }
+                      return (
+                        <Link
+                          key={p.id}
+                          to="/product/$id"
+                          params={{ id: p.id }}
+                          className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/10"
+                        >
+                          <ProductImage
+                            src={p.image}
+                            seed={p.id}
+                            alt={p.name}
+                            className="h-10 w-10 rounded-lg object-cover"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm font-medium truncate">{p.name}</div>
+                            <div className="text-xs text-muted-foreground">{p.category}</div>
+                          </div>
+                          <div className="text-sm font-semibold">₹{discountedPrice(p)}</div>
+                        </Link>
+                      );
+                    })
+                  )}
                 </div>
               )}
             </div>
@@ -209,12 +199,19 @@ setResults(filtered.slice(0, 6));
               )}
             </IconBtn>
             <div className="relative" ref={userRef}>
-              <IconBtn onClick={() => (user ? setUserMenu((v) => !v) : navigate({
-  to: "/login",
-  search: {
-    redirect: "/",
-  },
-}))} label="Account">
+              <IconBtn
+                onClick={() =>
+                  user
+                    ? setUserMenu((v) => !v)
+                    : navigate({
+                        to: "/login",
+                        search: {
+                          redirect: "/",
+                        },
+                      })
+                }
+                label="Account"
+              >
                 <User className="h-4 w-4" />
               </IconBtn>
               {user && userMenu && (
@@ -227,7 +224,8 @@ setResults(filtered.slice(0, 6));
                     onClick={() => setUserMenu(false)}
                     className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/10 text-sm"
                   >
-                    <User className="h-4 w-4" /> {user.role === "admin" ? "Admin dashboard" : "My dashboard"}
+                    <User className="h-4 w-4" />{" "}
+                    {user.role === "admin" ? "Admin dashboard" : "My dashboard"}
                   </Link>
                   <button
                     onClick={() => {
@@ -250,7 +248,11 @@ setResults(filtered.slice(0, 6));
               )}
             </IconBtn>
           </div>
-          <button className="lg:hidden p-2 rounded-lg hover:bg-white/5" onClick={() => setOpen(!open)} aria-label="menu">
+          <button
+            className="lg:hidden p-2 rounded-lg hover:bg-white/5"
+            onClick={() => setOpen(!open)}
+            aria-label="menu"
+          >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
@@ -265,8 +267,17 @@ setResults(filtered.slice(0, 6));
                 className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
               />
             </form>
-            {[...NAV, { label: `Wishlist${wishCount ? ` (${wishCount})` : ""}`, to: "/wishlist" as const }, { label: `Cart${count ? ` (${count})` : ""}`, to: "/cart" as const }, { label: user ? "Account" : "Login", to: "/login" as const }].map((n) => (
-              <Link key={n.label} to={n.to} className="px-3 py-2 rounded-lg text-sm hover:bg-white/5">
+            {[
+              ...NAV,
+              { label: `Wishlist${wishCount ? ` (${wishCount})` : ""}`, to: "/wishlist" as const },
+              { label: `Cart${count ? ` (${count})` : ""}`, to: "/cart" as const },
+              { label: user ? "Account" : "Login", to: "/login" as const },
+            ].map((n) => (
+              <Link
+                key={n.label}
+                to={n.to}
+                className="px-3 py-2 rounded-lg text-sm hover:bg-white/5"
+              >
                 {n.label}
               </Link>
             ))}

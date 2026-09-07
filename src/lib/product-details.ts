@@ -46,26 +46,23 @@ export function getProductDetails(p: Product): ProductDetails {
       p.description ??
       `${p.name} is a ${form.toLowerCase()} from ${p.manufacturer} used in ${p.category.toLowerCase()} care. ` +
         `Each pack (${packSize.toLowerCase()}) is quality-checked, sealed and stored under pharmacy-grade conditions before dispatch.`,
-    composition:
-      p.composition ?? [
-        `${p.name.replace(/\s+\d+.*$/, "")} — active ingredient`,
-        "Microcrystalline cellulose (excipient)",
-        "Magnesium stearate (excipient)",
-      ],
+    composition: p.composition ?? [
+      `${p.name.replace(/\s+\d+.*$/, "")} — active ingredient`,
+      "Microcrystalline cellulose (excipient)",
+      "Magnesium stearate (excipient)",
+    ],
     dosage:
       p.dosage ??
       `Adults: 1 ${form.toLowerCase()} once or twice daily, or exactly as prescribed by your physician. Do not exceed the prescribed dose.`,
     usage:
       p.usage ??
       "Take with a glass of water, preferably after food, at the same time each day. Complete the full course even if you feel better.",
-    warnings:
-      p.warnings ?? [
-        "Not recommended during pregnancy or breastfeeding without medical advice.",
-        "Inform your doctor about any ongoing medication or known allergies.",
-        "Keep out of reach of children.",
-      ],
-    sideEffects:
-      p.sideEffects ?? ["Mild nausea", "Headache", "Dizziness", "Stomach discomfort"],
+    warnings: p.warnings ?? [
+      "Not recommended during pregnancy or breastfeeding without medical advice.",
+      "Inform your doctor about any ongoing medication or known allergies.",
+      "Keep out of reach of children.",
+    ],
+    sideEffects: p.sideEffects ?? ["Mild nausea", "Headache", "Dizziness", "Stomach discomfort"],
     storage:
       p.storage ??
       "Store below 30°C in a cool, dry place away from direct sunlight. Keep in the original pack until use.",

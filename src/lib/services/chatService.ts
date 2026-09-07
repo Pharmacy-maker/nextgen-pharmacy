@@ -1,11 +1,6 @@
 import { supabase } from "../supabase";
 
-import type {
-  ChatConversation,
-  ChatMessage,
-  ChatReply,
-  ID,
-} from "../../types/models";
+import type { ChatConversation, ChatMessage, ChatReply, ID } from "../../types/models";
 
 export type SendMessageInput = {
   conversationId: ID;
@@ -13,10 +8,7 @@ export type SendMessageInput = {
   userId?: ID;
 };
 
-export function createMessage(
-  role: ChatMessage["role"],
-  content: string
-): ChatMessage {
+export function createMessage(role: ChatMessage["role"], content: string): ChatMessage {
   return {
     id: crypto.randomUUID(),
     role,
@@ -39,15 +31,9 @@ function normalizeText(text: string): string {
 
 function containsAny(text: string, keywords: string[]): boolean {
   return keywords.some((keyword) => {
-    const escapedKeyword = keyword.replace(
-      /[.*+?^${}()|[\]\\]/g,
-      "\\$&"
-    );
+    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-    const pattern = new RegExp(
-      `(^|\\s)${escapedKeyword}(?=\\s|$)`,
-      "i"
-    );
+    const pattern = new RegExp(`(^|\\s)${escapedKeyword}(?=\\s|$)`, "i");
 
     return pattern.test(text);
   });
@@ -85,16 +71,7 @@ function getResponse(userMessage: string): string {
      THANK YOU
   ======================================================= */
 
-  if (
-    containsAny(text, [
-      "thank you",
-      "thanks",
-      "thank u",
-      "thankyou",
-      "thx",
-      "thanks a lot",
-    ])
-  ) {
+  if (containsAny(text, ["thank you", "thanks", "thank u", "thankyou", "thx", "thanks a lot"])) {
     return "You're welcome! I'm happy to help.";
   }
 
@@ -102,15 +79,7 @@ function getResponse(userMessage: string): string {
      GOODBYE
   ======================================================= */
 
-  if (
-    containsAny(text, [
-      "bye",
-      "goodbye",
-      "good bye",
-      "see you",
-      "see ya",
-    ])
-  ) {
+  if (containsAny(text, ["bye", "goodbye", "good bye", "see you", "see ya"])) {
     return "Goodbye! Thank you for using Rays Pharmacy.";
   }
 
@@ -445,35 +414,24 @@ export const chatService = {
      LOAD CHAT HISTORY
   ======================================================= */
 
-  async history(
-    conversationId: ID
-  ): Promise<ChatConversation | null> {
+  async history(conversationId: ID): Promise<ChatConversation | null> {
     if (!conversationId || conversationId === "default") {
       return null;
     }
 
-    const {
-      data: conversation,
-      error: conversationError,
-    } = await supabase
+    const { data: conversation, error: conversationError } = await supabase
       .from("chat_conversations")
       .select("*")
       .eq("id", conversationId)
       .maybeSingle();
 
     if (conversationError || !conversation) {
-      console.error(
-        "History conversation error:",
-        conversationError
-      );
+      console.error("History conversation error:", conversationError);
 
       return null;
     }
 
-    const {
-      data: messages,
-      error: messagesError,
-    } = await supabase
+    const { data: messages, error: messagesError } = await supabase
       .from("chat_messages")
       .select("*")
       .eq("conversation_id", conversationId)
@@ -482,10 +440,7 @@ export const chatService = {
       });
 
     if (messagesError) {
-      console.error(
-        "History messages error:",
-        messagesError
-      );
+      console.error("History messages error:", messagesError);
 
       return {
         id: conversation.id,
@@ -508,22 +463,13 @@ export const chatService = {
      SAVE CHAT HISTORY
   ======================================================= */
 
-  async saveHistory(
-    conversation: ChatConversation
-  ): Promise<void> {
+  async saveHistory(conversation: ChatConversation): Promise<void> {
     const conversationId =
-      conversation.id === "default" || !conversation.id
-        ? crypto.randomUUID()
-        : conversation.id;
+      conversation.id === "default" || !conversation.id ? crypto.randomUUID() : conversation.id;
 
-    const {
-      data: userData,
-    } = await supabase.auth.getUser();
+    const { data: userData } = await supabase.auth.getUser();
 
-    const userId =
-      userData?.user?.id ??
-      conversation.userId ??
-      null;
+    const userId = userData?.user?.id ?? conversation.userId ?? null;
 
     const conversationData: Record<string, unknown> = {
       id: conversationId,
@@ -534,41 +480,27 @@ export const chatService = {
       conversationData.user_id = userId;
     }
 
-    const {
-      error: conversationError,
-    } = await supabase
+    const { error: conversationError } = await supabase
       .from("chat_conversations")
       .upsert(conversationData);
 
     if (conversationError) {
-      throw new Error(
-        `Unable to save conversation: ${conversationError.message}`
-      );
+      throw new Error(`Unable to save conversation: ${conversationError.message}`);
     }
 
     for (const message of conversation.messages) {
-      const messageId = message.id.startsWith("msg-")
-        ? crypto.randomUUID()
-        : message.id;
+      const messageId = message.id.startsWith("msg-") ? crypto.randomUUID() : message.id;
 
-      const {
-        error: messageError,
-      } = await supabase
-        .from("chat_messages")
-        .upsert({
-          id: messageId,
-          conversation_id: conversationId,
-          role: message.role,
-          content: message.content,
-          created_at:
-            message.createdAt ||
-            new Date().toISOString(),
-        });
+      const { error: messageError } = await supabase.from("chat_messages").upsert({
+        id: messageId,
+        conversation_id: conversationId,
+        role: message.role,
+        content: message.content,
+        created_at: message.createdAt || new Date().toISOString(),
+      });
 
       if (messageError) {
-        throw new Error(
-          `Unable to save message: ${messageError.message}`
-        );
+        throw new Error(`Unable to save message: ${messageError.message}`);
       }
     }
   },
@@ -582,17 +514,10 @@ export const chatService = {
       return;
     }
 
-    const {
-      error,
-    } = await supabase
-      .from("chat_conversations")
-      .delete()
-      .eq("id", conversationId);
+    const { error } = await supabase.from("chat_conversations").delete().eq("id", conversationId);
 
     if (error) {
-      throw new Error(
-        `Unable to clear conversation: ${error.message}`
-      );
+      throw new Error(`Unable to clear conversation: ${error.message}`);
     }
   },
 
@@ -600,17 +525,14 @@ export const chatService = {
      SEND MESSAGE
   ======================================================= */
 
-  async sendMessage(
-    input: SendMessageInput
-  ): Promise<ChatReply> {
+  async sendMessage(input: SendMessageInput): Promise<ChatReply> {
     let conversationId = input.conversationId;
 
     if (!conversationId || conversationId === "default") {
       conversationId = crypto.randomUUID();
     }
 
-    const lastMessage =
-      input.messages[input.messages.length - 1];
+    const lastMessage = input.messages[input.messages.length - 1];
 
     if (!lastMessage) {
       throw new Error("Message cannot be empty.");
@@ -627,16 +549,16 @@ export const chatService = {
    LOGIN IS REQUIRED
 ===================================================== */
 
-const {
-  data: { user },
-  error: authError,
-} = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
-if (authError || !user) {
-  throw new Error("Please login to use the chatbot.");
-}
+    if (authError || !user) {
+      throw new Error("Please login to use the chatbot.");
+    }
 
-const userId = user.id;
+    const userId = user.id;
 
     /* =====================================================
        SAVE CONVERSATION
@@ -651,17 +573,12 @@ const userId = user.id;
       conversationData.user_id = userId;
     }
 
-    const {
-      error: conversationError,
-    } = await supabase
+    const { error: conversationError } = await supabase
       .from("chat_conversations")
       .upsert(conversationData);
 
     if (conversationError) {
-      console.error(
-        "Conversation save error:",
-        conversationError
-      );
+      console.error("Conversation save error:", conversationError);
 
       // Don't stop chatbot response because of database error.
     }
@@ -672,23 +589,16 @@ const userId = user.id;
 
     const userMessageId = crypto.randomUUID();
 
-    const {
-      error: userMessageError,
-    } = await supabase
-      .from("chat_messages")
-      .insert({
-        id: userMessageId,
-        conversation_id: conversationId,
-        role: "user",
-        content: userMessage,
-        created_at: new Date().toISOString(),
-      });
+    const { error: userMessageError } = await supabase.from("chat_messages").insert({
+      id: userMessageId,
+      conversation_id: conversationId,
+      role: "user",
+      content: userMessage,
+      created_at: new Date().toISOString(),
+    });
 
     if (userMessageError) {
-      console.error(
-        "User message save error:",
-        userMessageError
-      );
+      console.error("User message save error:", userMessageError);
 
       // Don't stop chatbot response.
     }
@@ -705,26 +615,18 @@ const userId = user.id;
 
     const assistantMessageId = crypto.randomUUID();
 
-    const assistantCreatedAt =
-      new Date().toISOString();
+    const assistantCreatedAt = new Date().toISOString();
 
-    const {
-      error: assistantError,
-    } = await supabase
-      .from("chat_messages")
-      .insert({
-        id: assistantMessageId,
-        conversation_id: conversationId,
-        role: "assistant",
-        content: answer,
-        created_at: assistantCreatedAt,
-      });
+    const { error: assistantError } = await supabase.from("chat_messages").insert({
+      id: assistantMessageId,
+      conversation_id: conversationId,
+      role: "assistant",
+      content: answer,
+      created_at: assistantCreatedAt,
+    });
 
     if (assistantError) {
-      console.error(
-        "Assistant message save error:",
-        assistantError
-      );
+      console.error("Assistant message save error:", assistantError);
     }
 
     /* =====================================================
@@ -758,11 +660,7 @@ const userId = user.id;
         createdAt: assistantCreatedAt,
       },
 
-      suggestions: [
-        "Browse medicines",
-        "Upload prescription",
-        "Track my order",
-      ],
+      suggestions: ["Browse medicines", "Upload prescription", "Track my order"],
     };
 
     return reply;

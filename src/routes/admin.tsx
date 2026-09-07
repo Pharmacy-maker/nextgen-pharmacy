@@ -1,8 +1,21 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import {
-  LayoutDashboard, Package, Boxes, Truck, Users, ShoppingBag, FileText, Tags,
-  BarChart3, Settings, LogOut, Menu, X, Pill, Store,
+  LayoutDashboard,
+  Package,
+  Boxes,
+  Truck,
+  Users,
+  ShoppingBag,
+  FileText,
+  Tags,
+  BarChart3,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+  Pill,
+  Store,
 } from "lucide-react";
 import { RoleGuard } from "../components/auth/RoleGuard";
 import { useAuth } from "../lib/store";
@@ -12,7 +25,11 @@ export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
       { title: "Admin Console — Rays Pharmacy" },
-      { name: "description", content: "Manage products, inventory, orders, prescriptions and analytics for Rays Pharmacy." },
+      {
+        name: "description",
+        content:
+          "Manage products, inventory, orders, prescriptions and analytics for Rays Pharmacy.",
+      },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Admin Console — Rays Pharmacy" },
       { property: "og:description", content: "Internal administration console for Rays Pharmacy." },
@@ -75,7 +92,9 @@ function AdminShell() {
                   to={n.to as "/admin"}
                   onClick={() => setOpen(false)}
                   className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-colors ${
-                    active ? "bg-white/10 text-foreground font-semibold" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                    active
+                      ? "bg-white/10 text-foreground font-semibold"
+                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                   }`}
                 >
                   <n.icon className="h-4 w-4" />
@@ -85,7 +104,10 @@ function AdminShell() {
             })}
           </nav>
           <div className="border-t border-white/10 pt-3 mt-2 space-y-1">
-            <Link to="/" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-white/5">
+            <Link
+              to="/"
+              className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground hover:bg-white/5"
+            >
               <Store className="h-4 w-4" /> View storefront
             </Link>
             <button
@@ -98,12 +120,18 @@ function AdminShell() {
         </div>
       </aside>
 
-      {open && <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setOpen(false)} />}
+      {open && (
+        <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setOpen(false)} />
+      )}
 
       <div className="lg:pl-64">
         <header className="sticky top-0 z-20 p-3">
           <div className="glass-strong rounded-2xl px-4 py-3 flex items-center gap-3">
-            <button className="lg:hidden p-2 rounded-lg hover:bg-white/10" onClick={() => setOpen((v) => !v)} aria-label="Toggle menu">
+            <button
+              className="lg:hidden p-2 rounded-lg hover:bg-white/10"
+              onClick={() => setOpen((v) => !v)}
+              aria-label="Toggle menu"
+            >
               {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
             <div className="text-sm text-muted-foreground">Administrator console</div>

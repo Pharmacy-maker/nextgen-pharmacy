@@ -2,12 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  AdminPageHeader,
-  DataTable,
-  EditPanel,
-  RowActions,
-} from "../components/admin/AdminUI";
+import { AdminPageHeader, DataTable, EditPanel, RowActions } from "../components/admin/AdminUI";
 import { AsyncBoundary, EmptyState } from "../components/site/AsyncState";
 import { productService } from "../lib/api";
 import type { Category } from "../types/models";
@@ -20,34 +15,29 @@ function AdminCategories() {
   const qc = useQueryClient();
 
   const [editing, setEditing] = useState<Category | null>(null);
- const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   const invalidate = () =>
     qc.invalidateQueries({
       queryKey: ["admin", "categories"],
     });
 
-    const create = useMutation({
-  mutationFn: (input: {
-    name: string;
-    slug: string;
-    description?: string;
-  }) => productService.createCategory(input),
+  const create = useMutation({
+    mutationFn: (input: { name: string; slug: string; description?: string }) =>
+      productService.createCategory(input),
 
-  onSuccess: () => {
-    toast.success("Category created");
-    setCreating(false);
-    invalidate();
-  },
+    onSuccess: () => {
+      toast.success("Category created");
+      setCreating(false);
+      invalidate();
+    },
 
-  onError: (e: Error) => toast.error(e.message),
-});
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const update = useMutation({
-    mutationFn: (input: {
-      id: string;
-      patch: Partial<Category>;
-    }) => productService.updateCategory(input.id, input.patch),
+    mutationFn: (input: { id: string; patch: Partial<Category> }) =>
+      productService.updateCategory(input.id, input.patch),
 
     onSuccess: () => {
       toast.success("Category updated");
@@ -82,31 +72,26 @@ function AdminCategories() {
   const counts = new Map<string, number>();
 
   for (const p of products.data ?? []) {
-    counts.set(
-      p.category.toLowerCase(),
-      (counts.get(p.category.toLowerCase()) ?? 0) + 1
-    );
+    counts.set(p.category.toLowerCase(), (counts.get(p.category.toLowerCase()) ?? 0) + 1);
   }
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <AdminPageHeader
-  title="Categories"
-  subtitle="Manage product categories"
-  action={
-    <button
-      type="button"
-      onClick={() => setCreating(true)}
-      className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-medium text-white"
-    >
-      Add Category
-    </button>
-  }
-/>
-
+          title="Categories"
+          subtitle="Manage product categories"
+          action={
+            <button
+              type="button"
+              onClick={() => setCreating(true)}
+              className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-medium text-white"
+            >
+              Add Category
+            </button>
+          }
+        />
       </div>
-
 
       {editing && (
         <EditPanel
@@ -132,83 +117,58 @@ function AdminCategories() {
         />
       )}
       {creating && (
-  <EditPanel
-    title="Add Category"
-    saving={create.isPending}
-    value={{
-      name: "",
-      slug: "",
-      description: "",
-    }}
-    fields={[
-      { key: "name", label: "Category" },
-      { key: "slug", label: "Slug" },
-      { key: "description", label: "Description" },
-    ]}
-    onCancel={() => setCreating(false)}
-    onSave={(next) =>
-      create.mutate({
-        name: String(next.name),
-        slug: String(next.slug),
-        description: String(next.description ?? ""),
-      })
-    }
-  />
-)}
+        <EditPanel
+          title="Add Category"
+          saving={create.isPending}
+          value={{
+            name: "",
+            slug: "",
+            description: "",
+          }}
+          fields={[
+            { key: "name", label: "Category" },
+            { key: "slug", label: "Slug" },
+            { key: "description", label: "Description" },
+          ]}
+          onCancel={() => setCreating(false)}
+          onSave={(next) =>
+            create.mutate({
+              name: String(next.name),
+              slug: String(next.slug),
+              description: String(next.description ?? ""),
+            })
+          }
+        />
+      )}
       <AsyncBoundary
         isLoading={categories.isLoading}
         error={categories.error}
         data={categories.data}
         onRetry={() => categories.refetch()}
         loadingLabel="Loading categories…"
-        empty={
-          <EmptyState
-            title="No categories yet"
-            hint="Create your first category."
-          />
-        }
+        empty={<EmptyState title="No categories yet" hint="Create your first category." />}
       >
         {(list) => (
-          <DataTable
-            headers={[
-              "Category",
-              "Slug",
-              "Description",
-              "Products",
-              "Actions",
-            ]}
-          >
+          <DataTable headers={["Category", "Slug", "Description", "Products", "Actions"]}>
             {list.map((c) => {
-              const count =
-                counts.get(c.name.toLowerCase()) ??
-                c.productCount ??
-                0;
+              const count = counts.get(c.name.toLowerCase()) ?? c.productCount ?? 0;
 
               return (
                 <tr key={c.id} className="hover:bg-white/5">
-                  <td className="px-4 py-3 font-medium">
-                    {c.name}
-                  </td>
+                  <td className="px-4 py-3 font-medium">{c.name}</td>
 
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {c.slug}
-                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{c.slug}</td>
 
                   <td className="px-4 py-3 text-muted-foreground max-w-xs truncate">
                     {c.description ?? "—"}
                   </td>
 
-                  <td className="px-4 py-3">
-                    {count}
-                  </td>
+                  <td className="px-4 py-3">{count}</td>
 
                   <td className="px-4 py-3">
                     <RowActions
                       label={c.name}
-                      disabled={
-                        update.isPending ||
-                        remove.isPending
-                      }
+                      disabled={update.isPending || remove.isPending}
                       onEdit={() => setEditing(c)}
                       onDelete={() => remove.mutate(c.id)}
                     />

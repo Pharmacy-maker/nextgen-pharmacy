@@ -6,7 +6,6 @@ import { useAuth, useCart, useWishlist } from "../../lib/store";
 import { ProductImage } from "./ProductImage";
 
 export function ProductCard({ p, compact = false }: { p: Product; compact?: boolean }) {
-  
   const { add } = useCart();
   const { toggle, has } = useWishlist();
   const { user, ready } = useAuth();
@@ -25,9 +24,10 @@ export function ProductCard({ p, compact = false }: { p: Product; compact?: bool
     navigate({ to: "/checkout" });
   };
 
-
   return (
-    <div className={`group relative rounded-3xl glass hover-lift overflow-hidden flex flex-col ${compact ? "min-w-[220px] sm:min-w-[260px]" : ""}`}>
+    <div
+      className={`group relative rounded-3xl glass hover-lift overflow-hidden flex flex-col ${compact ? "min-w-[220px] sm:min-w-[260px]" : ""}`}
+    >
       <div className="relative h-36 sm:h-44 overflow-hidden" style={{ background: p.grad }}>
         <div className="absolute inset-0 opacity-30 grid-bg" />
         <ProductImage
@@ -38,9 +38,13 @@ export function ProductCard({ p, compact = false }: { p: Product; compact?: bool
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
         <div className="absolute top-3 left-3 flex gap-2">
-          <span className="glass px-2 py-1 rounded-full text-[10px] font-semibold">{p.category}</span>
+          <span className="glass px-2 py-1 rounded-full text-[10px] font-semibold">
+            {p.category}
+          </span>
           {p.discount > 0 && (
-            <span className="bg-grad-warm px-2 py-1 rounded-full text-[10px] font-bold text-white">-{p.discount}%</span>
+            <span className="bg-grad-warm px-2 py-1 rounded-full text-[10px] font-bold text-white">
+              -{p.discount}%
+            </span>
           )}
         </div>
         <button
@@ -62,7 +66,11 @@ export function ProductCard({ p, compact = false }: { p: Product; compact?: bool
       </div>
       <div className="p-4 flex flex-col gap-2 flex-1">
         <div className="flex items-start justify-between gap-2">
-          <Link to="/product/$id" params={{ id: p.id }} className="font-semibold leading-tight hover:text-grad-hero">
+          <Link
+            to="/product/$id"
+            params={{ id: p.id }}
+            className="font-semibold leading-tight hover:text-grad-hero"
+          >
             <h3>{p.name}</h3>
           </Link>
           <div className="flex items-center gap-1 text-xs shrink-0">
@@ -80,7 +88,9 @@ export function ProductCard({ p, compact = false }: { p: Product; compact?: bool
         <div className="mt-2 flex items-end justify-between">
           <div>
             <div className="text-xl font-bold">₹{price}</div>
-            {p.discount > 0 && <div className="text-xs text-muted-foreground line-through">₹{p.price}</div>}
+            {p.discount > 0 && (
+              <div className="text-xs text-muted-foreground line-through">₹{p.price}</div>
+            )}
           </div>
           <div className="flex gap-2">
             <button
@@ -88,7 +98,6 @@ export function ProductCard({ p, compact = false }: { p: Product; compact?: bool
               className="h-9 w-9 rounded-xl glass grid place-items-center hover:bg-white/15"
               aria-label={`Add ${p.name} to cart`}
             >
-              
               <Plus className="h-4 w-4" />
             </button>
             <button

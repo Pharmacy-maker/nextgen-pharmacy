@@ -1,10 +1,5 @@
 import { supabase } from "../../supabase";
-import type {
-  ChatConversation,
-  ChatMessage,
-  ChatReply,
-  ID,
-} from "../../../types/models";
+import type { ChatConversation, ChatMessage, ChatReply, ID } from "../../../types/models";
 
 export type SendMessageInput = {
   conversationId: ID;
@@ -12,14 +7,9 @@ export type SendMessageInput = {
   userId?: ID;
 };
 
-export function createMessage(
-  role: ChatMessage["role"],
-  content: string
-): ChatMessage {
+export function createMessage(role: ChatMessage["role"], content: string): ChatMessage {
   return {
-    id: `msg-${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2, 8)}`,
+    id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     role,
     content,
     createdAt: new Date().toISOString(),
@@ -34,13 +24,8 @@ function normalizeText(text: string): string {
     .trim();
 }
 
-function containsAny(
-  text: string,
-  keywords: string[]
-): boolean {
-  return keywords.some((keyword) =>
-    text.includes(keyword)
-  );
+function containsAny(text: string, keywords: string[]): boolean {
+  return keywords.some((keyword) => text.includes(keyword));
 }
 
 function getResponse(userMessage: string): string {
@@ -69,31 +54,14 @@ function getResponse(userMessage: string): string {
   // =========================
   // THANK YOU
   // =========================
-  if (
-    containsAny(text, [
-      "thank you",
-      "thanks",
-      "thank u",
-      "thankyou",
-      "thx",
-      "thanks a lot",
-    ])
-  ) {
+  if (containsAny(text, ["thank you", "thanks", "thank u", "thankyou", "thx", "thanks a lot"])) {
     return "You're welcome! I'm happy to help.";
   }
 
   // =========================
   // GOODBYE
   // =========================
-  if (
-    containsAny(text, [
-      "bye",
-      "goodbye",
-      "good bye",
-      "see you",
-      "see ya",
-    ])
-  ) {
+  if (containsAny(text, ["bye", "goodbye", "good bye", "see you", "see ya"])) {
     return "Goodbye! Thank you for using Rays Pharmacy.";
   }
 
@@ -397,30 +365,19 @@ export const chatService = {
   // LOAD CHAT HISTORY
   // ============================================================
 
-  async history(
-    conversationId: ID
-  ): Promise<ChatConversation | null> {
-    if (
-      !conversationId ||
-      conversationId === "default"
-    ) {
+  async history(conversationId: ID): Promise<ChatConversation | null> {
+    if (!conversationId || conversationId === "default") {
       return null;
     }
 
-    const {
-      data: conversation,
-      error: conversationError,
-    } = await supabase
+    const { data: conversation, error: conversationError } = await supabase
       .from("chat_conversations")
       .select("*")
       .eq("id", conversationId)
       .maybeSingle();
 
     if (conversationError) {
-      console.error(
-        "History conversation error:",
-        conversationError
-      );
+      console.error("History conversation error:", conversationError);
 
       return null;
     }
@@ -429,25 +386,16 @@ export const chatService = {
       return null;
     }
 
-    const {
-      data: messages,
-      error: messagesError,
-    } = await supabase
+    const { data: messages, error: messagesError } = await supabase
       .from("chat_messages")
       .select("*")
-      .eq(
-        "conversation_id",
-        conversationId
-      )
+      .eq("conversation_id", conversationId)
       .order("created_at", {
         ascending: true,
       });
 
     if (messagesError) {
-      console.error(
-        "History messages error:",
-        messagesError
-      );
+      console.error("History messages error:", messagesError);
 
       return {
         id: conversation.id,
@@ -457,14 +405,12 @@ export const chatService = {
 
     return {
       id: conversation.id,
-      messages: (messages ?? []).map(
-        (message) => ({
-          id: message.id,
-          role: message.role,
-          content: message.content ?? "",
-          createdAt: message.created_at,
-        })
-      ),
+      messages: (messages ?? []).map((message) => ({
+        id: message.id,
+        role: message.role,
+        content: message.content ?? "",
+        createdAt: message.created_at,
+      })),
     } as ChatConversation;
   },
 
@@ -472,22 +418,11 @@ export const chatService = {
   // SAVE COMPLETE HISTORY
   // ============================================================
 
-  async saveHistory(
-    conversation: ChatConversation
-  ): Promise<void> {
-    const {
-      data: userData,
-      error: userError,
-    } = await supabase.auth.getUser();
+  async saveHistory(conversation: ChatConversation): Promise<void> {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
 
-    if (
-      userError ||
-      !userData.user
-    ) {
-      console.error(
-        "No authenticated user found:",
-        userError
-      );
+    if (userError || !userData.user) {
+      console.error("No authenticated user found:", userError);
 
       return;
     }
@@ -495,63 +430,35 @@ export const chatService = {
     const userId = userData.user.id;
 
     const conversationId =
-      conversation.id === "default" ||
-      !conversation.id
-        ? crypto.randomUUID()
-        : conversation.id;
+      conversation.id === "default" || !conversation.id ? crypto.randomUUID() : conversation.id;
 
-    const {
-      error: conversationError,
-    } = await supabase
-      .from("chat_conversations")
-      .upsert({
-        id: conversationId,
-        user_id: userId,
-        updated_at:
-          new Date().toISOString(),
-      });
+    const { error: conversationError } = await supabase.from("chat_conversations").upsert({
+      id: conversationId,
+      user_id: userId,
+      updated_at: new Date().toISOString(),
+    });
 
     if (conversationError) {
-      console.error(
-        "Save conversation error:",
-        conversationError
-      );
+      console.error("Save conversation error:", conversationError);
 
-      throw new Error(
-        `Unable to save conversation: ${conversationError.message}`
-      );
+      throw new Error(`Unable to save conversation: ${conversationError.message}`);
     }
 
     for (const message of conversation.messages) {
-      const messageId =
-        message.id.startsWith("msg-")
-          ? crypto.randomUUID()
-          : message.id;
+      const messageId = message.id.startsWith("msg-") ? crypto.randomUUID() : message.id;
 
-      const {
-        error: messageError,
-      } = await supabase
-        .from("chat_messages")
-        .upsert({
-          id: messageId,
-          conversation_id:
-            conversationId,
-          role: message.role,
-          content: message.content,
-          created_at:
-            message.createdAt ||
-            new Date().toISOString(),
-        });
+      const { error: messageError } = await supabase.from("chat_messages").upsert({
+        id: messageId,
+        conversation_id: conversationId,
+        role: message.role,
+        content: message.content,
+        created_at: message.createdAt || new Date().toISOString(),
+      });
 
       if (messageError) {
-        console.error(
-          "Save message error:",
-          messageError
-        );
+        console.error("Save message error:", messageError);
 
-        throw new Error(
-          `Unable to save message: ${messageError.message}`
-        );
+        throw new Error(`Unable to save message: ${messageError.message}`);
       }
     }
   },
@@ -560,30 +467,17 @@ export const chatService = {
   // CLEAR CHAT
   // ============================================================
 
-  async clear(
-    conversationId: ID
-  ): Promise<void> {
-    if (
-      !conversationId ||
-      conversationId === "default"
-    ) {
+  async clear(conversationId: ID): Promise<void> {
+    if (!conversationId || conversationId === "default") {
       return;
     }
 
-    const { error } = await supabase
-      .from("chat_conversations")
-      .delete()
-      .eq("id", conversationId);
+    const { error } = await supabase.from("chat_conversations").delete().eq("id", conversationId);
 
     if (error) {
-      console.error(
-        "Clear conversation error:",
-        error
-      );
+      console.error("Clear conversation error:", error);
 
-      throw new Error(
-        `Unable to clear conversation: ${error.message}`
-      );
+      throw new Error(`Unable to clear conversation: ${error.message}`);
     }
   },
 
@@ -591,26 +485,15 @@ export const chatService = {
   // SEND MESSAGE
   // ============================================================
 
-  async sendMessage(
-    input: SendMessageInput
-  ): Promise<ChatReply> {
-
+  async sendMessage(input: SendMessageInput): Promise<ChatReply> {
     // ==========================================================
     // STEP 1 — CHECK LOGIN FIRST
     // ==========================================================
 
-    const {
-      data: userData,
-      error: userError,
-    } = await supabase.auth.getUser();
+    const { data: userData, error: userError } = await supabase.auth.getUser();
 
-    if (
-      userError ||
-      !userData.user
-    ) {
-      throw new Error(
-        "Please log in to use the chatbot."
-      );
+    if (userError || !userData.user) {
+      throw new Error("Please log in to use the chatbot.");
     }
 
     const userId = userData.user.id;
@@ -619,175 +502,111 @@ export const chatService = {
     // STEP 2 — GET CONVERSATION ID
     // ==========================================================
 
-    let conversationId =
-      input.conversationId;
+    let conversationId = input.conversationId;
 
-    if (
-      !conversationId ||
-      conversationId === "default"
-    ) {
-      conversationId =
-        crypto.randomUUID();
+    if (!conversationId || conversationId === "default") {
+      conversationId = crypto.randomUUID();
     }
 
     // ==========================================================
     // STEP 3 — GET LAST USER MESSAGE
     // ==========================================================
 
-    const lastMessage =
-      input.messages[
-        input.messages.length - 1
-      ];
+    const lastMessage = input.messages[input.messages.length - 1];
 
     if (!lastMessage) {
-      throw new Error(
-        "Message cannot be empty."
-      );
+      throw new Error("Message cannot be empty.");
     }
 
-    const userMessage =
-      lastMessage.content.trim();
+    const userMessage = lastMessage.content.trim();
 
     if (!userMessage) {
-      throw new Error(
-        "Message cannot be empty."
-      );
+      throw new Error("Message cannot be empty.");
     }
 
     // ==========================================================
     // STEP 4 — CREATE / SAVE CONVERSATION
     // ==========================================================
 
-    const {
-      error: conversationError,
-    } = await supabase
-      .from("chat_conversations")
-      .upsert({
-        id: conversationId,
-        user_id: userId,
-        updated_at:
-          new Date().toISOString(),
-      });
+    const { error: conversationError } = await supabase.from("chat_conversations").upsert({
+      id: conversationId,
+      user_id: userId,
+      updated_at: new Date().toISOString(),
+    });
 
     if (conversationError) {
-      console.error(
-        "Conversation error:",
-        conversationError
-      );
+      console.error("Conversation error:", conversationError);
 
-      throw new Error(
-        `Unable to create chat conversation: ${conversationError.message}`
-      );
+      throw new Error(`Unable to create chat conversation: ${conversationError.message}`);
     }
 
     // ==========================================================
     // STEP 5 — SAVE USER MESSAGE
     // ==========================================================
 
-    const userMessageId =
-      crypto.randomUUID();
+    const userMessageId = crypto.randomUUID();
 
-    const {
-      error: userMessageError,
-    } = await supabase
-      .from("chat_messages")
-      .insert({
-        id: userMessageId,
-        conversation_id:
-          conversationId,
-        role: "user",
-        content: userMessage,
-        created_at:
-          new Date().toISOString(),
-      });
+    const { error: userMessageError } = await supabase.from("chat_messages").insert({
+      id: userMessageId,
+      conversation_id: conversationId,
+      role: "user",
+      content: userMessage,
+      created_at: new Date().toISOString(),
+    });
 
     if (userMessageError) {
-      console.error(
-        "User message error:",
-        userMessageError
-      );
+      console.error("User message error:", userMessageError);
 
-      throw new Error(
-        `Unable to save user message: ${userMessageError.message}`
-      );
+      throw new Error(`Unable to save user message: ${userMessageError.message}`);
     }
 
     // ==========================================================
     // STEP 6 — GENERATE ANSWER
     // ==========================================================
 
-    const answer =
-      getResponse(userMessage);
+    const answer = getResponse(userMessage);
 
     // ==========================================================
     // STEP 7 — SAVE ASSISTANT MESSAGE
     // ==========================================================
 
-    const assistantMessageId =
-      crypto.randomUUID();
+    const assistantMessageId = crypto.randomUUID();
 
-    const {
-      error: assistantError,
-    } = await supabase
-      .from("chat_messages")
-      .insert({
-        id: assistantMessageId,
-        conversation_id:
-          conversationId,
-        role: "assistant",
-        content: answer,
-        created_at:
-          new Date().toISOString(),
-      });
+    const { error: assistantError } = await supabase.from("chat_messages").insert({
+      id: assistantMessageId,
+      conversation_id: conversationId,
+      role: "assistant",
+      content: answer,
+      created_at: new Date().toISOString(),
+    });
 
     if (assistantError) {
-      console.error(
-        "Assistant message error:",
-        assistantError
-      );
+      console.error("Assistant message error:", assistantError);
 
-      throw new Error(
-        `Unable to save assistant message: ${assistantError.message}`
-      );
+      throw new Error(`Unable to save assistant message: ${assistantError.message}`);
     }
 
     // ==========================================================
     // STEP 8 — UPDATE CONVERSATION
     // ==========================================================
 
-    const {
-      error: updateError,
-    } = await supabase
+    const { error: updateError } = await supabase
       .from("chat_conversations")
       .update({
-        updated_at:
-          new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       })
-      .eq(
-        "id",
-        conversationId
-      )
-      .eq(
-        "user_id",
-        userId
-      );
+      .eq("id", conversationId)
+      .eq("user_id", userId);
 
     if (updateError) {
-      console.error(
-        "Conversation update error:",
-        updateError
-      );
+      console.error("Conversation update error:", updateError);
     }
 
     // ==========================================================
     // STEP 9 — RETURN ANSWER
     // ==========================================================
 
-    const assistantMessage =
-      createMessage(
-        "assistant",
-        answer
-      );
+    const assistantMessage = createMessage("assistant", answer);
 
     const reply: ChatReply = {
       conversationId,
@@ -797,11 +616,7 @@ export const chatService = {
         id: assistantMessageId,
       },
 
-      suggestions: [
-        "Browse medicines",
-        "Upload prescription",
-        "Track my order",
-      ],
+      suggestions: ["Browse medicines", "Upload prescription", "Track my order"],
     };
 
     return reply;

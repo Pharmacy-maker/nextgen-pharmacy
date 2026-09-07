@@ -19,58 +19,60 @@ export interface InventoryItem {
 
 export const inventoryService = {
   async batches() {
-  const { data, error } = await supabase
-    .from("products")
-    .select(`
+    const { data, error } = await supabase
+      .from("products")
+      .select(
+        `
       id,
       name,
       stock,
       mfg,
       exp
-    `)
-    .order("name");
+    `,
+      )
+      .order("name");
 
-  if (error) throw error;
+    if (error) throw error;
 
-  return (data ?? []).map((row: any) => ({
-    id: row.id,
-    productId: row.id,
-    productName: row.name,
-    batchNumber: "N/A",
-    quantity: row.stock ?? 0,
-    reorderLevel: 10,
-    mfg: row.mfg,
-    exp: row.exp,
-    location: "Main Store",
-  }));
-},
+    return (data ?? []).map((row: any) => ({
+      id: row.id,
+      productId: row.id,
+      productName: row.name,
+      batchNumber: "N/A",
+      quantity: row.stock ?? 0,
+      reorderLevel: 10,
+      mfg: row.mfg,
+      exp: row.exp,
+      location: "Main Store",
+    }));
+  },
 
   async updateBatch(id: ID, input: Partial<InventoryBatch>): Promise<InventoryBatch> {
-  const { data, error } = await supabase
-    .from("products")
-    .update({
-      stock: input.quantity,
-      mfg: input.mfg,
-      exp: input.exp,
-    })
-    .eq("id", id)
-    .select()
-    .single();
+    const { data, error } = await supabase
+      .from("products")
+      .update({
+        stock: input.quantity,
+        mfg: input.mfg,
+        exp: input.exp,
+      })
+      .eq("id", id)
+      .select()
+      .single();
 
-  if (error) throw error;
+    if (error) throw error;
 
-  return {
-    id: data.id,
-    productId: data.id,
-    productName: data.name,
-    batchNumber: "N/A",
-    quantity: data.stock ?? 0,
-    reorderLevel: input.reorderLevel ?? 10,
-    mfg: data.mfg,
-    exp: data.exp,
-    location: "Main Store",
-  };
-},
+    return {
+      id: data.id,
+      productId: data.id,
+      productName: data.name,
+      batchNumber: "N/A",
+      quantity: data.stock ?? 0,
+      reorderLevel: input.reorderLevel ?? 10,
+      mfg: data.mfg,
+      exp: data.exp,
+      location: "Main Store",
+    };
+  },
 
   async removeBatch(id: ID): Promise<void> {
     if (!USE_MOCK_API) {
@@ -82,28 +84,30 @@ export const inventoryService = {
   },
 
   async movements(): Promise<InventoryMovement[]> {
-  const { data, error } = await supabase
-    .from("inventory_movements")
-    .select(`
+    const { data, error } = await supabase
+      .from("inventory_movements")
+      .select(
+        `
       *,
       products(name)
-    `)
-    .order("created_at", { ascending: false });
+    `,
+      )
+      .order("created_at", { ascending: false });
 
-  console.log("MOVEMENTS DATA", data);
-  console.log("MOVEMENTS ERROR", error);
+    console.log("MOVEMENTS DATA", data);
+    console.log("MOVEMENTS ERROR", error);
 
-  if (error) throw error;
+    if (error) throw error;
 
-  return (data ?? []).map((row: any) => ({
-    id: row.id,
-    productId: row.product_id,
-    productName: row.products?.name ?? "",
-    batchNumber: row.batch_number,
-    type: row.type,
-    quantity: row.quantity,
-    note: row.note,
-    createdAt: row.created_at,
-  }));
-},
+    return (data ?? []).map((row: any) => ({
+      id: row.id,
+      productId: row.product_id,
+      productName: row.products?.name ?? "",
+      batchNumber: row.batch_number,
+      type: row.type,
+      quantity: row.quantity,
+      note: row.note,
+      createdAt: row.created_at,
+    }));
+  },
 };
