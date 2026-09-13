@@ -67,12 +67,13 @@ function CartPage() {
                         </button>
                         <span className="px-3 text-sm font-semibold min-w-8 text-center">{qty}</span>
                         <button
-                          onClick={() => setQty(product.id, qty + 1)}
-                          className="h-8 w-8 grid place-items-center hover:bg-white/10"
-                          aria-label="Increase quantity"
+                       onClick={() => setQty(product.id, qty + 1)}
+                       disabled={qty >= product.stock}
+                       className="h-8 w-8 grid place-items-center hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed"
+                       aria-label="Increase quantity"
                         >
-                          <Plus className="h-3.5 w-3.5" />
-                        </button>
+                       <Plus className="h-3.5 w-3.5" />
+                       </button>
                       </div>
                       <button
                         onClick={() => remove(product.id)}

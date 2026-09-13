@@ -229,9 +229,14 @@ function Detail({
                 <Minus className="h-4 w-4" />
               </button>
               <span className="w-10 text-center text-sm font-semibold tabular-nums">{qty}</span>
-              <button onClick={() => setQty((q) => q + 1)} aria-label="Increase quantity" className="h-10 w-10 grid place-items-center hover:bg-white/10 rounded-r-xl">
-                <Plus className="h-4 w-4" />
-              </button>
+              <button
+  onClick={() => setQty((q) => Math.min(p.stock, q + 1))}
+  disabled={qty >= p.stock}
+  aria-label="Increase quantity"
+  className="disabled:opacity-40 disabled:cursor-not-allowed"
+>
+  <Plus className="h-4 w-4" />
+</button>
             </div>
             <button
               onClick={() => {

@@ -177,7 +177,7 @@ function ResetPasswordPage() {
         title="Set a new | password |"
         subtitle="Choose a strong password you haven't used before."
       >
-        <div className="glass rounded-3xl p-6 md:p-8 max-w-md mx-auto">
+        <div className="glass rounded-3xl p-6 md:p-8 max-w-md mx-auto backdrop-blur-xl border border-white/20 shadow-2xl">
           {checkingRecovery ? (
             <div
               className="text-center py-8"

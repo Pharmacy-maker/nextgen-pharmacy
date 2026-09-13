@@ -97,7 +97,7 @@ const firstWithImage = data?.find((p) => p.image);
       <Section
         eyebrow="Catalogue"
         title="All | Products |"
-        subtitle="Search, filter, and discover the right medicines and wellness products for you."
+        subtitle="Search and discover the right medicines and wellness products for you."
       >
         <div className="glass rounded-3xl p-4 md:p-5 flex flex-col md:flex-row gap-3 md:items-center mb-6">
           <div className="relative flex-1">

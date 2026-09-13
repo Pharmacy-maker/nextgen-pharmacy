@@ -180,13 +180,57 @@ export const orderService = {
 
 const { data: dbProducts, error: productsError } = await supabase
   .from("products")
-  .select("id, name, price, discount")
+  .select("id, name, price, discount, stock")
   .in("id", productIds);
-
-if (productsError) {
-  console.error("PRODUCT FETCH ERROR:", productsError);
+  if (productsError) {
   throw new Error(productsError.message);
 }
+console.log("STOCK CHECK STARTED");
+console.log("ORDER ITEMS:", input.items);
+console.log("DB PRODUCTS:", dbProducts);
+for (const item of input.items) {
+  const product = dbProducts?.find(
+    (p) => p.id === item.productId
+  );
+
+  console.log("CHECKING:", {
+    requested: item.quantity,
+    stock: product?.stock,
+  });
+
+  if (!product) {
+    throw new Error(`Product not found: ${item.productId}`);
+  }
+
+  if ((product.stock ?? 0) < item.quantity) {
+  console.error(
+    "INSUFFICIENT STOCK",
+    product.stock,
+    item.quantity
+  );
+
+  throw new Error(
+    `${product.name} has only ${product.stock} units available`
+  );
+}
+}
+for (const item of input.items) {
+  const product = dbProducts?.find(
+    p => p.id === item.productId
+  );
+
+  if (!product) {
+    throw new Error(`Product not found: ${item.productId}`);
+  }
+
+  if ((product.stock ?? 0) < item.quantity) {
+    throw new Error(
+      `${product.name} has only ${product.stock} units available`
+    );
+  }
+}
+
+
 
 const subtotal = input.items.reduce((sum, item) => {
   const product = dbProducts?.find(
@@ -254,6 +298,31 @@ const { error: itemsError } = await supabase
 if (itemsError) {
   console.error("ORDER ITEMS INSERT ERROR", itemsError);
   throw itemsError;
+}
+
+for (const item of input.items) {
+  const product = dbProducts?.find(
+    p => p.id === item.productId
+  );
+
+  if (!product) continue;
+
+  const newStock = Math.max(
+    0,
+    (product.stock ?? 0) - item.quantity
+  );
+
+  const { error: stockError } = await supabase
+    .from("products")
+    .update({
+      stock: newStock
+    })
+    .eq("id", item.productId);
+
+  if (stockError) {
+    console.error("STOCK UPDATE ERROR", stockError);
+    throw stockError;
+  }
 }
 
     return data as Order;

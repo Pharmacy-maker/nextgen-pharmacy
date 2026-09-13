@@ -85,10 +85,19 @@ function LoginPage() {
     );
   }
 
-  return (
-    <PageShell>
-      <Section eyebrow="Welcome" title={mode === "login" ? "Sign | In |" : "Create | Account |"}>
-        <div className="glass rounded-3xl p-6 md:p-8 max-w-md mx-auto">
+ return (
+  <PageShell>
+    <div
+  className="h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative"
+  style={{ backgroundImage: "url('/loginBg.png')" }}
+>
+  <div >
+  <Section
+    eyebrow="Welcome"
+    title={mode === "login" ? "Sign | In |" : "Create | Account |"}
+  >
+    
+        <div className="glass rounded-3xl p-6 md:p-8 max-w-md mx-auto backdrop-blur-xl border border-white/20 shadow-2xl">
           <div role="tablist" className="flex bg-white/5 rounded-xl p-1 mb-6">
             <button
               role="tab"
@@ -113,8 +122,10 @@ function LoginPage() {
             <SignupFormEl onRegistered={() => setMode("login")} />
           )}
         </div>
-      </Section>
-    </PageShell>
+                  </Section>
+    </div>
+  </div>
+</PageShell>
   );
 }
 

@@ -51,8 +51,18 @@ function ForgotPasswordPage() {
 
   return (
     <PageShell>
-      <Section eyebrow="Account recovery" title="Forgot your | password |?" subtitle="We'll email a secure single-use link to reset it.">
-        <div className="glass rounded-3xl p-6 md:p-8 max-w-md mx-auto">
+  <div
+    className="min-h-screen bg-cover bg-center bg-no-repeat relative"
+    style={{ backgroundImage: "url('/loginBg.png')" }}
+  >
+    <div className="absolute inset-0 bg-black/40" />
+
+    <div className="relative z-10">
+      <Section
+        eyebrow="Account recovery"
+        title="Forgot your | password | ?"
+      >
+        <div className="glass rounded-3xl p-6 md:p-8 max-w-md mx-auto backdrop-blur-xl border border-white/20 shadow-2xl">
           {sent ? (
             <div className="text-center">
               <div className="h-14 w-14 rounded-full bg-grad-cool grid place-items-center mx-auto mb-4 glow">
@@ -64,9 +74,13 @@ function ForgotPasswordPage() {
                 valid for 30 minutes.
               </p>
               
-              <Link to="/login" className="mt-3 block text-xs text-muted-foreground hover:text-foreground">
-                ← Back to login
-              </Link>
+              <Link
+  to="/login"
+  search={{ redirect: undefined }}
+  className="mt-3 block text-xs text-muted-foreground hover:text-foreground"
+>
+  ← Back to login
+</Link>
             </div>
           ) : (
             <form onSubmit={submit} className="space-y-3" noValidate>
@@ -89,13 +103,19 @@ function ForgotPasswordPage() {
                 {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                 {submitting ? "Sending link…" : "Send reset link"}
               </button>
-              <Link to="/login" className="block text-center text-xs text-muted-foreground hover:text-foreground">
-                ← Back to login
-              </Link>
+              <Link
+  to="/login"
+  search={{ redirect: undefined }}
+  className="block text-center text-xs text-muted-foreground hover:text-foreground"
+>
+  ← Back to login
+</Link>
             </form>
           )}
         </div>
-      </Section>
-    </PageShell>
+            </Section>
+    </div>
+  </div>
+</PageShell>
   );
 }

@@ -43,23 +43,29 @@ function AdminInventory() {
           title={`Edit batch • ${editing.productName}`}
           saving={update.isPending}
           value={{
-            batchNumber: editing.batchNumber,
-            quantity: editing.quantity,
-            reorderLevel: editing.reorderLevel,
-            mfg: editing.mfg,
-            exp: editing.exp,
-            location: editing.location ?? "",
-          }}
+  batchNumber: editing.batchNumber,
+  quantity: editing.quantity,
+  mfg: editing.mfg,
+  exp: editing.exp,
+  location: editing.location ?? "",
+}}
           fields={[
-            { key: "batchNumber", label: "Batch number" },
-            { key: "quantity", label: "Quantity", type: "number" },
-            { key: "reorderLevel", label: "Reorder level", type: "number" },
-            { key: "mfg", label: "Mfg date" },
-            { key: "exp", label: "Expiry date" },
-            { key: "location", label: "Location" },
-          ]}
+  { key: "batchNumber", label: "Batch number" },
+  { key: "quantity", label: "Quantity", type: "number" },
+  { key: "mfg", label: "Mfg date", type: "date" },
+  { key: "exp", label: "Expiry date", type: "date" },
+  { key: "location", label: "Location" },
+]}
           onCancel={() => setEditing(null)}
-          onSave={(next) => update.mutate({ id: editing.id, patch: next as Partial<InventoryBatch> })}
+          onSave={(next) =>
+  update.mutate({
+    id: editing.id,
+    patch: {
+      ...(next as Partial<InventoryBatch>),
+      reorderLevel: 10,
+    },
+  })
+}
         />
       )}
       <AsyncBoundary isLoading={batches.isLoading} error={batches.error} data={batches.data} onRetry={() => batches.refetch()}>

@@ -143,8 +143,9 @@ const revenueTrend = MONTHS.map((month) => ({
 
     orderItems.forEach((item) => {
       const name =
-        item.product_name || "Unknown Product";
-
+  products.find((p) => p.id === item.product_id)?.name ||
+  item.product_name ||
+  "Unknown Product";
       const existing =
         productSales.get(name) || {
           quantity: 0,
@@ -158,7 +159,8 @@ const revenueTrend = MONTHS.map((month) => ({
       existing.revenue += Number(
         item.total || 0
       );
-
+console.log("ORDER ITEM:", item);
+console.log("PRODUCT NAME USED:", name);
       productSales.set(name, existing);
     });
 

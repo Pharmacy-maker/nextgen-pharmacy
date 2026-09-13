@@ -30,11 +30,19 @@ function AdminAnalytics() {
 
   return (
     <div className="grid lg:grid-cols-2 gap-4">
-      <ChartCard title="Sales trends" subtitle="Orders per month">
+      <ChartCard
+  
+  title="Sales trends"
+  subtitle="Orders per month"
+>
         <AreaTrend data={a.salesTrend} />
       </ChartCard>
 
-      <ChartCard title="Revenue" subtitle="Monthly revenue (₹)">
+      <ChartCard
+  
+  title="Revenue"
+  subtitle="Monthly revenue (₹)"
+>
         <AreaTrend data={a.revenueTrend} />
       </ChartCard>
 
@@ -46,13 +54,15 @@ function AdminAnalytics() {
         <BarSeries data={a.categorySales} />
       </ChartCard>
 
-      <ChartCard title="Customer growth" subtitle="Registered customers">
-        <AreaTrend data={a.customerGrowth} />
-      </ChartCard>
+      <div className="lg:col-span-2">
+  <ChartCard
+    title="Customer growth"
+    subtitle="Registered customers"
+  >
+    <AreaTrend data={a.customerGrowth} />
+  </ChartCard>
+</div>
 
-      <ChartCard title="Inventory report" subtitle="Stock health">
-        <DonutSeries data={a.inventoryReport} />
-      </ChartCard>
     </div>
   );
 }}

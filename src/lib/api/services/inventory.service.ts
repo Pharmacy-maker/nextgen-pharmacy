@@ -65,7 +65,7 @@ export const inventoryService = {
     productName: data.name,
     batchNumber: "N/A",
     quantity: data.stock ?? 0,
-    reorderLevel: input.reorderLevel ?? 10,
+    reorderLevel:  10,
     mfg: data.mfg,
     exp: data.exp,
     location: "Main Store",

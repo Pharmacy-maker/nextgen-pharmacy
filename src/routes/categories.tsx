@@ -67,7 +67,7 @@ function CategoriesPage() {
       <Section
         eyebrow="Shop by need"
         title="All | Categories |"
-        subtitle="From daily essentials to specialised care — beautifully organised."
+        subtitle="From daily essentials to specialised care "
       >
         <AsyncBoundary
           isLoading={isLoading}

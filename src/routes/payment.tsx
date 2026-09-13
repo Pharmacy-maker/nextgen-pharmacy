@@ -86,7 +86,12 @@ try {
   paymentMethod: method,
 })
             .then(() => queryClient.invalidateQueries({ queryKey: ["me"] }))
-            .catch(() => toast.error("Order saved locally, but we couldn't sync it."));
+            .catch((err) => {
+  cleared.current = false;
+  setScreen("failed");
+  setMessage(err?.message || "Order could not be placed");
+  toast.error(err?.message || "Order could not be placed");
+});
         }
         clear();
       }
@@ -105,7 +110,6 @@ try {
     settle("success", "Payment successful");
   }, 1500);
 };
-
   
 
   useEffect(() => {
@@ -147,9 +151,13 @@ try {
               {paymentId && <div className="text-xs text-muted-foreground mt-2">Payment ID: {paymentId}</div>}
               <div className="flex justify-center gap-3 mt-6 flex-wrap">
                 
-                <Link to="/delivery" className="rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow">
-                  Track order
-                </Link>
+                <button
+  type="button"
+  disabled
+  className="rounded-xl px-5 py-2.5 glass opacity-50 cursor-not-allowed"
+>
+  Waiting for confirmation...
+</button>
               </div>
             </>
           ) : screen === "failed" ? (

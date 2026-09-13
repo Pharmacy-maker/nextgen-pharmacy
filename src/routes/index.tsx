@@ -6,7 +6,7 @@ import {
   ArrowRight,
   CreditCard, Wallet, Banknote,Pill
 } from "lucide-react";
-import heroPharmacy from "../assets/hero-pharmacy.jpg.asset.json";
+import heroBg from "/hero_bg.jpeg";
 import { Section } from "../components/site/Section";
 import { ProductCard } from "../components/site/ProductCard";
 import { useQuery } from "@tanstack/react-query";
@@ -97,14 +97,14 @@ function HeroDashboard() {
 
       <div className="absolute inset-0 grid-bg opacity-[0.08]" />
 
-      <div className="absolute inset-y-0 right-0 w-[62%] md:w-[58%] pointer-events-none" style={parallax(18)}>
+      <div className="absolute inset-0 pointer-events-none" style={parallax(18)}>
         <div className="absolute inset-0"
           style={{
-            backgroundImage: `url(${heroPharmacy.url})`,
+            backgroundImage: `url(${heroBg})`,
             backgroundSize: "cover",
             backgroundPosition: "center right",
-            maskImage: "linear-gradient(to right, transparent 0%, black 22%, black 100%)",
-            WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 22%, black 100%)",
+            maskImage: "linear-gradient(to right, black 0%, black 100%)",
+WebkitMaskImage: "linear-gradient(to right, black 0%, black 100%)",
           }}
         />
         <div className="absolute inset-0"
@@ -178,7 +178,7 @@ const categories = [
 
 function Categories() {
   return (
-    <Section id="categories" eyebrow="Shop by need" title="Medicine Categories" subtitle="From daily essentials to specialised care — beautifully organised.">
+    <Section id="categories" eyebrow="Shop by need" title="Medicine Categories" subtitle="From daily essentials to specialised care">
       <div className="grid grid-cols-3 gap-6">
         {categories.map((c) => {
           const Icon = c.icon;
