@@ -207,9 +207,17 @@ export interface Order {
 
 export interface CreateOrderInput {
   userId: ID;
+
   items: { productId: ID; quantity: number }[];
+
   shippingAddress: string;
+
+  customerName: string;
+
+  customerEmail: string;
+
   paymentMethod: PaymentMethod;
+
   couponCode?: string;
 }
 

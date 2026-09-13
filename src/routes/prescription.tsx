@@ -77,7 +77,7 @@ function PrescriptionPage() {
   console.log("EXTRACTED:", extracted);
 
   const addAll = () => {
-  alert("BUTTON CLICKED");
+  
 
   console.log("MATCHED PRODUCTS COUNT:", matchedProducts.length);
   console.log("MATCHED PRODUCTS:", matchedProducts);
@@ -89,7 +89,7 @@ function PrescriptionPage() {
     add(p.id, 1);
   });
 
-  alert("FINISHED LOOP");
+  
 };
   return (
     <PageShell>

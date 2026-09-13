@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, X } from "lucide-react";
 import { toast } from "sonner";
@@ -11,6 +12,7 @@ export const Route = createFileRoute("/admin/prescriptions")({ component: AdminP
 
 function AdminPrescriptions() {
   const qc = useQueryClient();
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const { data, isLoading, error, refetch } = useQuery({ queryKey: ["admin", "prescriptions"], queryFn: () => prescriptionService.list() });
   const review = useMutation({
     mutationFn: ({ id, status }: { id: string; status: PrescriptionStatus }) => prescriptionService.review(id, status),
@@ -23,13 +25,32 @@ function AdminPrescriptions() {
       <AdminPageHeader title="Prescription management" subtitle="Review uploaded prescriptions and approve or reject them." />
       <AsyncBoundary isLoading={isLoading} error={error} data={data} onRetry={() => refetch()}>
         {(list) => (
-          <DataTable headers={["Customer", "File", "Size", "Uploaded", "Extracted", "Status", "Review"]}>
+          <DataTable headers={["Customer", "File", "Size", "Uploaded", "View", "Extracted", "Status", "Review"]}>
             {list.map((rx) => (
               <tr key={rx.id} className="hover:bg-white/5">
                 <td className="px-4 py-3 font-medium">{rx.customerName}</td>
-                <td className="px-4 py-3 text-muted-foreground">{rx.fileName}</td>
+                <td
+  className="px-4 py-3 text-muted-foreground max-w-[280px] truncate"
+  title={rx.fileName}
+>
+  {rx.fileName}
+</td>
                 <td className="px-4 py-3 tabular-nums">{(rx.fileSize / 1024 / 1024).toFixed(2)} MB</td>
-                <td className="px-4 py-3 text-muted-foreground">{rx.uploadedAt}</td>
+                <td className="px-4 py-3">
+  {rx.fileUrl ? (
+    <button
+  onClick={() => setPreviewUrl(rx.fileUrl ?? null)}
+  className="text-cyan-400 hover:underline"
+>
+  View
+</button>
+  ) : (
+    "—"
+  )}
+</td>
+                <td className="px-4 py-3 text-muted-foreground">
+  {new Date(rx.uploadedAt).toLocaleString()}
+</td>
                 <td className="px-4 py-3 text-xs text-muted-foreground">
                   {rx.extractedMedicines?.length ? rx.extractedMedicines.map((m) => `${m.name} (${m.dosage})`).join(", ") : "—"}
                 </td>
@@ -45,6 +66,30 @@ function AdminPrescriptions() {
           </DataTable>
         )}
       </AsyncBoundary>
+            {previewUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+          onClick={() => setPreviewUrl(null)}
+        >
+          <div
+            className="max-w-5xl max-h-[90vh] p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={previewUrl}
+              alt="Prescription"
+              className="max-h-[85vh] rounded-lg"
+            />
+
+            <button
+              onClick={() => setPreviewUrl(null)}
+              className="mt-4 px-4 py-2 rounded bg-red-500 text-white"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

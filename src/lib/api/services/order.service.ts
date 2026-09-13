@@ -29,7 +29,18 @@ export const orderService = {
       throw new Error(error.message);
     }
 
-    return (data ?? []).map((row) => ({
+    return await Promise.all(
+  (data ?? []).map(async (row) => {
+    const { data: orderItems, error: itemsError } = await supabase
+      .from("order_items")
+      .select("*")
+      .eq("order_id", row.id);
+
+    if (itemsError) {
+      console.error("ORDER ITEMS FETCH ERROR:", itemsError);
+    }
+
+    return {
       id: row.id,
       reference: row.reference,
       userId: row.user_id,
@@ -45,8 +56,19 @@ export const orderService = {
       shippingAddress: row.shipping_address,
       placedAt: row.placed_at,
       deliveredAt: row.delivered_at,
-      items: [],
-    }));
+
+      items: (orderItems ?? []).map((item) => ({
+        id: item.id,
+        orderId: item.order_id,
+        productId: item.product_id,
+        productName: item.product_name,
+        quantity: Number(item.quantity ?? 0),
+        unitPrice: Number(item.unit_price ?? 0),
+        total: Number(item.total ?? 0),
+      })),
+    };
+  })
+);
   }
 
   return mockDelay(
@@ -72,7 +94,18 @@ export const orderService = {
     }
     
 
-    return (data ?? []).map((row) => ({
+   return await Promise.all(
+  (data ?? []).map(async (row) => {
+    const { data: orderItems, error: itemsError } = await supabase
+      .from("order_items")
+      .select("*")
+      .eq("order_id", row.id);
+
+    if (itemsError) {
+      console.error("MY ORDER ITEMS FETCH ERROR:", itemsError);
+    }
+
+    return {
       id: row.id,
       reference: row.reference,
       userId: row.user_id,
@@ -88,8 +121,19 @@ export const orderService = {
       shippingAddress: row.shipping_address,
       placedAt: row.placed_at,
       deliveredAt: row.delivered_at,
-      items: [],
-    }));
+
+      items: (orderItems ?? []).map((item) => ({
+        id: item.id,
+        orderId: item.order_id,
+        productId: item.product_id,
+        productName: item.product_name,
+        quantity: Number(item.quantity ?? 0),
+        unitPrice: Number(item.unit_price ?? 0),
+        total: Number(item.total ?? 0),
+      })),
+    };
+  })
+);
   }
 
   return mockDelay(orders.filter((o) => o.userId === userId));
@@ -132,16 +176,42 @@ export const orderService = {
 
   async create(input: CreateOrderInput): Promise<Order> {
   if (!USE_MOCK_API) {
-    const subtotal = 0;
-    const deliveryFee = 40;
+    const productIds = input.items.map((it) => it.productId);
 
+const { data: dbProducts, error: productsError } = await supabase
+  .from("products")
+  .select("id, name, price, discount")
+  .in("id", productIds);
+
+if (productsError) {
+  console.error("PRODUCT FETCH ERROR:", productsError);
+  throw new Error(productsError.message);
+}
+
+const subtotal = input.items.reduce((sum, item) => {
+  const product = dbProducts?.find(
+    (p) => p.id === item.productId
+  );
+
+  if (!product) {
+    throw new Error(`Product not found: ${item.productId}`);
+  }
+
+  const unitPrice =
+    Number(product.price ?? 0) *
+    (1 - Number(product.discount ?? 0) / 100);
+
+  return sum + unitPrice * item.quantity;
+}, 0);
+
+const deliveryFee = subtotal > 499 ? 0 : 40;
     const { data, error } = await supabase
       .from("orders")
       .insert({
         reference: `RP-${Math.floor(10000 + Math.random() * 89999)}`,
         user_id: input.userId,
-        customer_name: "You",
-        customer_email: "",
+        customer_name: input.customerName,
+        customer_email: input.customerEmail,
         subtotal,
         discount: 0,
         delivery_fee: deliveryFee,
@@ -231,19 +301,23 @@ console.log("ALL ORDERS", orders);
   async updateStatus(id: ID, status: OrderStatus): Promise<Order> {
   if (!USE_MOCK_API) {
     const { data, error } = await supabase
-      .from("orders")
-      .update({ status })
-      .eq("id", id)
-      .select()
-      .single();
+  .from("orders")
+  .update({ status })
+  .eq("id", id)
+  .select()
+  .maybeSingle();
 
     if (error) {
-      console.error("ORDER STATUS UPDATE ERROR", error);
-      throw new Error(error.message);
-    }
+  console.error("ORDER STATUS UPDATE ERROR", error);
+  throw new Error(error.message);
+}
 
-    return {
-      id: data.id,
+if (!data) {
+  throw new Error("Order was not found or could not be updated.");
+}
+
+return {
+  id: data.id,
       reference: data.reference,
       userId: data.user_id,
       customerName: data.customer_name,

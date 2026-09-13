@@ -152,11 +152,26 @@ export const prescriptionService = {
       .order("uploaded_at", {
         ascending: false,
       });
-
+      console.log("RAW PRESCRIPTIONS:", data);
+console.log("COUNT:", data?.length);
+console.log(
+  "FIRST PRESCRIPTION FILE:",
+  data?.[0]?.file_name
+);
     if (error) {
       throw new Error(error.message);
     }
-
+    
+console.log("ADMIN LIST DATA", data);
+console.log(
+  "FILE NAMES:",
+  data?.map((r) => ({
+    id: r.id,
+    file_name: r.file_name,
+  }))
+);
+console.log("FIRST PRESCRIPTION ID:", data?.[0]?.id);
+console.log("FIRST PRESCRIPTION USER_ID:", data?.[0]?.user_id);
     return (data ?? []).map((row) => ({
       id: row.id,
       userId: row.user_id,
@@ -164,6 +179,7 @@ export const prescriptionService = {
       fileName: row.file_name,
       fileType: row.file_type,
       fileSize: row.file_size,
+      fileUrl: row.file_url,
       status: row.status,
       note: row.note,
       reviewedBy: row.reviewed_by,
@@ -189,6 +205,7 @@ export const prescriptionService = {
       if (error) {
         throw new Error(error.message);
       }
+
 
       return (data ?? []).map((row) => ({
         id: row.id,
@@ -235,21 +252,28 @@ export const prescriptionService = {
           .from("prescriptions")
           .getPublicUrl(filePath);
 
-      const { data, error } =
-        await supabase
-          .from("prescriptions")
-          .insert({
-            user_id: userId,
-            customer_name: "You",
-            file_name: file.name,
-            file_type: file.type,
-            file_size: file.size,
-            file_url:
-              publicUrlData.publicUrl,
-            status: "pending",
-          })
-          .select()
-          .single();
+      const { data: userData, error: userError } = await supabase
+  .from("users")
+  .select("full_name")
+  .eq("id", userId)
+  .single();
+
+if (userError) {
+  throw new Error(userError.message);
+}
+
+const { data, error } = await supabase
+  .from("prescriptions")
+  .insert({
+    user_id: userId,
+    customer_name: userData?.full_name ?? "Unknown Customer",
+    file_name: file.name,
+    file_type: file.type,
+    file_size: file.size,
+    file_url: publicUrlData.publicUrl,
+  })
+  .select()
+  .single();
 
       if (error) {
         throw new Error(error.message);
@@ -271,7 +295,7 @@ export const prescriptionService = {
     const rx: Prescription = {
       id: `rx-${Date.now()}`,
       userId,
-      customerName: "You",
+      customerName: "Unknown Customer",
       fileName: file.name,
       fileType: file.type,
       fileSize: file.size,
@@ -291,14 +315,46 @@ export const prescriptionService = {
     note?: string
   ): Promise<Prescription> {
     if (!USE_MOCK_API) {
-      return apiFetch<Prescription>(
-        ENDPOINTS.prescriptions.review(id),
-        {
-          method: "PATCH",
-          body: { status, note },
-        }
-      );
-    }
+      console.log("REVIEWING ID:", id);
+  const { data, error, count } = await supabase
+  .from("prescriptions")
+  .update({
+    status,
+    note,
+    reviewed_by: "Admin",
+  })
+  .eq("id", id)
+  .select("*");
+
+console.log("REVIEW RESULT:", {
+  id,
+  data,
+  error,
+  count,
+});
+console.log("UPDATED ROWS:", data);
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const row = data?.[0];
+
+if (!row) {
+  throw new Error("Prescription not found after update");
+}
+
+return {
+  id: row.id,
+  userId: row.user_id,
+  customerName: row.customer_name,
+  fileName: row.file_name,
+  fileType: row.file_type,
+  fileSize: row.file_size,
+  fileUrl: row.file_url,
+  status: row.status,
+  uploadedAt: row.uploaded_at,
+};
+}
 
     prescriptions = prescriptions.map(
       (p) =>
