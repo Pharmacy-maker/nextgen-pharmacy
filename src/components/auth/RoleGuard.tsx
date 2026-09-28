@@ -11,11 +11,11 @@ import type { UserRole } from "../../types/models";
 export function RoleGuard({ role, children }: { role: UserRole; children: ReactNode }) {
   const { user, ready } = useAuth();
   const navigate = useNavigate();
-
+  console.log("AUTH USER:", JSON.stringify(user, null, 2));
   useEffect(() => {
     if (!ready) return;
     if (!user) {
-      navigate({ to: "/login", replace: true });
+      navigate({ to: "/login", search: { redirect: undefined }, replace: true });
       return;
     }
     if (user.role !== role) {

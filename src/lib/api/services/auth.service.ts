@@ -1,6 +1,6 @@
 import { supabase } from "../../supabase";
 import { setToken } from "../client";
-import type { AuthSession, User } from "../../types/models";
+import type { AuthSession, User } from "@/types/models";
 
 export type LoginPayload = {
   email: string;
@@ -15,7 +15,13 @@ export type SignupPayload = {
 };
 
 export class AuthError extends Error {
-  code: "EMAIL_NOT_FOUND" | "INVALID_PASSWORD" | "ACCOUNT_BLOCKED" | "EMAIL_TAKEN" | "FORBIDDEN";
+  code:
+    | "EMAIL_NOT_FOUND"
+    | "INVALID_PASSWORD"
+    | "ACCOUNT_BLOCKED"
+    | "EMAIL_TAKEN"
+    | "ACCOUNT_NOT_FOUND"
+    | "FORBIDDEN";
 
   constructor(code: AuthError["code"], message: string) {
     super(message);
@@ -97,8 +103,15 @@ export const authService = {
     if (error) {
       console.error("SUPABASE LOGIN ERROR:", error);
 
-      if (error.message.toLowerCase().includes("invalid login credentials")) {
-        throw new AuthError("INVALID_PASSWORD", "Incorrect email or password.");
+      if (
+        error.message
+          .toLowerCase()
+          .includes("invalid login credentials")
+      ) {
+        throw new AuthError(
+          "ACCOUNT_NOT_FOUND",
+          "Account not found. Please sign up first."
+        );
       }
 
       throw new AuthError("FORBIDDEN", error.message);

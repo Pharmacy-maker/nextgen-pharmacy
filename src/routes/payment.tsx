@@ -56,19 +56,42 @@ function PaymentPage() {
         const snapshot = items.map((it) => ({ productId: it.id, quantity: it.qty }));
         if (user && snapshot.length > 0) {
           let shippingAddress = "Saved address";
+          let customerName = "";
+          let customerEmail = "";
+
           try {
             const raw = localStorage.getItem("rays:pending-order");
-            if (raw)
-              shippingAddress =
-                (JSON.parse(raw) as { shippingAddress?: string }).shippingAddress ??
-                shippingAddress;
+
+            if (raw) {
+              const pendingOrder = JSON.parse(raw) as {
+                shippingAddress?: string;
+                customerName?: string;
+                email?: string;
+              };
+
+              shippingAddress = pendingOrder.shippingAddress ?? shippingAddress;
+              customerName = pendingOrder.customerName ?? "";
+              customerEmail = pendingOrder.email ?? "";
+            }
           } catch {
             /* ignore malformed cache */
           }
           void orderService
-            .create({ userId: user.id, items: snapshot, shippingAddress, paymentMethod: method })
+            .create({
+              userId: user.id,
+              items: snapshot,
+              shippingAddress,
+              customerName,
+              customerEmail,
+              paymentMethod: method,
+            })
             .then(() => queryClient.invalidateQueries({ queryKey: ["me"] }))
-            .catch(() => toast.error("Order saved locally, but we couldn't sync it."));
+            .catch((err) => {
+              cleared.current = false;
+              setScreen("failed");
+              setMessage(err?.message || "Order could not be placed");
+              toast.error(err?.message || "Order could not be placed");
+            });
         }
         clear();
       }

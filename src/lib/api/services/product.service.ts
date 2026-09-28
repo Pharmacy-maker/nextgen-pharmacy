@@ -124,7 +124,7 @@ export function mapSupabaseProduct(row: {
 
     grad: row.grad ?? "var(--grad-cool)",
 
-    image: row.image ?? null,
+    image: row.image ?? "",
 
     description: row.description ?? "",
 
@@ -268,10 +268,24 @@ export const productService = {
   async create(input: ProductInput): Promise<Product> {
     if (!USE_MOCK_API) {
       const toDbDate = (date: string) => {
-        const [day, month, year] = date.split("/");
+        if (!date) return date;
 
-        return `${year}-${month}-${day}`;
+        // already YYYY-MM-DD
+        if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+          return date;
+        }
+
+        // DD/MM/YYYY
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
+          const [d, m, y] = date.split("/");
+          return `${y}-${m}-${d}`;
+        }
+
+        throw new Error(`Invalid date format: ${date}`);
       };
+
+      console.log("MFG:", input.mfg);
+      console.log("EXP:", input.exp);
 
       const payload = {
         ...input,
@@ -317,14 +331,29 @@ export const productService = {
         ...payload
       } = input as any;
 
+      const toDbDate = (date: string) => {
+        if (!date) return date;
+
+        // already YYYY-MM-DD
+        if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+          return date;
+        }
+
+        // DD/MM/YYYY
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
+          const [d, m, y] = date.split("/");
+          return `${y}-${m}-${d}`;
+        }
+
+        throw new Error(`Invalid date format: ${date}`);
+      };
+
       if (payload.mfg) {
-        const [d, m, y] = payload.mfg.split("/");
-        payload.mfg = `${y}-${m}-${d}`;
+        payload.mfg = toDbDate(payload.mfg);
       }
 
       if (payload.exp) {
-        const [d, m, y] = payload.exp.split("/");
-        payload.exp = `${y}-${m}-${d}`;
+        payload.exp = toDbDate(payload.exp);
       }
 
       const { data, error } = await supabase

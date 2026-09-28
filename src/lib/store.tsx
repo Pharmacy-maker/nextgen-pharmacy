@@ -97,23 +97,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [items, productsLoaded, products]);
+
   const add = useCallback(
     (id: string, qty = 1) => {
-      console.log("ADD CALLED", id, qty);
-
       setItems((prev) => {
         const found = prev.find((i) => i.id === id);
+        const product = products.find((p) => p.id === id);
+        const stock = product?.stock ?? 0;
 
         if (found) {
-          return prev.map((i) => (i.id === id ? { ...i, qty: i.qty + qty } : i));
+          const newQty = found.qty + qty;
+          if (newQty > stock) {
+            toast.error(`Only ${stock} units available`);
+            return prev;
+          }
+          return prev.map((item) => (item.id === id ? { ...item, qty: newQty } : item));
         }
 
+        if (qty > stock) {
+          toast.error(`Only ${stock} units available`);
+          return prev;
+        }
         return [...prev, { id, qty }];
       });
     },
-    [setItems],
+    [setItems, products],
   );
-
   const remove = useCallback(
     (id: string) => {
       setItems((prev) => prev.filter((i) => i.id !== id));
@@ -124,15 +133,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const setQty = useCallback(
     (id: string, qty: number) => {
+      const product = products.find((p) => p.id === id);
+      const stock = product?.stock ?? 0;
+
+      if (qty > stock) {
+        toast.error(`Only ${stock} units available`);
+        return;
+      }
+
       setItems((prev) =>
         qty <= 0
           ? prev.filter((i) => i.id !== id)
-          : prev.map((i) => (i.id === id ? { ...i, qty } : i)),
+          : prev.map((i) =>
+              i.id === id
+                ? { ...i, qty }
+                : i
+          ),
       );
     },
-    [setItems],
+    [setItems, products],
   );
-
   const clear = useCallback(() => setItems([]), [setItems]);
 
   const detailed = useMemo(

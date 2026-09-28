@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { CheckCircle2, Clock, LogIn, MapPin, Package, Phone, Truck } from "lucide-react";
 import { PageShell, Section } from "../components/site/Section";
@@ -36,6 +36,25 @@ const STAGE_ICON: Record<TrackingStage, typeof Truck> = {
 function DeliveryPage() {
   const { user, ready } = useAuth();
   const userId = user?.id ?? "";
+  const queryClient = useQueryClient();
+
+const cancelOrder = useMutation({
+  mutationFn: (orderId: string) =>
+    orderService.updateStatus(orderId, "cancelled"),
+  onSuccess: async () => {
+    await queryClient.invalidateQueries({
+      queryKey: ["me", "orders", userId],
+    });
+
+    await queryClient.invalidateQueries({
+      queryKey: ["me", "tracking"],
+    });
+  },
+  onError: (error: Error) => {
+    console.error("CANCEL ORDER ERROR", error);
+    alert(error.message || "Unable to cancel the order.");
+  },
+});
 
   const orders = useQuery({
     queryKey: ["me", "orders", userId],
@@ -79,6 +98,7 @@ function DeliveryPage() {
             action={
               <Link
                 to="/login"
+                search={{ redirect: undefined }}
                 className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 bg-grad-hero text-white font-semibold glow"
               >
                 <LogIn className="h-4 w-4" /> Sign in
@@ -130,6 +150,8 @@ function DeliveryPage() {
                     order={o}
                     active={o.id === selected}
                     onSelect={() => setSelected(o.id)}
+                    onCancel={() => cancelOrder.mutate(o.id)}
+                    cancelling={cancelOrder.isPending}
                   />
                 ))}
               </div>
@@ -148,29 +170,72 @@ function OrderRow({
   order,
   active,
   onSelect,
+  onCancel,
+  cancelling,
 }: {
   order: Order;
   active: boolean;
   onSelect: () => void;
+  onCancel: () => void;
+  cancelling: boolean;
 }) {
+  const canCancel =
+    order.status === "pending" || order.status === "confirmed";
+
+  const handleCancel = () => {
+    const confirmed = window.confirm(
+      `Are you sure you want to cancel order #${order.reference}?`
+    );
+
+    if (confirmed) {
+      onCancel();
+    }
+  };
+
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-pressed={active}
-      className={`w-full text-left glass rounded-2xl p-4 transition hover-lift ${active ? "ring-1 ring-cyan/50 bg-white/10" : "hover:bg-white/10"}`}
+    <div
+      className={`glass rounded-2xl p-4 transition hover-lift ${
+        active ? "ring-1 ring-cyan/50 bg-white/10" : "hover:bg-white/10"
+      }`}
     >
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="font-semibold truncate">#{order.reference}</div>
-          <div className="text-xs text-muted-foreground">
-            {order.placedAt} • {order.items.length} item(s)
+      <button
+        type="button"
+        onClick={onSelect}
+        aria-pressed={active}
+        className="w-full text-left"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="font-semibold truncate">
+              #{order.reference}
+            </div>
+
+            <div className="text-xs text-muted-foreground">
+              {order.placedAt} • {order.items.length} item(s)
+            </div>
           </div>
+
+          <span className="text-xs font-semibold capitalize text-neon shrink-0">
+            {order.status}
+          </span>
         </div>
-        <span className="text-xs font-semibold capitalize text-neon shrink-0">{order.status}</span>
-      </div>
-      <div className="mt-2 text-sm tabular-nums">₹{order.total.toLocaleString("en-IN")}</div>
-    </button>
+
+        <div className="mt-2 text-sm tabular-nums">
+          ₹{order.total.toLocaleString("en-IN")}
+        </div>
+      </button>
+
+      {canCancel && (
+        <button
+          type="button"
+          onClick={handleCancel}
+          disabled={cancelling}
+          className="mt-3 w-full rounded-xl border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+        >
+          {cancelling ? "Cancelling..." : "Cancel Order"}
+        </button>
+      )}
+    </div>
   );
 }
 

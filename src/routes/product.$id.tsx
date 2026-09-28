@@ -246,9 +246,10 @@ function Detail({ p, related, reviews }: { p: Product; related: Product[]; revie
               </button>
               <span className="w-10 text-center text-sm font-semibold tabular-nums">{qty}</span>
               <button
-                onClick={() => setQty((q) => q + 1)}
+                onClick={() => setQty((q) => Math.min(p.stock, q + 1))}
+                disabled={qty >= p.stock}
                 aria-label="Increase quantity"
-                className="h-10 w-10 grid place-items-center hover:bg-white/10 rounded-r-xl"
+                className="h-10 w-10 grid place-items-center hover:bg-white/10 rounded-r-xl disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Plus className="h-4 w-4" />
               </button>

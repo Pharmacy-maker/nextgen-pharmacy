@@ -445,6 +445,7 @@ export const chatService = {
       return {
         id: conversation.id,
         messages: [],
+        updatedAt: conversation.updated_at ?? new Date().toISOString(),
       } as ChatConversation;
     }
 
@@ -456,6 +457,7 @@ export const chatService = {
         content: message.content ?? "",
         createdAt: message.created_at,
       })),
+      updatedAt: conversation.updated_at ?? new Date().toISOString(),
     } as ChatConversation;
   },
 

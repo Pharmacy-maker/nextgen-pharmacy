@@ -344,11 +344,14 @@ export function Toggle({
   );
 }
 
-export type EditField = {
+type EditField = {
   key: string;
   label: string;
-  type?: "text" | "number" | "select";
-  options?: { value: string; label: string }[];
+  type?: "text" | "number" | "date" | "select";
+  options?: {
+    label: string;
+    value: string;
+  }[];
 };
 
 /**
@@ -398,15 +401,24 @@ export function EditPanel({
               </select>
             ) : (
               <input
-                type={f.type === "number" ? "number" : "text"}
+                type={
+                  f.type === "number"
+                    ? "number"
+                    : f.type === "date"
+                    ? "date"
+                    : "text"
+                }
                 value={String(draft[f.key] ?? "")}
                 onChange={(e) =>
                   setDraft({
                     ...draft,
-                    [f.key]: f.type === "number" ? Number(e.target.value) : e.target.value,
+                    [f.key]:
+                      f.type === "number"
+                        ? Number(e.target.value)
+                        : e.target.value,
                   })
                 }
-                className="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
+                className="mt-1 w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white [color-scheme:dark] focus:outline-none focus:ring-2 focus:ring-primary/60"
               />
             )}
           </label>

@@ -106,15 +106,17 @@ export const analyticsService = {
     >();
 
     orderItems.forEach((item) => {
-      const name = item.product_name || "Unknown Product";
-
-      const existing = productSales.get(name) || {
-        quantity: 0,
-        revenue: 0,
-      };
+      const name =
+        products.find((p) => p.id === item.product_id)?.name ||
+        item.product_name ||
+        "Unknown Product";
+      const existing =
+        productSales.get(name) || {
+          quantity: 0,
+          revenue: 0,
+        };
 
       existing.quantity += Number(item.quantity || 0);
-
       existing.revenue += Number(item.total || 0);
 
       productSales.set(name, existing);

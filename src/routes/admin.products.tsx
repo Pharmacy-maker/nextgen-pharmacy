@@ -25,8 +25,17 @@ const EMPTY = {
   image: "",
   tags: [] as string[],
 };
-function validateProduct(form: typeof EMPTY) {
+function validateProduct(form: typeof EMPTY, products: Product[], editing?: Product | null) {
   const errors: Record<string, string> = {};
+
+  const duplicate = products.some(
+    (p) =>
+      p.name.trim().toLowerCase() === form.name.trim().toLowerCase() && p.id !== editing?.id,
+  );
+
+  if (duplicate) {
+    errors.name = "Product already exists";
+  }
 
   if (!form.name.trim()) {
     errors.name = "Product name is required";
@@ -36,10 +45,7 @@ function validateProduct(form: typeof EMPTY) {
 
   if (!form.category.trim()) {
     errors.category = "Category is required";
-  } else if (!/^[A-Za-z\s]+$/.test(form.category.trim())) {
-    errors.category = "Category must contain only letters";
   }
-
   if (!form.manufacturer.trim()) {
     errors.manufacturer = "Manufacturer is required";
   } else if (!/^[A-Za-z\s]+$/.test(form.manufacturer.trim())) {
@@ -56,17 +62,16 @@ function validateProduct(form: typeof EMPTY) {
     errors.price = "Price must be greater than 0";
   }
 
-  if (form.stock < 0) {
-    errors.stock = "Stock cannot be negative";
-  }
-
+  if (form.stock <= 0) {
+  errors.stock = "Stock must be greater than 0";
+}
   if (form.discount < 0 || form.discount > 100) {
     errors.discount = "Discount must be between 0 and 100";
   }
-
   const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
 
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   let mfgDate: Date | null = null;
   let expDate: Date | null = null;
@@ -77,9 +82,7 @@ function validateProduct(form: typeof EMPTY) {
     errors.mfg = "Use DD/MM/YYYY format";
   } else {
     const [mfgDay, mfgMonth, mfgYear] = form.mfg.split("/");
-
     mfgDate = new Date(Number(mfgYear), Number(mfgMonth) - 1, Number(mfgDay));
-
     if (mfgDate > today) {
       errors.mfg = "Manufacture date cannot be in the future";
     }
@@ -91,9 +94,7 @@ function validateProduct(form: typeof EMPTY) {
     errors.exp = "Use DD/MM/YYYY format";
   } else {
     const [expDay, expMonth, expYear] = form.exp.split("/");
-
     expDate = new Date(Number(expYear), Number(expMonth) - 1, Number(expDay));
-
     if (expDate <= today) {
       errors.exp = "Expiry date must be in the future";
     }
@@ -112,11 +113,15 @@ function AdminProducts() {
     queryKey: ["admin", "products"],
     queryFn: () => productService.list(),
   });
+  const categories = useQuery({
+    queryKey: ["admin", "categories"],
+    queryFn: () => productService.categories(),
+  });
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState({ ...EMPTY });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [open, setOpen] = useState(false);
-
+  
   const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "products"] });
 
   const save = useMutation({
@@ -173,10 +178,10 @@ function AdminProducts() {
           onSubmit={(e) => {
             e.preventDefault();
 
-            const errors = validateProduct(form);
+            const validationErrors = validateProduct(form, data ?? [], editing);
 
-            if (Object.keys(errors).length > 0) {
-              setErrors(errors);
+            if (Object.keys(validationErrors).length > 0) {
+              setErrors(validationErrors);
               return;
             }
 
@@ -199,19 +204,30 @@ function AdminProducts() {
             error={errors.name}
             required
           />
-          <Field
-            label="Category"
-            value={form.category}
-            onChange={(v) => {
-              setForm({ ...form, category: v });
-
-              if (errors.category) {
-                setErrors((prev) => ({ ...prev, category: "" }));
-              }
-            }}
-            error={errors.category}
-            required
-          />
+          <label className="block text-sm">
+            <span className="text-xs text-muted-foreground">Category</span>
+            <select
+              value={form.category}
+              onChange={(e) => {
+                setForm({ ...form, category: e.target.value });
+                if (errors.category) {
+                  setErrors((prev) => ({ ...prev, category: "" }));
+                }
+              }}
+              className="mt-1 w-full rounded-xl px-3 py-2 text-sm bg-white/5 border border-white/10"
+              required
+            >
+              <option value="">Select category</option>
+              {(categories.data ?? []).map((cat) => (
+                <option key={cat.id} value={cat.name}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+            {errors.category && (
+              <p className="mt-1 text-xs text-red-400">{errors.category}</p>
+            )}
+          </label>
           <Field
             label="Supplier"
             value={form.supplier}
@@ -292,6 +308,7 @@ function AdminProducts() {
             label="Stock"
             type="number"
             value={String(form.stock)}
+            error={errors.stock}
             onChange={(v) => setForm({ ...form, stock: Number(v) })}
           />
           <Field
@@ -409,7 +426,7 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         className={`mt-1 w-full rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60 ${
           error ? "border border-red-500 bg-red-500/5" : "bg-white/5 border border-white/10"
-        }`}
+        } ${type === "date" ? "[color-scheme:dark]" : ""}`}
       />
 
       {error && <p className="mt-1 text-xs text-red-400">{error}</p>}

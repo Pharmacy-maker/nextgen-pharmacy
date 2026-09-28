@@ -3,12 +3,18 @@ import { supabase } from "../../supabase";
 import { ENDPOINTS, USE_MOCK_API } from "../config";
 import { mockPrescriptions } from "../mock/db";
 import { mapSupabaseProduct } from "./product.service";
-import type { ID, Prescription, PrescriptionScan, PrescriptionStatus } from "../../../types/models";
+import type {
+  ID,
+  MatchedProduct,
+  Prescription,
+  PrescriptionScan,
+  PrescriptionStatus,
+} from "../../../types/models";
 
 let prescriptions: Prescription[] = [...mockPrescriptions];
 
 async function findMatchingProducts(medicineNames: string[]) {
-  const matches = [];
+  const matches: MatchedProduct[] = [];
 
   for (const medicine of medicineNames) {
     const cleanName = medicine
@@ -51,7 +57,15 @@ async function findMatchingProducts(medicineNames: string[]) {
 
       // Use the same mapping function as productService for consistency
       const mappedProduct = mapSupabaseProduct(foundProduct);
-      matches.push(mappedProduct);
+      matches.push({
+        ...mappedProduct,
+        description: mappedProduct.description ?? "",
+        composition: mappedProduct.composition ?? [],
+        warnings: mappedProduct.warnings ?? [],
+        sideEffects: mappedProduct.sideEffects ?? [],
+        prescriptionRequired: mappedProduct.prescriptionRequired ?? false,
+        tags: mappedProduct.tags ?? [],
+      });
 
       console.log("Matched:", medicine, "->", foundProduct.name);
     } else {
@@ -71,10 +85,24 @@ export const prescriptionService = {
         .order("uploaded_at", {
           ascending: false,
         });
+      console.log("RAW PRESCRIPTIONS:", data);
+      console.log("COUNT:", data?.length);
+      console.log("FIRST PRESCRIPTION FILE:", data?.[0]?.file_name);
 
       if (error) {
         throw new Error(error.message);
       }
+
+      console.log("ADMIN LIST DATA", data);
+      console.log(
+        "FILE NAMES:",
+        data?.map((r) => ({
+          id: r.id,
+          file_name: r.file_name,
+        }))
+      );
+      console.log("FIRST PRESCRIPTION ID:", data?.[0]?.id);
+      console.log("FIRST PRESCRIPTION USER_ID:", data?.[0]?.user_id);
 
       return (data ?? []).map((row) => ({
         id: row.id,
@@ -83,6 +111,7 @@ export const prescriptionService = {
         fileName: row.file_name,
         fileType: row.file_type,
         fileSize: row.file_size,
+        fileUrl: row.file_url,
         status: row.status,
         note: row.note,
         reviewedBy: row.reviewed_by,
@@ -106,6 +135,7 @@ export const prescriptionService = {
       if (error) {
         throw new Error(error.message);
       }
+
 
       return (data ?? []).map((row) => ({
         id: row.id,
@@ -136,11 +166,21 @@ export const prescriptionService = {
 
       const { data: publicUrlData } = supabase.storage.from("prescriptions").getPublicUrl(filePath);
 
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("full_name")
+        .eq("id", userId)
+        .single();
+
+      if (userError) {
+        throw new Error(userError.message);
+      }
+
       const { data, error } = await supabase
         .from("prescriptions")
         .insert({
           user_id: userId,
-          customer_name: "You",
+          customer_name: userData?.full_name ?? "Unknown Customer",
           file_name: file.name,
           file_type: file.type,
           file_size: file.size,
@@ -169,7 +209,7 @@ export const prescriptionService = {
     const rx: Prescription = {
       id: `rx-${Date.now()}`,
       userId,
-      customerName: "You",
+      customerName: "Unknown Customer",
       fileName: file.name,
       fileType: file.type,
       fileSize: file.size,
@@ -184,10 +224,46 @@ export const prescriptionService = {
 
   async review(id: ID, status: PrescriptionStatus, note?: string): Promise<Prescription> {
     if (!USE_MOCK_API) {
-      return apiFetch<Prescription>(ENDPOINTS.prescriptions.review(id), {
-        method: "PATCH",
-        body: { status, note },
+      console.log("REVIEWING ID:", id);
+      const { data, error, count } = await supabase
+        .from("prescriptions")
+        .update({
+          status,
+          note,
+          reviewed_by: "Admin",
+        })
+        .eq("id", id)
+        .select("*");
+
+      console.log("REVIEW RESULT:", {
+        id,
+        data,
+        error,
+        count,
       });
+      console.log("UPDATED ROWS:", data);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const row = data?.[0];
+
+      if (!row) {
+        throw new Error("Prescription not found after update");
+      }
+
+      return {
+        id: row.id,
+        userId: row.user_id,
+        customerName: row.customer_name,
+        fileName: row.file_name,
+        fileType: row.file_type,
+        fileSize: row.file_size,
+        fileUrl: row.file_url,
+        status: row.status,
+        uploadedAt: row.uploaded_at,
+      };
     }
 
     prescriptions = prescriptions.map((p) =>

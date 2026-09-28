@@ -123,7 +123,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/login" className="hover:text-foreground transition">
+                <Link
+                  to="/login"
+                  search={{ redirect: undefined }}
+                  className="hover:text-foreground transition"
+                >
                   Login
                 </Link>
               </li>

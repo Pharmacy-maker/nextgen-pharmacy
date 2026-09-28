@@ -75,6 +75,7 @@ function ForgotPasswordPage() {
 
               <Link
                 to="/login"
+                search={{ redirect: undefined }}
                 className="mt-3 block text-xs text-muted-foreground hover:text-foreground"
               >
                 ← Back to login
@@ -103,6 +104,7 @@ function ForgotPasswordPage() {
               </button>
               <Link
                 to="/login"
+                search={{ redirect: undefined }}
                 className="block text-center text-xs text-muted-foreground hover:text-foreground"
               >
                 ← Back to login
