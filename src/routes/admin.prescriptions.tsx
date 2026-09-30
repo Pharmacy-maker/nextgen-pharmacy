@@ -36,7 +36,7 @@ function AdminPrescriptions() {
       <AsyncBoundary isLoading={isLoading} error={error} data={data} onRetry={() => refetch()}>
         {(list) => (
           <DataTable
-            headers={["Customer", "File", "Size", "Uploaded", "View", "Extracted", "Status", "Review"]}
+            headers={["Customer", "File", "Size", "Uploaded", "View", "Status", "Review"]}
           >
             {list.map((rx) => (
               <tr key={rx.id} className="hover:bg-white/5">
@@ -63,11 +63,7 @@ function AdminPrescriptions() {
                     "—"
                   )}
                 </td>
-                <td className="px-4 py-3 text-xs text-muted-foreground">
-                  {rx.extractedMedicines?.length
-                    ? rx.extractedMedicines.map((m) => `${m.name} (${m.dosage})`).join(", ")
-                    : "—"}
-                </td>
+                
                 <td className="px-4 py-3">
                   <StatusBadge
                     label={rx.status}

@@ -71,32 +71,37 @@ export const userService = {
     id: ID,
     input: Partial<Pick<User, "name" | "email" | "phone" | "role" | "status">>,
   ): Promise<User> {
-    const { data, error } = await supabase
-      .from("users")
-      .update({
-        full_name: input.name,
-        email: input.email,
-        phone: input.phone,
-        role: input.role,
-        is_active: input.status !== undefined ? input.status === "active" : undefined,
-      })
-      .eq("id", id)
-      .select()
-      .single();
+    console.log("UPDATE USER ID:", id);
 
-    if (error) {
-      throw new Error(error.message);
-    }
+    const { data, error } = await supabase
+  .from("users")
+  .update({
+    full_name: input.name,
+    email: input.email,
+    phone: input.phone,
+    role: input.role,
+    is_active: input.status !== undefined ? input.status === "active" : undefined,
+  })
+  .eq("id", id)
+  .select();
+
+console.log("UPDATE RESULT:", data);
+console.log("UPDATE ERROR:", error);
+if (!data || data.length === 0) {
+  throw new Error("No user row returned");
+}
+
+const row = data[0];
 
     return {
-      id: data.id,
-      name: data.full_name ?? "",
-      email: data.email ?? "",
-      phone: data.phone ?? "",
-      role: data.role === "admin" ? "admin" : "user",
-      status: data.is_active ? "active" : "inactive",
-      createdAt: data.created_at,
-    };
+  id: row.id,
+  name: row.full_name ?? "",
+  email: row.email ?? "",
+  phone: row.phone ?? "",
+  role: row.role === "admin" ? "admin" : "user",
+  status: row.is_active ? "active" : "inactive",
+  createdAt: row.created_at,
+};
   },
 
   async remove(id: ID): Promise<void> {

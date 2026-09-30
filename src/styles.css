@@ -285,3 +285,21 @@
     linear-gradient(90deg, oklch(1 0 0 / 0.05) 1px, transparent 1px);
   background-size: 40px 40px;
 }
+
+select {
+  background-color: #111827 !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color-scheme: dark;
+}
+
+option {
+  background-color: #111827 !important;
+  color: #ffffff !important;
+}
+
+select:focus,
+select:hover {
+  background-color: #111827 !important;
+  color: #ffffff !important;
+}

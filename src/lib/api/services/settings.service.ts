@@ -9,23 +9,38 @@ export const settingsService = {
     if (error) throw error;
 
     return {
-      siteName: data?.pharmacy_name ?? "",
-      supportEmail: data?.email ?? "",
-      supportPhone: data?.phone ?? "",
-      deliveryFee: 0,
-      freeDeliveryAbove: 0,
-      maintenanceMode: false,
-    };
+  siteName: data?.site_name ?? data?.pharmacy_name ?? "",
+  supportEmail: data?.support_email ?? data?.email ?? "",
+  supportPhone: data?.support_phone ?? data?.phone ?? "",
+  deliveryFee: data?.delivery_fee ?? 0,
+  freeDeliveryAbove: data?.free_delivery_above ?? 0,
+  maintenanceMode: data?.maintenance_mode ?? false,
+};
   },
 
   async updateSite(input: Partial<SiteSettings>) {
-    const { data, error } = await supabase.from("site_settings").update(input).select().single();
+  const payload = {
+    site_name: input.siteName,
+    support_email: input.supportEmail,
+    support_phone: input.supportPhone,
+    delivery_fee: input.deliveryFee,
+    free_delivery_above: input.freeDeliveryAbove,
+    maintenance_mode: input.maintenanceMode,
+  };
 
-    if (error) throw error;
+  const { data, error } = await supabase
+    .from("site_settings")
+    .update(payload)
+    .eq("id", "682ee324-b0ea-48a1-8744-c3bd5b3ab326")
+    .select();
 
-    return data;
-  },
+  console.log("UPDATE DATA:", data);
+  console.log("UPDATE ERROR:", error);
 
+  if (error) throw error;
+
+  return data;
+},
   async notifications(): Promise<NotificationSetting[]> {
     const { data, error } = await supabase.from("notification_settings").select("*");
     console.log("NOTIFICATIONS RAW", data);
